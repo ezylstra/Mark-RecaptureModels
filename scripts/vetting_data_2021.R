@@ -9,7 +9,16 @@ setwd("C:/Users/My Elite/Documents/R/HummingBird/data")
 
 # Bring in data
 data <- read.csv("HC_SWRS1_HMNBandingData_2021_GS.csv")
+head(data)
 
-datahsr <- read.csv("HSR_ALL_HMNBandingData_2021.csv")
+# Change all characters to uppercase
+uppercase_data <- data.frame(lapply(data, function(variables) {
+                                if (is.character(variables)) {
+                                  return(toupper(variables))
+                                } else {
+                                  return(variables)}
+                              }),
+                       stringsAsFactors = FALSE) 
+head(uppercase_data)
 
-
+?lapply

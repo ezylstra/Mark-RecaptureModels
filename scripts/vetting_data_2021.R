@@ -14,7 +14,7 @@ head(data)
 example <- read.csv("example.csv") # It has lower case in some columns 
 head(example)
 
-# Change all characters to uppercase
+# Change all characters in the database to uppercase
 uppercase_data <- data.frame(lapply(data, function(variables) { # from the internet... 
                                 if (is.character(variables)) {
                                   return(toupper(variables))
@@ -29,3 +29,11 @@ uppercase_data_2 <-mutate_all(example, .funs=toupper) # all allows you to perfor
                                             # an operation on all variables at once 
                                             # from Kira's script 
 head(uppercase_data_2)
+
+# Find duplicates in Band_number 
+
+
+
+
+
+

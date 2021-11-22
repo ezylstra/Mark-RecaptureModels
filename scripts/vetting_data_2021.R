@@ -2,6 +2,8 @@
 # Gaby Samaniego gabysamaniego@email.arizona.edu 
 # 2021-11-15 
 
+library(tidyverse)
+
 # Set working directory
 setwd("C:/Users/My Elite/Documents/R/HummingBird/data")
 

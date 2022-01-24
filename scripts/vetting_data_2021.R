@@ -1,11 +1,11 @@
-# Vetting HMN's 2021 banding data 
+# Vetting HMN's banding data 
 # Gaby Samaniego gabysamaniego@email.arizona.edu 
 # 2021-11-15 
 
 library(tidyverse)
 
 # Set working directory
-setwd("C:/Users/My Elite/Documents/R/HummingBird/data")
+setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 
 # Bring in data
 data <- read.csv("HC_SWRS1_HMNBandingData_2021_GS.csv")
@@ -22,16 +22,15 @@ uppercase_data <- data.frame(lapply(data, function(variables) { # from the inter
                                   return(variables)}
                               }),
                        stringsAsFactors = FALSE) 
-head(uppercase_data)
+head(uppercase_data) # it worked! 
 
 
 uppercase_data_2 <-mutate_all(example, .funs=toupper) # all allows you to perform 
                                             # an operation on all variables at once 
-                                            # from Kira's script 
+                                            # from Kira's script, also worked  
 head(uppercase_data_2)
 
 # Find duplicates in Band_number 
-
 
 
 

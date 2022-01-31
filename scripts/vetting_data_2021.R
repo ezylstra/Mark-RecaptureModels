@@ -4,8 +4,9 @@
 
 install.packages("qdap")
 
-library(tidyverse) # for everything
+library(tidyverse) # to do everything
 library(qdap)      # to remove extra spaces 
+library(stringr)   # to work with character vector
 
 # Set working directory
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
@@ -28,16 +29,22 @@ head(uppercase_data) # it worked!
 
 
 head(example)
+
 uppercase_data_2 <-mutate_all(example, .funs=toupper) # from Kira's script  
 head(uppercase_data_2) # also worked!                 # Notes in notebook
 
-# Remove multiple spaces in rows 
-trimws(example,"both")
-head(example)
+# Remove all leading and trailing white spaces
+banding$Initials.Bdr <- str_trim(banding$Initials.Bdr, side=c("both"))
+   # can I use mutate_all for this purpose? I tried and failed :( 
 
+# Check each column to find mistakes  
+unique(example$Initials.Bdr)
+unique(example$Location)
+unique(example$year)
+unique(example$mo)
+unique(example$day)
 
-# Check each column to find mistakes
-
+   # This is going to take forever... is there a better way to do it??? 
 
 
 # Check the sequence of the band numbers 

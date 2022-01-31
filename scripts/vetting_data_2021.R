@@ -43,6 +43,7 @@ unique(example$Location)
 unique(example$year)
 unique(example$mo)
 unique(example$day)
+unique(example$Band.Status)
 
    # This is going to take forever... is there a better way to do it??? 
 

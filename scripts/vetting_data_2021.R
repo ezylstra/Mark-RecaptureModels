@@ -32,10 +32,20 @@ head(uppercase_data) # it worked!
 uppercase_data_2 <- mutate_all(example, .funs=toupper) # from Kira's script  
 head(uppercase_data_2) # also worked!                 # Notes in notebook
 
+# Check each column to find mistakes  
+unique(example$Initials.Bdr)
+unique(example$Location)
+unique(example$year)
+unique(example$mo)
+unique(example$day)
+unique(example$Band.Status)
+
 # Remove all leading and trailing white spaces
 banding$Initials.Bdr <- str_trim(banding$Initials.Bdr, side=c("both")) # from Kira's script
 
-remove_spaces <- mutate_all(example, .funs=str_trim(example, side = "both"))
+remove_spaces <- mutate_all(example, .funs=str_trim, side = "both")
+head(remove_spaces)
+unique(remove_spaces$Location)
 
 remove_spaces_2 <- data.frame(lapply(example, function(varaibles){
                               if (str_trim(example, side = "both")) {
@@ -47,13 +57,9 @@ remove_spaces_2 <- data.frame(lapply(example, function(varaibles){
 
    # can I use mutate_all for this purpose? I tried and failed :( 
 
-# Check each column to find mistakes  
-unique(example$Initials.Bdr)
-unique(example$Location)
-unique(example$year)
-unique(example$mo)
-unique(example$day)
-unique(example$Band.Status)
+
+
+
 
    # This is going to take forever... is there a better way to do it??? 
 

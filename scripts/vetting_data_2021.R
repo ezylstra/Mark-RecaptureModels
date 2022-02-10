@@ -81,10 +81,10 @@ ML <-
     tbl = ML_data,
     tbl_name = "ML_data",
     label = "ML Data Validation") %>% 
-  col_vals_equal(vars(Location), value = "ML") %>% 
-  col_vals_equal(vars(Initials.Bdr), value = "GS") %>% 
-  col_vals_in_set(vars(Band.Status), set = c("1","R","F","4","5","6","8")) %>% 
-  col_vals_in_set(vars(Band.Size), set = c("B","C","D","E","F","G","H","I","J",
+  col_vals_equal(vars(Site), value = "ML") %>% 
+  col_vals_equal(vars(Bander), value = "GS") %>% 
+  col_vals_in_set(vars(Band Status), set = c("1","R","F","4","5","6","8")) %>% 
+  col_vals_in_set(vars(Band Size), set = c("B","C","D","E","F","G","H","I","J",
                                            "K","L","M","N","O")) %>% 
   col_vals_in_set(vars(Species), set = c("ANHU","ALHU","BBLH","BCHU","BADE",
                                          "BEHU","BTMG","BTLH","BUFH","BALO",
@@ -92,9 +92,12 @@ ML <-
                                          "RTHU","RUHU","VCHU","WEHU","UNHU")) %>% 
   col_vals_in_set(vars(Sex), set = c("M","F","U")) %>% 
   col_vals_in_set(vars(Age), set = c("0","1","2","5")) %>% 
-  col_vals_in_set(vars(GorColor), set = c("O","R","V","P","B","G","GP","NS",
+  col_vals_in_set(vars(Gorget Color), set = c("O","R","V","P","B","G","GP","NS",
                                           "LS","MS","HS")) %>% 
-  col_vals_between(vars(GorCount....),1, 99, na_pass = TRUE) %>% 
+  col_vals_between(vars(Gorget Count),1, 99, na_pass = TRUE) %>% 
+  col_vals_between(vars(Head Gorget Count),1, 99, na_pass = TRUE) %>% 
+  col_vals_in_set(vars(Grooves), set = c("0","1","2","3")) %>% 
+  col_vals_in_set(vars(Buffy), set = c("Y","N","S"))
 
   
 

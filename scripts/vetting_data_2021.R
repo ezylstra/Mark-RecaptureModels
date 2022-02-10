@@ -72,8 +72,9 @@ interrogate(agent)
 
 # Mount Lemmon site (ML)
 
-ML_data <- read.csv("ML.csv")
+ML_data <- read.csv("ML_data.csv")
 head(ML_data)
+colnames(ML_data)
 
 ML <- 
   create_agent(
@@ -82,7 +83,20 @@ ML <-
     label = "ML Data Validation") %>% 
   col_vals_equal(vars(Location), value = "ML") %>% 
   col_vals_equal(vars(Initials.Bdr), value = "GS") %>% 
-  col_vals_in_set(vars(Band.Status), set = c("1","R","F","4","5","6","8"))
+  col_vals_in_set(vars(Band.Status), set = c("1","R","F","4","5","6","8")) %>% 
+  col_vals_in_set(vars(Band.Size), set = c("B","C","D","E","F","G","H","I","J",
+                                           "K","L","M","N","O")) %>% 
+  col_vals_in_set(vars(Species), set = c("ANHU","ALHU","BBLH","BCHU","BADE",
+                                         "BEHU","BTMG","BTLH","BUFH","BALO",
+                                         "CAHU","COHU","LUHU","RIHU","HYHU",
+                                         "RTHU","RUHU","VCHU","WEHU","UNHU")) %>% 
+  col_vals_in_set(vars(Sex), set = c("M","F","U")) %>% 
+  col_vals_in_set(vars(Age), set = c("0","1","2","5")) %>% 
+  col_vals_in_set(vars(GorColor), set = c("O","R","V","P","B","G","GP","NS",
+                                          "LS","MS","HS")) %>% 
+  col_vals_between(vars(GorCount....),1, 99, na_pass = TRUE) %>% 
+
+  
 
 interrogate(ML)
 

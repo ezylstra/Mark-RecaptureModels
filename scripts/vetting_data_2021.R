@@ -3,10 +3,12 @@
 # 2021-11-15 
 
 install.packages("qdap")
+install.packages("pointblank")
 
 library(tidyverse) # to do everything
 library(qdap)      # to remove extra spaces 
 library(stringr)   # to work with character vector
+library(pointblank) # for data validation 
 
 # Set working directory
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
@@ -54,15 +56,35 @@ remove_spaces_2 <- data.frame(lapply(example, function(varaibles){
                               }),
                               stringsAsFactors = FALSE)
 
+# Try the package pointblank for data validation. It works and it is AWESOME!!!
 
-   # can I use mutate_all for this purpose? I tried and failed :( 
+agent <- 
+  create_agent(
+    tbl = example,
+    tbl_name = "example",
+    label = "VALID-I Example No. 1") %>%
+col_vals_in_set(vars(Location), set = c("hc","swrs1")) %>%
+col_vals_in_set(vars(Initials.Bdr), set =c("smw","ml","gs"))
 
 
+interrogate(agent)
 
 
+# Mount Lemmon site (ML)
 
-   # This is going to take forever... is there a better way to do it??? 
+ML_data <- read.csv("ML.csv")
+head(ML_data)
 
+ML <- 
+  create_agent(
+    tbl = ML_data,
+    tbl_name = "ML_data",
+    label = "ML Data Validation") %>% 
+  col_vals_equal(vars(Location), value = "ML") %>% 
+  col_vals_equal(vars(Initials.Bdr), value = "GS") %>% 
+  col_vals_in_set(vars(Band.Status), set = c("1","R","F","4","5","6","8"))
+
+interrogate(ML)
 
 # Check the sequence of the band numbers 
 

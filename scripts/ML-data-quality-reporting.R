@@ -10,7 +10,7 @@ library(pointblank)
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 
 # Bring in data 
-ML_data <- read.csv("ML_data.csv")
+ML_data <- read.csv("ML_data.csv", na.strings = c("","NA"))
 head(ML_data)
 
 # Create columns for CMR and Protocol
@@ -20,7 +20,6 @@ head(ML_data)
 # Split date by year, month, and day
 ML_data <- mutate(ML_data, Year = year(Date), Month = month(Date),Day = day(Date)) 
 head(ML_data)
-
 
 # Bring in KoBo datasheet structure to verify column names
 KoBo_datasheet_structure <- read.csv("KoBo-datasheet.csv")
@@ -51,15 +50,22 @@ ML <-
   col_vals_in_set(vars(Leg.Condition), set = c("1","2","3","4","5","6","7")) %>%
   col_vals_in_set(vars(Gorget.Color), set = c("O","R","V","P","B","G","GP","NS",
                                               "LS","MS","HS")) %>% 
-  col_vals_between(vars(Gorget.Count),1, 99, na_pass = TRUE) %>% 
-  col_vals_between(vars(Head.Count),1, 99, na_pass = TRUE) %>% 
+  col_vals_between(vars(Gorget.Count),0, 99, na_pass = TRUE) %>% 
+  col_vals_between(vars(Head.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3")) %>% 
   col_vals_in_set(vars(Buffy), set = c("Y","N","S"))
 
 interrogate(ML)
 
-all_passed(ML)
+# to get errors in the rows: Michael suggestions 
 
-# Create columns and separate date by year, month and day 
-  
+interrogate(ML) %>% 
+  get_agent_report(display_table = FALSE)
+
+interrogate(ML) %>% 
+  get_sundered_data(type = "fail")
+
+# Organize columns order so it matches main database 
+
+
 

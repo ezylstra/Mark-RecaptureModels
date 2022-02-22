@@ -3,18 +3,32 @@
 # Gaby Samaniego
 
 library(tidyverse)
+library(lubridate)
 library(pointblank)
 
 # Set working directory
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 
-# Bring in KoBo datasheet structure
+# Bring in data 
+ML_data <- read.csv("ML_data.csv")
+head(ML_data)
+
+# Create columns for CMR and Protocol
+ML_data <- mutate(ML_data, CMR = "Y", Protocol = "HMN")
+head(ML_data)
+
+# Split date by year, month, and day
+ML_data <- mutate(ML_data, Year = year(Date), Month = month(Date),Day = day(Date)) 
+head(ML_data)
+
+
+# Bring in KoBo datasheet structure to verify column names
 KoBo_datasheet_structure <- read.csv("KoBo-datasheet.csv")
 colnames(KoBo_datasheet_structure)
 
 # Data quality reporting for Mount Lemmon site (ML)
 
-ML_data <- read.csv("ML_data.csv")
+head(ML_data)
 
 ML <- 
   create_agent(
@@ -40,15 +54,12 @@ ML <-
   col_vals_between(vars(Gorget.Count),1, 99, na_pass = TRUE) %>% 
   col_vals_between(vars(Head.Count),1, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3")) %>% 
-  col_vals_in_set(vars(Buffy), set = c("Y","N","S")) %>% 
-  
+  col_vals_in_set(vars(Buffy), set = c("Y","N","S"))
 
 interrogate(ML)
 
-# Create columns for CMR and Protocol
-
-new_columns <- mutate(ML, CMR = "Y", Protocol = "HMN")
+all_passed(ML)
 
 # Create columns and separate date by year, month and day 
-
+  
 

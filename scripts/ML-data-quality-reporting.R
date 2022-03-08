@@ -27,13 +27,16 @@ colnames(KoBo_datasheet_structure)
 
 # Data quality reporting for Mount Lemmon site (ML)
 
+al <- action_levels(warn_at = 1, stop_at = 1) # set thresholds 
+
 head(ML_data)
 
 ML <- 
   create_agent(
     tbl = ML_data,
     tbl_name = "ML_data",
-    label = "ML Data Validation") %>% 
+    label = "ML Data Validation",
+    actions = al) %>% 
   col_vals_equal(vars(Bander), value = "GS") %>%
   col_vals_equal(vars(Location), value = "ML") %>% 
   col_vals_in_set(vars(Species), set = c("ANHU","ALHU","BBLH","BCHU","BADE",
@@ -64,6 +67,10 @@ interrogate(ML) %>%
 
 interrogate(ML) %>% 
   get_sundered_data(type = "fail")
+
+# Find duplicated band numbers
+any(duplicated(ML_data$Band.Number)) # Are there duplicates? true or false
+which(duplicated(ML_data$Band.Number)) # If true, which row contains the duplicate
 
 # Organize columns order so it matches main database 
 

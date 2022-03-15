@@ -68,6 +68,19 @@ interrogate(ML) %>%
 interrogate(ML) %>% 
   get_sundered_data(type = "fail")
 
+# Another way to check the information in each column
+unique(ML_data$Bander)
+unique(ML_data$Location)
+unique(ML_data$Species)
+unique(ML_data$Sex)
+unique(ML_data$Age)
+unique(ML_data$Band.Status)
+unique(ML_data$Tarsus.Measurement)
+unique(ML_data$Band.Size)
+unique(ML_data$Leg.Condition)
+unique(ML_data$Gorget.Color)
+
+
 # Find duplicated band numbers
 any(duplicated(ML_data$Band.Number)) # Are there duplicates? true or false
 which(duplicated(ML_data$Band.Number)) # If true, which row contains the duplicate

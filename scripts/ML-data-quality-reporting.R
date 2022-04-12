@@ -51,7 +51,12 @@ al <- action_levels(warn_at = 1, stop_at = 1)
 pattern <- "[a-z]{1}[0-9]{5}"
 ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
 
+unique(ML_data$Band.Number)
+
+
 colnames(ML_data)
+
+# Validation 
 
 ML <- 
   create_agent(

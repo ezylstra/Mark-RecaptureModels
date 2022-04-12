@@ -1,6 +1,7 @@
-# Working with KoBo datasheet 
+# Data quality control for biweekly monitoring data 
 # For HMN's 2022 data vetting 
-# Gaby Samaniego
+# Gaby Samaniego gaby@savehummingbirds.org
+# April 2022
 
 library(tidyverse)
 library(lubridate)
@@ -35,12 +36,18 @@ ML_data <- mutate(ML_data, Year = year(Date), Month = month(Date),Day = day(Date
 head(ML_data)
 class(ML_data$Month)
 
+# Duplicate Band Status column 
+ML_data <- ML_data %>% 
+  mutate(Old.Band.Status = Band.Status)
+head(ML_data)
+
 # Data quality reporting for Mount Lemmon site (ML)
 
 # Set thresholds for report 
 al <- action_levels(warn_at = 1, stop_at = 1) 
 
-# Create pattern (regex) to check band numbers 
+# Create pattern (regex) to check that band number has a letter and five numbers
+# Need to do it again, it is not working 
 pattern <- "[a-z]{1}[0-9]{5}"
 ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
 
@@ -73,6 +80,7 @@ ML <-
   col_vals_between(vars(Head.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3",NA)) %>% 
   col_vals_in_set(vars(Buffy), set = c("Y","N","S",NA)) %>% 
+  col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
   col_vals_between(vars(Wing.Chord), 35, 80, na_pass = TRUE) %>% 
   col_vals_between(vars(Culmen), 12, 30, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
@@ -82,40 +90,28 @@ ML <-
   col_vals_in_set(vars(Primaries), set = c("1","2","3","4","5","6","7","8","9",
                                            "0","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Secondaries), set = c("1","2","3","4","5","6","F","L","M","R",NA)) %>%
-  col_vals_in_set(vars(Tail.1), set = c("1","2","3","4","5","F","L","M","R",NA))
+  col_vals_in_set(vars(Tail.1), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
+  col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
 interrogate(ML)
 
-
-# to get errors in the rows: Michael suggestions 
-
-interrogate(ML) %>% 
-  get_agent_report(display_table = FALSE)
-
+# View the errors (fails) by rows
 interrogate(ML) %>% 
   get_sundered_data(type = "fail")
 
-# Another way to check the information in each column
-unique(ML_data$Bander)
-unique(ML_data$Location)
-unique(ML_data$Species)
-unique(ML_data$Sex)
-unique(ML_data$Age)
-unique(ML_data$Band.Status)
-unique(ML_data$Tarsus.Measurement)
-unique(ML_data$Band.Size)
-unique(ML_data$Leg.Condition)
-unique(ML_data$Gorget.Color)
-unique(ML_data$Gorget.Count)
-unique(ML_data$Head.Count)
-unique(ML_data$Grooves)
-unique(ML_data$Body)
-
-# Find duplicated band numbers
+# Find duplicate band numbers
 any(duplicated(ML_data$Band.Number)) # Are there duplicates? true or false
 which(duplicated(ML_data$Band.Number)) # If true, which row contains the duplicate
 
 # Organize columns order so it matches main database 
+vetted_ML_data <- ML_data %>% 
+  relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
+           Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
+           Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
+head(vetted_ML_data)
+
+# Create csv with vetted data 
+write.csv(vetted_ML_data, "C:/Users/gabym/Documents/R/HummingBird/output/ML_vetted.csv")
 
 
 

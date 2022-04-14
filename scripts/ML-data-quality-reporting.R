@@ -53,7 +53,6 @@ ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
 
 unique(ML_data$Band.Number)
 
-
 colnames(ML_data)
 
 # Validation 

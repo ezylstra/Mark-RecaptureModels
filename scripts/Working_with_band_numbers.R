@@ -15,6 +15,7 @@ letter_codes <- read.csv("BBL_letter_codes.csv")
 
 
 # Replace letter in Band.Number with BBL codes
+unique(ML_2022_bands$Band.Number)
 
 # First Separate letter form numbers in Band.Number column 
 a <- ML_2022_bands$band_letter <-substr(ML_2022_bands$Band.Number,
@@ -28,7 +29,6 @@ b <- ML_2022_bands$band_number <- substr(ML_2022_bands$Band.Number,
 b
 
 # Second create new column with band number containing BBL codes
-
 ML_BBL <- ML_2022_bands %>% 
   inner_join(letter_codes, 
              by = c("band_letter" = "letter"))
@@ -40,7 +40,9 @@ done <- ML_BBL %>%
 
 done
 
-# Now delete columns you dont need anymore 
+# Now delete unnecessary columns created to assigned the BBL codes to band numbers 
+
+
 
 
 # Get all band numbers and sort them 

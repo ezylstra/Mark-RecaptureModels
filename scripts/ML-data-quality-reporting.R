@@ -1,4 +1,4 @@
-# Data quality control for biweekly monitoring data 
+# Data quality control for biweekly monitoring data for ML site
 # For HMN's 2022 data vetting 
 # Gaby Samaniego gaby@savehummingbirds.org
 # April 2022

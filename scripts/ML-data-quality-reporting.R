@@ -7,11 +7,14 @@ library(tidyverse)
 library(lubridate)
 library(pointblank)
 
+##### Data wrangling ##### 
+
 # Set working directory
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 
 # Bring in data 
-ML_data <- read.csv("ML_data.csv", na.strings = c("","NA"))
+ML_data <- read.csv("ML_data.csv", 
+                    na.strings = c("","NA"))
 head(ML_data)
 
 # Capitalize all characters and factors
@@ -32,30 +35,29 @@ head(ML_data)
 class(ML_data$Date)
 
 # Split date by year, month, and day
-ML_data <- mutate(ML_data, Year = year(Date), Month = month(Date),Day = day(Date))  
+ML_data <- mutate(ML_data, Year = year(Date), 
+                  Month = month(Date),
+                  Day = day(Date))  
 head(ML_data)
-class(ML_data$Month)
 
-# Duplicate Band Status column 
+# Duplicate Band Status column to match main database  
 ML_data <- ML_data %>% 
   mutate(Old.Band.Status = Band.Status)
 head(ML_data)
 
-# Data quality reporting for Mount Lemmon site (ML)
+###### Data quality reporting for Mount Lemmon site (ML) ######
 
 # Set thresholds for report 
 al <- action_levels(warn_at = 1, stop_at = 1) 
 
 # Create pattern (regex) to check that band number has a letter and five numbers
-# Need to do it again, it is not working 
+#### Need to do it again, it is not working #### 
 pattern <- "[a-z]{1}[0-9]{5}"
 ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
 
 unique(ML_data$Band.Number)
 
-colnames(ML_data)
-
-# Validation 
+# Data validation with pointblank package   
 
 ML <- 
   create_agent(
@@ -97,17 +99,20 @@ ML <-
   col_vals_in_set(vars(Tail.1), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
   col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
+# Create report after validation 
 interrogate(ML)
 
 # View the errors (fails) by rows
 interrogate(ML) %>% 
   get_sundered_data(type = "fail")
 
-# Find duplicate band numbers
+##### Find duplicate band numbers #####
 any(duplicated(ML_data$Band.Number)) # Are there duplicates? true or false
 which(duplicated(ML_data$Band.Number)) # If true, which row contains the duplicate
 
-# Organize columns order so it matches main database 
+##### Create new csv with the validated data for ML site #####
+
+# Organize columns' order so it matches main database 
 vetted_ML_data <- ML_data %>% 
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
            Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 

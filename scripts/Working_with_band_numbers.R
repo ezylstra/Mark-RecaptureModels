@@ -8,8 +8,9 @@ library(tidyverse)
 # Set working directory 
 setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 
-# Bring in data, all band numbers (2002-2021), new bands (2022) and 
-# Bird Banding Laboratory (BBL) letter codes
+# Bring in data. All band numbers from 2002 to 2021, vetted ML data with bands
+# for 2022, and Bird Banding Laboratory (BBL) letter codes
+
 old_bands <- read.csv("all_bands.csv")
 ML_2022_bands <- read.csv("ML_vetted.csv") # Data vetted with R code 
 letter_codes <- read.csv("BBL_letter_codes.csv")
@@ -34,14 +35,15 @@ ML_BBL <- ML_2022_bands %>%
              by = c("band_letter" = "letter"))
 head(ML_BBL)
 
-# Merge BBL code with numbers of Band.Number 
+# Merge BBL code with numbers from Band.Number 
 ML_new_bands <- ML_BBL %>% 
   mutate(Band.Number.New = paste0(letter_number, band_number))
 
 head(ML_ready)
 
 # Delete unnecessary columns created to assigned the BBL codes to band numbers 
-# and reorganize column's order
+# Reorganize column's order, and
+# Replace name in column Band.Number
 ML_ready <- ML_new_bands %>% 
   select(-band_letter, 
          -band_number, 

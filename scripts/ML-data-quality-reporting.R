@@ -15,15 +15,12 @@ setwd("C:/Users/gabym/Documents/R/HummingBird/data")
 # Bring in data 
 ML_data <- read.csv("ML_data.csv", 
                     na.strings = c("","NA"))
-head(ML_data)
 
 # Capitalize all characters and factors
 ML_data <- mutate_all(ML_data, .funs=toupper)
-head(ML_data)
 
 # Create columns for CMR and Protocol
 ML_data <- mutate(ML_data, CMR = "Y", Protocol = "HMN")
-head(ML_data)
 
 # Change Date column from character to date
 class(ML_data$Date)
@@ -31,19 +28,16 @@ class(ML_data$Date)
 ML_data <- ML_data %>% 
            mutate(Date = mdy(Date))
 
-head(ML_data)
 class(ML_data$Date)
 
 # Split date by year, month, and day
 ML_data <- mutate(ML_data, Year = year(Date), 
                   Month = month(Date),
                   Day = day(Date))  
-head(ML_data)
 
 # Duplicate Band Status column to match main database  
 ML_data <- ML_data %>% 
   mutate(Old.Band.Status = Band.Status)
-head(ML_data)
 
 ###### Data quality reporting for Mount Lemmon site (ML) ######
 
@@ -117,7 +111,6 @@ vetted_ML_data <- ML_data %>%
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
            Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
-head(vetted_ML_data)
 
 # Create csv with vetted data 
 write.csv(vetted_ML_data, "C:/Users/gabym/Documents/R/HummingBird/output/ML_vetted.csv")

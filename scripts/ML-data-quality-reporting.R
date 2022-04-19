@@ -13,26 +13,27 @@ library(pointblank)
 ML_data <- read.csv("data/ML_data.csv", 
                     na.strings = c("","NA"))
 
-# Capitalize all characters and factors
+# Capitalize all characters and factors across data frame 
 ML_data <- mutate_all(ML_data, .funs=toupper)
 
-# Create columns for CMR and Protocol
+# Create columns to indicate if the data will be used for capture mark recapture
+# (CMR) analysis and to add the protocol used to collect it
 ML_data <- mutate(ML_data, CMR = "Y", Protocol = "HMN")
 
 # Change Date column from character to date
 class(ML_data$Date)
-
 ML_data <- ML_data %>% 
            mutate(Date = mdy(Date))
-
 class(ML_data$Date)
 
-# Split date by year, month, and day
+# Split column Date by year, month, and day
 ML_data <- mutate(ML_data, Year = year(Date), 
                   Month = month(Date),
                   Day = day(Date))  
+head(ML_data)
 
-# Duplicate Band Status column to match main database  
+# Duplicate Band Status column to match columns' names in main database when 
+# merging data frames  
 ML_data <- ML_data %>% 
   mutate(Old.Band.Status = Band.Status)
 

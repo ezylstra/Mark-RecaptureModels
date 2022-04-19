@@ -9,11 +9,8 @@ library(pointblank)
 
 ##### Data wrangling ##### 
 
-# Set working directory
-setwd("C:/Users/gabym/Documents/R/HummingBird/data")
-
 # Bring in data 
-ML_data <- read.csv("ML_data.csv", 
+ML_data <- read.csv("data/ML_data.csv", 
                     na.strings = c("","NA"))
 
 # Capitalize all characters and factors

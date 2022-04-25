@@ -10,30 +10,30 @@ library(pointblank)
 ##### Data wrangling ##### 
 
 # Bring in data 
-ML_data <- read.csv("data/ML_data.csv", 
+data <- read.csv("data/ML_data.csv", 
                     na.strings = c("","NA"))
 
 # Capitalize all characters and factors across data frame 
-ML_data <- mutate_all(ML_data, .funs=toupper)
+data <- mutate_all(data, .funs=toupper)
 
 # Create columns to indicate if the data will be used for capture mark recapture
 # (CMR) analysis and to add the protocol used to collect it
-ML_data <- mutate(ML_data, CMR = "Y", Protocol = "HMN")
+data <- mutate(data, CMR = "Y", Protocol = "HMN")
 
 # Change Date column from character to date
-class(ML_data$Date)
-ML_data <- ML_data %>% 
+class(data$Date)
+data <- data %>% 
            mutate(Date = mdy(Date))
-class(ML_data$Date)
+class(data$Date)
 
 # Split column Date by year, month, and day
-ML_data <- mutate(ML_data, Year = year(Date), 
+data <- mutate(data, Year = year(Date), 
                   Month = month(Date),
                   Day = day(Date))  
 
 # Duplicate Band Status column to match columns' names in main database when 
 # merging data frames  
-ML_data <- ML_data %>% 
+data <- data %>% 
   mutate(Old.Band.Status = Band.Status)
 
 ###### Data quality reporting for Mount Lemmon site (ML) ######
@@ -50,11 +50,11 @@ unique(ML_data$Band.Number)
 
 # Data validation with pointblank package   
 
-ML <- 
+validation <- 
   create_agent(
-    tbl = ML_data,
-    tbl_name = "ML_data",
-    label = "ML Data Validation",
+    tbl = data,
+    tbl_name = "Vetted_data",
+    label = "Data Validation",
     actions = al) %>% 
   col_is_date(vars(Date)) %>% 
   col_vals_in_set(vars(Bander), set = c("GS","ML","SMW","BJ","KO","TT","LY",
@@ -93,26 +93,27 @@ ML <-
   col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
 # Create report after validation 
-interrogate(ML)
+interrogate(validation)
 
 # View the errors (fails) by rows
-interrogate(ML) %>% 
+interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 
 ##### Find duplicate band numbers #####
-any(duplicated(ML_data$Band.Number)) # Are there duplicates? true or false
-which(duplicated(ML_data$Band.Number)) # If true, which row contains the duplicate
+any(duplicated(data$Band.Number)) # Are there duplicates? true or false
+which(duplicated(data$Band.Number)) # If true, which row contains the duplicate
 
 ##### Create new csv with the validated data for ML site #####
 
 # Organize columns' order so it matches main database 
-vetted_ML_data <- ML_data %>% 
+vetted_data <- data %>% 
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
            Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
 # Create csv with vetted data 
-write.csv(vetted_ML_data, "C:/Users/gabym/Documents/R/HummingBird/output/ML_vetted.csv")
+write.csv(vetted_data,"output/vetted_ML_Data.csv")
+
 
 
 

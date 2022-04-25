@@ -112,7 +112,7 @@ vetted_data <- data %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
 # Create csv with vetted data 
-write.csv(vetted_data,"output/vetted_ML_Data.csv")
+write.csv(vetted_data,"output/vetted_ML_data.csv")
 
 
 

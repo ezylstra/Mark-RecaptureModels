@@ -1,5 +1,5 @@
-# Data quality control for biweekly monitoring data for ML site
-# For HMN's 2022 data vetting 
+# Data quality control for biweekly monitoring data 
+# Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
 # April 2022
 
@@ -30,7 +30,6 @@ class(ML_data$Date)
 ML_data <- mutate(ML_data, Year = year(Date), 
                   Month = month(Date),
                   Day = day(Date))  
-head(ML_data)
 
 # Duplicate Band Status column to match columns' names in main database when 
 # merging data frames  
@@ -58,8 +57,10 @@ ML <-
     label = "ML Data Validation",
     actions = al) %>% 
   col_is_date(vars(Date)) %>% 
-  col_vals_equal(vars(Bander), value = "GS") %>%    
-  col_vals_equal(vars(Location), value = "ML") %>%  
+  col_vals_in_set(vars(Bander), set = c("GS","ML","SMW","BJ","KO","TT","LY",
+                                        "ER","AS")) %>%    
+  col_vals_in_set(vars(Location), set = c("ML","HC","SWRS","PA","FH","DGS","MV",
+                                          "MPGF","HSR","CFCK","ESC","WCAT")) %>%  
   col_vals_in_set(vars(Species), set = c("ANHU","ALHU","BBLH","BCHU","BADE",
                                          "BEHU","BTMG","BTLH","BUFH","BALO",
                                          "CAHU","COHU","LUHU","RIHU","HYHU",

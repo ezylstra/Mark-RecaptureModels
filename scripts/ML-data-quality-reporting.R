@@ -10,7 +10,7 @@ library(pointblank)
 ##### Data wrangling ##### 
 
 # Bring in data 
-data <- read.csv("data/ML_data.csv", 
+data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
                     na.strings = c("","NA"))
 
 # Capitalize all characters and factors across data frame 
@@ -78,7 +78,7 @@ validation <-
   col_vals_between(vars(Gorget.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_between(vars(Head.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3",NA)) %>% 
-  col_vals_in_set(vars(Buffy), set = c("Y","N","S",NA)) %>% 
+  col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
   col_vals_between(vars(Wing.Chord), 35, 80, na_pass = TRUE) %>% 
   col_vals_between(vars(Culmen), 12, 30, na_pass = TRUE) %>% 
@@ -92,10 +92,7 @@ validation <-
   col_vals_in_set(vars(Tail.1), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
   col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
-# Create report after validation 
-interrogate(validation)
-
-# View the errors (fails) by rows
+# Create report after validation and view errors or failed values by rows 
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 

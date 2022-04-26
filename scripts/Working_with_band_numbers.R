@@ -11,7 +11,7 @@ library(tidyverse)
 old_bands <- read.csv("data/all_bands.csv")
 
 # Vetted data for current season we want to compare 
-new_bands <- read.csv("data/vetted_HC_data.csv") # Data vetted with R script
+new_bands <- read.csv("output/vetted_SWRS_data.csv") # Data vetted with R script
 
 # Bird Banding Laboratory (BBL) letter codes
 letter_codes <- read.csv("data/BBL_letter_codes.csv")
@@ -19,10 +19,9 @@ letter_codes <- read.csv("data/BBL_letter_codes.csv")
 ### Data wrangling ###
 
 # Replace letter in Band.Number with BBL codes
-unique(new_bands$Band.Number)
-
 # Separate letter from numbers in Band.Number column. Band numbers have six 
 # digits, they are always 1 letter (A-Z) followed by five numbers (0-9)
+unique(new_bands$Band.Number)
 new_bands$band_letter <-substr(new_bands$Band.Number,
                                    start = 1, 
                                    stop = 1)

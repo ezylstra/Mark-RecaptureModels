@@ -58,6 +58,7 @@ ready <- new_bands %>%
 
 # Sort data by species, age and sex? 
 
+
 # This is my next step, not ready yet, consult with Erin 
 
 

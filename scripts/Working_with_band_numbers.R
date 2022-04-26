@@ -1,50 +1,49 @@
 # Working with band numbers
-# To compare 2022 bands with 2002-2021 bands
+# To compare new bands applied during current season with previous season's bands
 # Gaby Samaniego gaby@savehummingbirds.org
 # April 2022
 
 library(tidyverse)
 
-# Set working directory 
-setwd("C:/Users/gabym/Documents/R/HummingBird/data")
+#### Bring in data ####
 
-# Bring in data. All band numbers from 2002 to 2021, vetted ML data with bands
-# for 2022, and Bird Banding Laboratory (BBL) letter codes
+# All band numbers used by HMN's monitoring program
+old_bands <- read.csv("data/all_bands.csv")
 
-old_bands <- read.csv("all_bands.csv")
-ML_2022_bands <- read.csv("ML_vetted.csv") # Data vetted with R code 
-letter_codes <- read.csv("BBL_letter_codes.csv")
+# Vetted data for current season we want to compare 
+new_bands <- read.csv("data/vetted_HC_data.csv") # Data vetted with R script
+
+# Bird Banding Laboratory (BBL) letter codes
+letter_codes <- read.csv("data/BBL_letter_codes.csv")
+
+### Data wrangling ###
 
 # Replace letter in Band.Number with BBL codes
-unique(ML_2022_bands$Band.Number)
+unique(new_bands$Band.Number)
 
-# Separate letter from numbers in Band.Number column in ML 2022 data 
-a <- ML_2022_bands$band_letter <-substr(ML_2022_bands$Band.Number,
+# Separate letter from numbers in Band.Number column. Band numbers have six 
+# digits, they are always 1 letter (A-Z) followed by five numbers (0-9)
+new_bands$band_letter <-substr(new_bands$Band.Number,
                                    start = 1, 
                                    stop = 1)
-a
 
-b <- ML_2022_bands$band_number <- substr(ML_2022_bands$Band.Number,
+new_bands$band_number <- substr(new_bands$Band.Number,
                                     start = 2,
                                     stop = 6)
-b
 
-# Create new column in ML 2022 with band number containing BBL codes
-ML_BBL <- ML_2022_bands %>% 
+# Create new column in vetted data with band number containing BBL codes
+BBL <- new_bands %>% 
   inner_join(letter_codes, 
              by = c("band_letter" = "letter"))
-head(ML_BBL)
 
 # Merge BBL code with numbers from Band.Number 
-ML_new_bands <- ML_BBL %>% 
+new_bands <- BBL %>% 
   mutate(Band.Number.New = paste0(letter_number, band_number))
-
-head(ML_ready)
 
 # Delete unnecessary columns created to assigned the BBL codes to band numbers 
 # Reorganize column's order, and
 # Replace name in column Band.Number
-ML_ready <- ML_new_bands %>% 
+ready <- new_bands %>% 
   select(-band_letter, 
          -band_number, 
          -band_number, 
@@ -55,10 +54,10 @@ ML_ready <- ML_new_bands %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number) %>% 
   rename(Band.Number = Band.Number.New)
 
-head(ML_ready)
-
 ##### Check if recapture band numbers (band status R) matches first band number 
 ##### assigned to that recaptured bird (band status 1)  
+
+# Sort data by species, age and sex? 
 
 # This is my next step, not ready yet, consult with Erin 
 

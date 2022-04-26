@@ -23,7 +23,7 @@ data <- mutate(data, CMR = "Y", Protocol = "HMN")
 # Change Date column from character to date
 class(data$Date)
 data <- data %>% 
-           mutate(Date = ymd(Date))
+           mutate(Date = mdy(Date))
 class(data$Date)
 
 # Split column Date by year, month, and day
@@ -36,17 +36,19 @@ data <- mutate(data, Year = year(Date),
 data <- data %>% 
   mutate(Old.Band.Status = Band.Status)
 
+# Replace Band.Number 'XXXXXX' with NA #### Not working.... 
+data %>% 
+  mutate(Band.Number = replace(Band.Number, Band.Number == "XXXXXX", NA))
+
+tail(data)
+
 ###### Data validation with pointblank package ######
 
 # Set thresholds for report 
 al <- action_levels(warn_at = 1, stop_at = 1) 
 
-# Create pattern (regex) to check that band number has a letter and five numbers
-#### Need to do it again, it is not working #### 
-pattern <- "[a-z]{1}[0-9]{5}"
-ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
-
-unique(ML_data$Band.Number)
+# Create pattern (regex) to validate if Band.Number is a letter and five numbers
+pattern <- "[A-Z]{1}[0-9]{5}"
 
 # Data validation. Most columns in the data frame will be validated in the agent    
 
@@ -64,7 +66,7 @@ validation <-
   col_vals_in_set(vars(Species), set = c("ANHU","ALHU","BBLH","BCHU","BADE",
                                          "BEHU","BTMG","BTLH","BUFH","BALO",
                                          "CAHU","COHU","LUHU","RIHU","HYHU",
-                                         "RTHU","RUHU","VCHU","WEHU","UNHU")) %>% 
+                                         "RTHU","RUHU","VCHU","WEHU","UNHU")) %>%
   col_vals_in_set(vars(Sex), set = c("M","F","U",NA)) %>% 
   col_vals_in_set(vars(Age), set = c("0","1","2","5",NA)) %>% 
   col_vals_in_set(vars(Band.Status), set = c("1","R","F","4","5","6","8",NA)) %>%  
@@ -72,6 +74,7 @@ validation <-
                                                     "I","J","K","L","M","N","O",NA)) %>% 
   col_vals_in_set(vars(Band.Size), set = c("B","C","D","E","F","G","H","I","J",
                                            "K","L","M","N","O",NA)) %>% 
+  col_vals_regex(vars(Band.Number), regex = pattern, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Leg.Condition), set = c("1","2","3","4","5","6","7",NA)) %>% 
   col_vals_in_set(vars(Gorget.Color), set = c("O","R","V","P","B","G","GP","NS",
                                               "LS","MS","HS",NA)) %>% 
@@ -90,13 +93,16 @@ validation <-
   col_vals_in_set(vars(Tail.1), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
   col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
-# Create report after validation and view errors or failed values by rows 
+# Create report after validation  
+interrogate(validation)
+
+# View errors or failed values by rows
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 
 ##### Find duplicate band numbers #####
-any(duplicated(data$Band.Number)) # Are there duplicates? true or false
-which(duplicated(data$Band.Number)) # If true, which row contains the duplicate
+any(duplicated(data$Band.Number)) 
+which(duplicated(data$Band.Number)) 
 
 ##### Create new csv with the validated data #####
 

@@ -10,8 +10,25 @@ library(pointblank)
 ##### Data wrangling ##### 
 
 # Bring in data 
-data <- read.csv("data/SWRS_0423_HMNBandingData_2022.csv", 
+data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
                     na.strings = c("","NA"))
+
+# If Molt information is all F, R will treat it as a logical vector and replace 
+# it with FALSE, so we need to change that by telling R to treat that as a 
+# character 
+
+if(is.logical(data$Secondaries)){
+  data <- data %>% 
+    mutate(sec_2 = if_else(Secondaries == FALSE, "F", NA)) %>% 
+    mutate(Secondaries = sec_2) %>% 
+    select(-sec_2)
+}
+
+
+# try this and is not working 
+
+data <- data %>% 
+  mutate_if(is.logical, as.character)
 
 # Capitalize all characters and factors across data frame 
 data <- mutate_all(data, .funs=toupper)
@@ -37,8 +54,8 @@ data <- data %>%
   mutate(Old.Band.Status = Band.Status)
 
 # Replace Band.Number 'XXXXXX' with NA #### Not working.... 
-data %>% 
-  mutate(Band.Number = replace(Band.Number, Band.Number == "XXXXXX", NA))
+data <- data %>% 
+  mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
 
 tail(data)
 
@@ -113,7 +130,7 @@ vetted_data <- data %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
 # Create csv with vetted data. Make sure to update the site in the output name 
-write.csv(vetted_data,"output/vetted_SWRS_data.csv")
+write.csv(vetted_data,"output/vetted_SWRS_data.csv", row.names = FALSE)
 
 ### Get summarized data for report ### 
 

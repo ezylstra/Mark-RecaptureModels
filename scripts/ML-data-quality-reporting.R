@@ -112,8 +112,8 @@ vetted_data <- data %>%
            Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
-# Create csv with vetted data 
-write.csv(vetted_data,"output/vetted_HC_data.csv")
+# Create csv with vetted data. Make sure to update the site in the output name 
+write.csv(vetted_data,"output/vetted_SWRS_data.csv")
 
 ### Get summarized data for report ### 
 

@@ -1,4 +1,4 @@
-# Data quality control for biweekly monitoring data 
+# Data validation for biweekly monitoring data 
 # Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
 # April 2022
@@ -23,7 +23,7 @@ data <- mutate(data, CMR = "Y", Protocol = "HMN")
 # Change Date column from character to date
 class(data$Date)
 data <- data %>% 
-           mutate(Date = mdy(Date))
+           mutate(Date = ymd(Date))
 class(data$Date)
 
 # Split column Date by year, month, and day
@@ -36,7 +36,7 @@ data <- mutate(data, Year = year(Date),
 data <- data %>% 
   mutate(Old.Band.Status = Band.Status)
 
-###### Data quality reporting for Mount Lemmon site (ML) ######
+###### Data validation with pointblank package ######
 
 # Set thresholds for report 
 al <- action_levels(warn_at = 1, stop_at = 1) 
@@ -48,7 +48,7 @@ ML_data %>% test_col_vals_regex(vars(Band.Number), regex = pattern)
 
 unique(ML_data$Band.Number)
 
-# Data validation with pointblank package   
+# Data validation. Most columns in the data frame will be validated in the agent    
 
 validation <- 
   create_agent(
@@ -80,8 +80,6 @@ validation <-
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3",NA)) %>% 
   col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
-  col_vals_between(vars(Wing.Chord), 35, 80, na_pass = TRUE) %>% 
-  col_vals_between(vars(Culmen), 12, 30, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
   col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2",NA)) %>%
   col_vals_in_set(vars(Head.Gorget), set = c("1","2","3","F","L","M","R",NA)) %>%
@@ -100,7 +98,7 @@ interrogate(validation) %>%
 any(duplicated(data$Band.Number)) # Are there duplicates? true or false
 which(duplicated(data$Band.Number)) # If true, which row contains the duplicate
 
-##### Create new csv with the validated data for ML site #####
+##### Create new csv with the validated data #####
 
 # Organize columns' order so it matches main database 
 vetted_data <- data %>% 
@@ -109,7 +107,7 @@ vetted_data <- data %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
 # Create csv with vetted data 
-write.csv(vetted_data,"output/vetted_ML_data.csv")
+write.csv(vetted_data,"output/vetted_HC_data.csv")
 
 
 

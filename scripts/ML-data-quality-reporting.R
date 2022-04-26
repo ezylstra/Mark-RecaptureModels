@@ -10,7 +10,7 @@ library(pointblank)
 ##### Data wrangling ##### 
 
 # Bring in data 
-data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
+data <- read.csv("data/SWRS_0423_HMNBandingData_2022.csv", 
                     na.strings = c("","NA"))
 
 # Capitalize all characters and factors across data frame 
@@ -115,6 +115,19 @@ vetted_data <- data %>%
 # Create csv with vetted data 
 write.csv(vetted_data,"output/vetted_HC_data.csv")
 
+### Get summarized data for report ### 
 
+# Individuals by species
+data %>% 
+  count(Species)  
+
+# Individuals by Band Status (new birds, recaptures)
+data %>% 
+  count(Band.Status)
+
+# # of recaptures multiple times a day
+data %>% 
+  count(Day.Recaptures)
+ 
 
 

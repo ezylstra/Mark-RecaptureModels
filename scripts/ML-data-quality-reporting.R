@@ -4,8 +4,8 @@
 # April 2022
 
 library(tidyverse)
-library(lubridate)
 library(pointblank)
+library(lubridate)
 
 ##### Data wrangling ##### 
 
@@ -19,7 +19,7 @@ data <- read.csv("data/HC_0421_HMNBandingData_2022.csv",
 
 if(is.logical(data$Secondaries)){
   data <- data %>% 
-    mutate(sec_2 = if_else(Secondaries == FALSE, "F", NA)) %>% 
+    mutate(sec_2 = if_else(Secondaries == FALSE, F, NA)) %>% 
     mutate(Secondaries = sec_2) %>% 
     select(-sec_2)
 }
@@ -27,7 +27,7 @@ if(is.logical(data$Secondaries)){
 
 # try this and is not working 
 
-data <- data %>% 
+data1 <- data %>% 
   mutate_if(is.logical, as.character)
 
 # Capitalize all characters and factors across data frame 

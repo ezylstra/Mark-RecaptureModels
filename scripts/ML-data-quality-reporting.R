@@ -27,7 +27,7 @@ if(is.logical(data$Secondaries)){
 
 # try this and is not working 
 
-data1 <- data %>% 
+data <- data %>% 
   mutate_if(is.logical, as.character)
 
 # Capitalize all characters and factors across data frame 

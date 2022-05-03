@@ -6,7 +6,7 @@
 library(tidyverse)
 library(lubridate)
 
-# Bring data
+# Bring data in 
 raw_data <- read.csv("data/raw_data.csv",
                      na.strings = c("","NA"))
 
@@ -14,13 +14,7 @@ raw_data <- read.csv("data/raw_data.csv",
 raw_data <- raw_data %>% 
   mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
 
-class(raw_data$Band.Number)
-unique(raw_data$Band.Number)
-str(raw_data)
-
 # Change date from character to date
-class(raw_data$date)
-
 raw_data <- raw_data %>% 
   mutate(Date = mdy(date)) %>% 
   mutate(date = Date)
@@ -30,25 +24,38 @@ raw_data <- raw_data %>%
 
 class(raw_data$date)  
 
-# Change band number form character to numeric
+# Change band number from character to numeric
+raw_data$Band.Number <- as.numeric(as.character((raw_data$Band.Number)))
+class(raw_data$Band.Number)
 
-raw_data <- apply(raw_data, c("Band.Number"), as.numeric())
-
-
-
-
-raw_data <- mutate(raw_data, Band_Number = as.numeric(raw_data$Band.Number)
-
-                   
-
-
-raw_data <- as.numeric(raw_data$Band.Number)
-
-df1$x1<-as.numeric(df1$x1)
-
-# Sort data by date and band number
+# Sort data by band number, date and time
 dat <- raw_data %>% 
-  arrange(Band.Number, date)
+  arrange(Band.Number, date, time)
+
+# Verify that first use (date) of a band number corresponds to band status 1
+# and following captures correspond to recaptures or band status R 
+
+# extract the rows that equal a band number 
+
+new_bands <- unique(dat$Band.Number)
+dat$best_band_status <- NA
+
+# for loop
+
+
+for (i in 1:length(new_bands)){
+  band_id <- new_bands[i]
+  df <- filter(dat, Band.Number == band_id)
+  
+  if(nrow(df) = 1){
+    dat$best_band_status[dat$Band.Number == band_id] <- 1
+  } else {
+    dat$best_band_status[dat$Band.Number == band_id & dat$date == min(df$date)] <- 1
+  }
+}
+
+# complete this code after Elen's help! 
+
 
 
 

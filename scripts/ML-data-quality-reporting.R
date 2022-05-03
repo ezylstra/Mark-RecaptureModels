@@ -1,7 +1,7 @@
-# Data validation for biweekly monitoring data 
+# Data validation for monitoring data received by-weekly  
 # Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
-# April 2022
+# May 2022
 
 library(tidyverse)
 library(pointblank)
@@ -11,38 +11,65 @@ library(stringr)
 ##### Data wrangling ##### 
 
 # Bring in data 
-data <- read.csv("data/PA_0410_HMNBandingData_2022.csv", 
-                    na.strings = c("","NA"))
+data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
+                    na.strings = c("",NA))
 
-# If Molt information is all F (fresh), R will treat it as a logical vector and 
-# replace it with FALSE, so we need to change that by creating a new character 
-# column 
-
-class(data$Secondaries)
-is.logical(data$Secondaries)
-
+# Replace <NA> created when reading csv file with NA
 data <- data %>% 
-  mutate(sec_2 = if_else(Secondaries == FALSE, "F"))
+  mutate(across(.fns = ~replace(., .x == "<NA>", NA)))
 
-         
-         
-if(is.logical(data$Secondaries)){
+# If Molt information is F (fresh) for all the rows in the data, R will treat it 
+# as a logical vector and will replace all Fs with FALSE. We need to change that 
+# by creating a new character column.  
+
+# First, check for logical columns 
+class(data$Head.Gorget.Molt)
+class(data$Body.Molt)
+class(data$Primaries.Molt)
+class(data$Secondaries.Molt)
+class(data$Tail.Molt)
+
+# Second, apply the following code for each logical column 
+
+# For Head Gorget Molt 
+if(is.logical(data$Head.Gorget.Molt)){
   data <- data %>% 
-    mutate(sec2 = if_else(Secondaries == FALSE, "F"))
+    mutate(head2 = ifelse(Head.Gorget.Molt == FALSE, "F", NA)) %>% 
+    mutate(Head.Gorget.Molt = head2) %>% 
+    select(-head2)
 }
 
-
-if(is.logical(data$Secondaries)){
+# For Body Molt 
+if(is.logical(data$Body.Molt)){
   data <- data %>% 
-    mutate(sec2 = if_else(Secondaries == FALSE, "F")) %>% 
-    mutate(Secondaries = sec2) %>% 
+    mutate(body2 = ifelse(Body.Molt == FALSE, "F", NA)) %>% 
+    mutate(Body.Molt = body2) %>% 
+    select(-body2)
+}
+
+# For Primaries Molt 
+if(is.logical(data$Primaries.Molt)){
+  data <- data %>% 
+    mutate(prim2 = ifelse(Primaries.Molt == FALSE, "F", NA)) %>% 
+    mutate(Primaries.Molt = prim2) %>% 
+    select(-prim2)
+}
+
+# For Secondaries Molt 
+if(is.logical(data$Secondaries.Molt)){
+  data <- data %>% 
+    mutate(sec2 = ifelse(Secondaries.Molt == FALSE, "F", NA)) %>% 
+    mutate(Secondaries.Molt = sec2) %>% 
     select(-sec2)
+} 
+
+# For Tail Molt 
+if(is.logical(data$Tail.Molt)){
+  data <- data %>% 
+    mutate(tail2 = ifelse(Tail.Molt == FALSE, "F", NA)) %>% 
+    mutate(Tail.Molt = tail2) %>% 
+    select(-tail2)
 }
-
-# try this and is not working 
-
-data <- data %>% 
-  mutate_if(is.logical, as.character)
 
 # Capitalize all characters and factors across data frame 
 data <- mutate_all(data, .funs=toupper)
@@ -57,7 +84,7 @@ data <- mutate(data, CMR = "Y", Protocol = "HMN")
 # Change Date column from character to date
 class(data$Date)
 data <- data %>% 
-           mutate(Date = ymd(Date))
+           mutate(Date = mdy(Date))
 class(data$Date)
 
 # Split column Date by year, month, and day
@@ -70,11 +97,11 @@ data <- mutate(data, Year = year(Date),
 data <- data %>% 
   mutate(Old.Band.Status = Band.Status)
 
-# Replace Band.Number 'XXXXXX' with NA 
+# If any 'XXXXXX' in Band.Number, replace it with NA 
+unique(data$Band.Number)
 data <- data %>% 
   mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
 
-tail(data)
 
 ###### Data validation with pointblank package ######
 
@@ -109,13 +136,14 @@ validation <-
   col_vals_in_set(vars(Band.Size), set = c("B","C","D","E","F","G","H","I","J",
                                            "K","L","M","N","O",NA)) %>% 
   col_vals_regex(vars(Band.Number), regex = pattern, na_pass = TRUE) %>% 
-  col_vals_in_set(vars(Leg.Condition), set = c("1","2","3","4","5","6","7",NA)) %>% 
+  col_vals_in_set(vars(Leg.Condition), set = c("1","2","3","4","5","6","7",NA)) %>%
   col_vals_in_set(vars(Gorget.Color), set = c("O","R","V","P","B","G","GP","NS",
                                               "LS","MS","HS",NA)) %>% 
   col_vals_between(vars(Gorget.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_between(vars(Head.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3",NA)) %>% 
-  col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>% 
+  col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>%
+  col_vals_in_set(vars(Bill.Trait), set = c("R", "D",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
   col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2",NA)) %>%
@@ -130,9 +158,11 @@ validation <-
 # Create report after validation  
 interrogate(validation)
 
-# View errors or failed values by rows
+# If report shows columns that didn't pass the validation (fail), view errors or 
+# failed values by rows
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
+
 
 ##### Find duplicate band numbers #####
 any(duplicated(data$Band.Number)) 
@@ -140,26 +170,27 @@ which(duplicated(data$Band.Number))
 
 ##### Create new csv with the validated data #####
 
-# Organize columns' order so it matches main database 
+# Organize columns' order so it matches main database when merging this csv to 
+# central database
 vetted_data <- data %>% 
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
            Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
-           Tarsus.Measurement, Band.Size, Species, Sex, Age, Removed.band.num)
+           Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
 
 # Create csv with vetted data. Make sure to update the site in the output name 
-write.csv(vetted_data,"output/vetted_SWRS_data.csv", row.names = FALSE)
+write.csv(vetted_data,"output/vetted_HC_data.csv", row.names = FALSE)
 
 ### Get summarized data for report ### 
 
-# Individuals by species
-data %>% 
-  count(Species)  
-
-# Individuals by Band Status (new birds, recaptures)
+# Number of individuals by Band Status, new birds=1, recaptures=R
 data %>% 
   count(Band.Status)
 
-# # of recaptures multiple times a day
+# Number of individuals by species
+data %>% 
+  count(Species)  
+
+# Number of recaptures multiple times a day
 data %>% 
   count(Day.Recaptures)
  

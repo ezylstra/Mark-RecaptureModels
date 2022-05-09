@@ -11,7 +11,7 @@ library(tidyverse)
 old_bands <- read.csv("data/all_bands.csv")
 
 # Vetted data for current season we want to compare 
-new_bands <- read.csv("output/vetted_SWRS_data.csv") # Data vetted with R script
+new_bands <- read.csv("output/vetted_CFCK_data.csv") # Data vetted with R script
 
 # Bird Banding Laboratory (BBL) letter codes
 letter_codes <- read.csv("data/BBL_letter_codes.csv")
@@ -50,8 +50,10 @@ ready <- new_bands %>%
          -Band.Number) %>%
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
            Old.Band.Status, Band.Status, Band.Number.New, Leg.Condition, 
-           Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number) %>% 
+           Tarsus.Measurement, Band.Size, Species, Sex, Age, Removed.band.num) %>% 
   rename(Band.Number = Band.Number.New)
+
+write.csv(ready,"output/vetted_CFCK_data_GS.csv", row.names = FALSE)
 
 ##### Check if recapture band numbers (band status R) matches first band number 
 ##### assigned to that recaptured bird (band status 1)  

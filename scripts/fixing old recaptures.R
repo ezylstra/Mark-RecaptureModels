@@ -54,7 +54,7 @@ for (i in 1:length(new_bands)){
   }
 }
 
-# complete this code after Elen's help! 
+# complete this code after Ellen's help! 
 
 
 

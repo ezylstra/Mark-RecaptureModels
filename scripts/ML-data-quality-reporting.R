@@ -14,7 +14,7 @@ library(stringr)
 data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
-# Replace <NA> created when reading csv file with NA
+# Replace <NA> created when reading csv file with NA values
 data <- data %>% 
   mutate(across(.fns = ~replace(., .x == "<NA>", NA)))
 

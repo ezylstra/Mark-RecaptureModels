@@ -29,32 +29,45 @@ raw_data$Band.Number <- as.numeric(as.character((raw_data$Band.Number)))
 class(raw_data$Band.Number)
 
 # Sort data by band number, date and time
-dat <- raw_data %>% 
+sorted_data <- raw_data %>% 
   arrange(Band.Number, date, time)
 
 # Verify that first use (date) of a band number corresponds to band status 1
 # and following captures correspond to recaptures or band status R 
 
-# extract the rows that equal a band number 
+# Extract the rows that equal first capture and recaptures 
+new__recap_bands <- subset(sorted_data, Band.Status == c("1","R"))
 
-new_bands <- unique(dat$Band.Number)
-dat$best_band_status <- NA
+# Extract the rows that equal a band number 
+new_bands <- unique(new__recap_bands$Band.Number)
+new__recap_bands$best_band_status <- NA
+unique(new__recap_bands$Band.Status)
 
-# for loop
-
+# for loop 
 
 for (i in 1:length(new_bands)){
   band_id <- new_bands[i]
-  df <- filter(dat, Band.Number == band_id)
+  df <- filter(new__recap_bands, Band.Number == band_id)
   
-  if(nrow(df) = 1){
-    dat$best_band_status[dat$Band.Number == band_id] <- 1
+  if(nrow(df) == 1){
+    new__recap_bands$best_band_status[new__recap_bands$Band.Number == band_id] <- 1
   } else {
-    dat$best_band_status[dat$Band.Number == band_id & dat$date == min(df$date)] <- 1
-  }
-}
+    new__recap_bands$best_band_status[new__recap_bands$Band.Number == band_id & new__recap_bands$date == min(df$date)] <- 1
+    new__recap_bands$best_band_status[new__recap_bands$Band.Number == band_id & new__recap_bands$date > min(df$date)] <- "R"
+  } 
+}    
 
-# complete this code after Ellen's help! 
+# Another way to do the same thing without the for loop from line 39 after sorting 
+
+# Create a capture number column 
+new__recap_bands$capture_number <- sequence(from = 1, rle(new__recap_bands$Band.Number)$lengths)
+
+new__recap_bands$best_band_status <- ifelse(new__recap_bands$capture_number == 1, "1","R")
+
+
+
+
+
 
 
 

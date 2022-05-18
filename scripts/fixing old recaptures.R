@@ -3,12 +3,14 @@
 # Gaby Samaniego
 # 2022-04-28
 
+install.packages("xlsx")
+
 library(tidyverse)
 library(lubridate)
+library("xlsx")
 
 # Bring data in 
-raw_data <- read.csv("data/raw_data.csv",
-                     na.strings = c("","NA"))
+raw_data <- read.csv("data/raw_data.csv")
 
 # Replace Band.Number 'XXXXXX' with NA
 raw_data <- raw_data %>% 
@@ -36,14 +38,15 @@ sorted_data <- raw_data %>%
 # and following captures correspond to recaptures or band status R 
 
 # Extract the rows that equal first capture and recaptures 
-new__recap_bands <- subset(sorted_data, Band.Status == c("1","R"))
+new__recap_bands <- subset(sorted_data, Band.Status %in% c("1","R"))
 
+# Before for loop
 # Extract the rows that equal a band number 
 new_bands <- unique(new__recap_bands$Band.Number)
 new__recap_bands$best_band_status <- NA
 unique(new__recap_bands$Band.Status)
 
-# for loop 
+# For loop worked with Ellen, works but takes too long.  
 
 for (i in 1:length(new_bands)){
   band_id <- new_bands[i]
@@ -64,11 +67,13 @@ new__recap_bands$capture_number <- sequence(from = 1, rle(new__recap_bands$Band.
 
 new__recap_bands$best_band_status <- ifelse(new__recap_bands$capture_number == 1, "1","R")
 
+# Subset other band status (4, 6, 8, F)
+other_band_status <- sorted_data %>% 
+  filter(Band.Status %in% c("4", "6", "8", "F"))
 
+# merge all band status
+all_bands <- other_band_status %>% 
+  bind_rows(new__recap_bands) %>% 
+  arrange(Band.Number, date)
 
-
-
-
-
-
-
+write.csv(all_bands,"output/full_data_2.csv", row.names = FALSE)

@@ -196,7 +196,7 @@ data <- BBL %>%
 
 # Delete unnecessary columns created to assigned the BBL codes to band numbers
 # Replace name in column Band.Number
-ready <- data %>% 
+data <- data %>% 
   select(-band_letter, 
          -band_number, 
          -band_number, 
@@ -208,10 +208,18 @@ ready <- data %>%
   rename(Band.Number = Band.Number.New)
 
 
-#### Compare recapture band numbers with old bands... #### 
+#### Compare if recapture birds coincide with band number, species and sex #### 
 
 # All band numbers used by HMN's monitoring program
-old_bands <- read.csv("data/all_bands.csv")
+all_bands <- read.csv("data/all_bands.csv")
+
+# Sort data by band number, species, age and sex
+all_bands <- all_bands %>% 
+  arrange(Band.Number, Species, Age, Sex)
+
+# Subset recapture data for the session 
+recaps <- subset(data, Band.Status %in% c("R"))
+
 
 
 

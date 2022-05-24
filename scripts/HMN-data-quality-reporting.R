@@ -78,7 +78,8 @@ data <- mutate_all(data, .funs=toupper)
 data <- mutate_all(data,str_trim, side=c("both"))
 
 # Create columns to indicate if the data will be used for capture mark recapture
-# (CMR) analysis and to add the protocol used to collect it
+# (CMR) analysis and to add the protocol used to collect it. For training data
+# change 'HMN' with TRAINING in line 83. 
 data <- mutate(data, CMR = "Y", Protocol = "HMN")
 
 # Change Date column from character to date
@@ -101,6 +102,10 @@ data <- data %>%
 unique(data$Band.Number)
 data <- data %>% 
   mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
+
+# Find duplicate band numbers
+any(duplicated(data$Band.Number)) # Are there duplicate band numbers?
+which(duplicated(data$Band.Number))  # Which one is duplicated? 
 
 
 ###### Data validation with pointblank package ######
@@ -164,23 +169,54 @@ interrogate(validation) %>%
   get_sundered_data(type = "fail")
 
 
-##### Find duplicate band numbers #####
-any(duplicated(data$Band.Number)) 
-which(duplicated(data$Band.Number)) 
+#### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ##
 
-##### Create new csv with the validated data #####
+# Bring in data, BBL letter codes
+letter_codes <- read.csv("data/BBL_letter_codes.csv")
 
-# Organize columns' order so it matches main database when merging this csv to 
-# central database
-vetted_data <- data %>% 
+# Separate letter from numbers in Band.Number column. Band numbers have six 
+# digits, they are always 1 letter (A-Z) followed by five numbers (0-9)
+unique(data$Band.Number)
+data$band_letter <-substr(data$Band.Number,
+                               start = 1, 
+                               stop = 1)
+
+data$band_number <- substr(data$Band.Number,
+                                start = 2,
+                                stop = 6)
+
+# Create new column in data with band number containing BBL codes
+BBL <- data %>% 
+  inner_join(letter_codes, 
+             by = c("band_letter" = "letter"))
+
+# Merge BBL code with numbers from Band.Number 
+data <- BBL %>% 
+  mutate(Band.Number.New = paste0(letter_number, band_number))
+
+# Delete unnecessary columns created to assigned the BBL codes to band numbers
+# Replace name in column Band.Number
+ready <- data %>% 
+  select(-band_letter, 
+         -band_number, 
+         -band_number, 
+         -letter_number, 
+         -Band.Number) %>%
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
-           Old.Band.Status, Band.Status, Band.Number, Leg.Condition, 
-           Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number)
+           Old.Band.Status, Band.Status, Band.Number.New, Leg.Condition, 
+           Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number) %>%
+  rename(Band.Number = Band.Number.New)
 
-# Create csv with vetted data. Make sure to update the site in the output name 
-write.csv(vetted_data,"output/vetted_HC_data.csv", row.names = FALSE)
 
-### Get summarized data for report ### 
+#### Compare recapture band numbers with old bands... #### 
+
+# All band numbers used by HMN's monitoring program
+old_bands <- read.csv("data/all_bands.csv")
+
+
+
+
+#### Get summarized data for reports #### 
 
 # Number of individuals by Band Status, new birds=1, recaptures=R
 data %>% 
@@ -193,6 +229,12 @@ data %>%
 # Number of recaptures multiple times a day
 data %>% 
   count(Day.Recaptures)
- 
+
+##### Create new csv with the validated data #####
+
+# Create csv with vetted data. Make sure to update the site in the output name 
+write.csv(vetted_data,"output/vetted_HC_data.csv", row.names = FALSE)
+
+
 
 

@@ -151,7 +151,7 @@ validation <-
   col_vals_in_set(vars(Bill.Trait), set = c("R", "D",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
-  col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2",NA)) %>%
+  col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2","NO TAKEN",NA)) %>%
   col_vals_in_set(vars(Head.Gorget.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Body.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Primaries.Molt), set = c("1","2","3","4","5","6","7","8","9",

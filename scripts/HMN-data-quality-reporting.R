@@ -209,9 +209,9 @@ data <- data %>%
   rename(Band.Number = Band.Number.New)
 
 
-#### Compare if recapture birds coincide with band number, species and sex #### 
+#### Compare if recaptured birds coincide with band number, species and sex #### 
 
-# All band numbers used by HMN's monitoring program
+# Bring in all band numbers used by HMN's monitoring program
 all_bands <- read.csv("data/updated_raw_data.csv")
 
 # Change band number from character to numeric
@@ -225,7 +225,7 @@ all_bands <- all_bands %>%
 # Extract recaptures from session's data
 session_recaps <- data %>% 
   filter(Band.Status == "R") %>% 
-  select(Band.Number, Species, Sex, Age, Location)
+  select(Band.Number, Species, Sex, Age, Location, Year)
   
 # Check for inconsistencies with Band Numbers, species, age and sex for the 
 # session's recaptures
@@ -255,17 +255,30 @@ for (BN in session_recaps$Band.Number) {
   }
 }
 
-# Check for session's recaptures Age 
-bands <- all_bands %>% 
+### Check for session's recaps Age ###
+
+# Find first capture year for all bands   
+first_capture <- all_bands %>% 
   group_by(Band.Number) %>% 
   summarize(spp = Species[1],
             sex = Sex[1],
             age = Age[1],
-            first.year.captured = min(Year),
-            last.year.capture = max(Year),
-            calc.age = (last.year.capture - first.year.captured))
+            location = Location[1],
+            first_year_captured = min(year))
 
-  
+# Check for session's recaptures Age 
+for (BN in session_recaps$Band.Number) {
+  first_cap <- first_capture %>% 
+    filter(Band.Number == BN) %>% 
+    select(spp, sex, age, location, first_year_captured) 
+  if(nrow(first_cap) == 0){
+    print(paste0("Band Number ", BN, " not in main database"))
+    next
+  }
+  if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN]){
+    message("Bird ", BN , " was banded on ",  first_cap$first_year_captured)
+  }
+}
 
 #### Get summarized data for reports #### 
 

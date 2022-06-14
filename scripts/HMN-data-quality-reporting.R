@@ -7,6 +7,7 @@ library(tidyverse)
 library(pointblank)
 library(lubridate)
 library(stringr)
+library(eeptools)
 
 ##### Data wrangling ##### 
 
@@ -79,7 +80,7 @@ data <- mutate_all(data,str_trim, side=c("both"))
 
 # Create columns to indicate if the data will be used for capture mark recapture
 # (CMR) analysis and to add the protocol used to collect it. For training data
-# change 'HMN' with TRAINING in line 83. 
+# change 'HMN' with TRAIN in line 83. 
 data <- mutate(data, CMR = "Y", Protocol = "HMN")
 
 # Change Date column from character to date
@@ -211,18 +212,60 @@ data <- data %>%
 #### Compare if recapture birds coincide with band number, species and sex #### 
 
 # All band numbers used by HMN's monitoring program
-all_bands <- read.csv("data/all_bands.csv")
+all_bands <- read.csv("data/updated_raw_data.csv")
+
+# Change band number from character to numeric
+all_bands$Band.Number <- as.numeric(as.character((all_bands$Band.Number)))
+class(all_bands$Band.Number)
 
 # Sort data by band number, species, age and sex
 all_bands <- all_bands %>% 
   arrange(Band.Number, Species, Age, Sex)
 
-# Subset recapture data for the session 
-recaps <- subset(data, Band.Status %in% c("R"))
+# Extract recaptures from session's data
+session_recaps <- data %>% 
+  filter(Band.Status == "R") %>% 
+  select(Band.Number, Species, Sex, Age, Location)
+  
+# Check for inconsistencies with Band Numbers, species, age and sex for the 
+# session's recaptures
+for (BN in session_recaps$Band.Number) {
+  original_caps <- all_bands %>% 
+    filter(Band.Number == BN) %>% 
+    select(Species, Sex, Age, Location) 
+  if(nrow(original_caps) == 0){
+    print(paste0("Band Number ", BN, " not in main database"))
+    next
+  }
+  if(original_caps$Species[1] != session_recaps$Species[session_recaps$Band.Number == BN]){
+    message("Species code inconsistent for ", BN)
+    message("Original species for ", BN , " was ",  original_caps$Species)
+  }
+  if(original_caps$Sex[1] != session_recaps$Sex[session_recaps$Band.Number == BN]){
+    message("Sex code inconsistent for ", BN)
+    message("Original sex for ", BN , " was ",  original_caps$Sex)
+  }
+  if(original_caps$Age[1] != session_recaps$Age[session_recaps$Band.Number == BN]){
+    message("Age code inconsistent for ", BN)
+    message("Original Age for ", BN , " was ", original_caps$Age )
+  }
+  if(original_caps$Location[1] != session_recaps$Location[session_recaps$Band.Number == BN]){
+    message("Location code inconsistent for ", BN)
+    message("Original location for ", BN , " was ",  original_caps$Location)
+  }
+}
 
+# Check for session's recaptures Age 
+bands <- all_bands %>% 
+  group_by(Band.Number) %>% 
+  summarize(spp = Species[1],
+            sex = Sex[1],
+            age = Age[1],
+            first.year.captured = min(Year),
+            last.year.capture = max(Year),
+            calc.age = (last.year.capture - first.year.captured))
 
-
-
+  
 
 #### Get summarized data for reports #### 
 

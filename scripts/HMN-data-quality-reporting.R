@@ -1,4 +1,4 @@
-# Data validation for monitoring data received by-weekly  
+# Data vetting and validation of monitoring data
 # Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
 # May 2022
@@ -7,11 +7,10 @@ library(tidyverse)
 library(pointblank)
 library(lubridate)
 library(stringr)
-library(eeptools)
 
 ##### Data wrangling ##### 
 
-# Bring in data 
+# Bring in data for monitoring sessions 
 data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
@@ -80,7 +79,8 @@ data <- mutate_all(data,str_trim, side=c("both"))
 
 # Create columns to indicate if the data will be used for capture mark recapture
 # (CMR) analysis and to add the protocol used to collect it. For training data
-# change 'HMN' with TRAIN in line 83. 
+# change 'HMN' with TRAIN in line 84. If data was not collected with HMN's protocol
+# change "Y" with "N" in line 84
 data <- mutate(data, CMR = "Y", Protocol = "HMN")
 
 # Change Date column from character to date
@@ -108,8 +108,9 @@ data <- data %>%
 any(duplicated(data$Band.Number)) # Are there duplicate band numbers?
 which(duplicated(data$Band.Number))  # Which one is duplicated? 
 
+# If duplicates are found, resolve the issue manually in final csv file created with this code
 
-###### Data validation with pointblank package ######
+#### Data validation with pointblank package ####
 
 # Set thresholds for report 
 al <- action_levels(warn_at = 1, stop_at = 1) 
@@ -169,8 +170,9 @@ interrogate(validation)
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 
+# If inconsistencies are found, resolve them manually in final csv file created with this code 
 
-#### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ##
+#### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ####
 
 # Bring in data, BBL letter codes
 letter_codes <- read.csv("data/BBL_letter_codes.csv")
@@ -200,7 +202,6 @@ data <- BBL %>%
 data <- data %>% 
   select(-band_letter, 
          -band_number, 
-         -band_number, 
          -letter_number, 
          -Band.Number) %>%
   relocate(Protocol, CMR, Bander, Location, Date, Year, Month, Day, Time, 
@@ -208,13 +209,17 @@ data <- data %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number) %>%
   rename(Band.Number = Band.Number.New)
 
+# Check new band numbers
+unique(data$Band.Number)
 
-#### Compare if recaptured birds coincide with band number, species and sex #### 
+#### Compare if recaptured birds coincide with band number, species, and sex to 
+#### the first capture  #### 
 
-# Bring in all band numbers used by HMN's monitoring program
+# Bring in all band numbers used by HMN's monitoring program 
 all_bands <- read.csv("data/updated_raw_data.csv")
 
 # Change band number from character to numeric
+class(all_bands$Band.Number)
 all_bands$Band.Number <- as.numeric(as.character((all_bands$Band.Number)))
 class(all_bands$Band.Number)
 
@@ -234,28 +239,31 @@ for (BN in session_recaps$Band.Number) {
     filter(Band.Number == BN) %>% 
     select(Species, Sex, Age, Location) 
   if(nrow(original_caps) == 0){
-    print(paste0("Band Number ", BN, " not in main database"))
+    print(paste0("Band Number ", BN, " not in main database")) # Band number provably applied in previous sessions of current monitoring year
     next
   }
   if(original_caps$Species[1] != session_recaps$Species[session_recaps$Band.Number == BN]){
-    message("Species code inconsistent for ", BN)
+    print(paste0("Species code inconsistent for ", BN))
     message("Original species for ", BN , " was ",  original_caps$Species)
   }
   if(original_caps$Sex[1] != session_recaps$Sex[session_recaps$Band.Number == BN]){
-    message("Sex code inconsistent for ", BN)
+    print(paste0("Sex code inconsistent for ", BN))
     message("Original sex for ", BN , " was ",  original_caps$Sex)
   }
   if(original_caps$Age[1] != session_recaps$Age[session_recaps$Band.Number == BN]){
-    message("Age code inconsistent for ", BN)
+    print(paste0("Age code inconsistent for ", BN))
     message("Original Age for ", BN , " was ", original_caps$Age )
   }
   if(original_caps$Location[1] != session_recaps$Location[session_recaps$Band.Number == BN]){
-    message("Location code inconsistent for ", BN)
+    print(paste0("Location code inconsistent for ", BN))
     message("Original location for ", BN , " was ",  original_caps$Location)
   }
 }
 
-### Check for session's recaps Age ###
+# If inconsistencies are found, resolve them manually in final csv file created with this code 
+
+
+#### Check for session's recaps Age ####
 
 # Find first capture year for all bands   
 first_capture <- all_bands %>% 
@@ -276,7 +284,7 @@ for (BN in session_recaps$Band.Number) {
     next
   }
   if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN]){
-    message("Bird ", BN , " was banded on ",  first_cap$first_year_captured)
+    message(first_cap$spp , first_cap$sex ,  BN , " banded on ", first_cap$first_year_captured)
   }
 }
 
@@ -294,9 +302,10 @@ data %>%
 data %>% 
   count(Day.Recaptures)
 
-##### Create new csv with the validated data #####
+#### Create new csv with the validated data ####
 
-# Create csv with vetted data. Make sure to update the site in the output name 
+# Create csv with vetted data. Make sure to update the location code in the 
+# output name  
 write.csv(vetted_data,"output/vetted_HC_data.csv", row.names = FALSE)
 
 

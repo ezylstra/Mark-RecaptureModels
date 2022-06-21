@@ -11,7 +11,7 @@ library(stringr)
 ##### Data wrangling ##### 
 
 # Bring in data for monitoring sessions 
-data <- read.csv("data/HC_0421_HMNBandingData_2022.csv", 
+data <- read.csv("data/HC_0326_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
 # Replace <NA> created when reading csv file with NA values
@@ -86,7 +86,7 @@ data <- mutate(data, CMR = "Y", Protocol = "HMN")
 # Change Date column from character to date
 class(data$Date)
 data <- data %>% 
-           mutate(Date = mdy(Date))
+           mutate(Date = ymd(Date))
 class(data$Date)
 
 # Split column Date by year, month, and day
@@ -190,7 +190,7 @@ data$band_number <- substr(data$Band.Number,
 
 # Create new column in data with band number containing BBL codes
 BBL <- data %>% 
-  inner_join(letter_codes, 
+  left_join(letter_codes, 
              by = c("band_letter" = "letter"))
 
 # Merge BBL code with numbers from Band.Number 

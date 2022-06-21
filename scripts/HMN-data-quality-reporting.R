@@ -162,15 +162,14 @@ validation <-
   col_vals_in_set(vars(Tail.Molt), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
   col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
-# Create report after validation  
-interrogate(validation)
-
-# If report shows columns that didn't pass the validation (fail), view errors or 
-# failed values by rows
+# Interrogate creates a report after validation  
+# If report shows columns that didn't pass the validation (fail), get_sundered
+# shows failed values by rows
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 
-# If inconsistencies are found, resolve them manually in final csv file created with this code 
+# If inconsistencies are found, resolve them manually in final csv file created 
+# with this code 
 
 #### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ####
 

@@ -1,16 +1,16 @@
-# Data vetting and validation of monitoring data
+# Vetting and validation of monitoring data
 # Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
-# May 2022
+# Updated 2022-06-21
 
 library(tidyverse)
 library(pointblank)
 library(lubridate)
 library(stringr)
 
-##### Data wrangling ##### 
+##### Data wrangling and cleaning ##### 
 
-# Bring in data for monitoring sessions 
+# Bring in data for monitoring session 
 data <- read.csv("data/HC_0326_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
@@ -18,9 +18,36 @@ data <- read.csv("data/HC_0326_HMNBandingData_2022.csv",
 data <- data %>% 
   mutate(across(.fns = ~replace(., .x == "<NA>", NA)))
 
-# If Molt information is F (fresh) for all the rows in the data, R will treat it 
-# as a logical vector and will replace all Fs with FALSE. We need to change that 
-# by creating a new character column.  
+# Capitalize all characters and factors across data frame 
+data <- mutate_all(data, .funs=toupper)
+
+# Remove all leading and trailing white spaces
+data <- mutate_all(data,str_trim, side=c("both"))
+
+# Change Date column from character to date
+class(data$Date)
+data <- data %>% 
+  mutate(Date = ymd(Date))
+class(data$Date)
+
+# Split column Date by year, month, and day
+data <- mutate(data, Year = year(Date), 
+               Month = month(Date),
+               Day = day(Date))  
+
+# Create columns to indicate if the data will be used for capture mark recapture
+# (CMR) analysis and to add the protocol used to collect it. For training data
+# change 'HMN' with TRAIN in line 42. If data was not collected with HMN's protocol
+# change "Y" with "N" in same line
+data <- mutate(data, CMR = "Y", Protocol = "HMN")
+
+# Change 0 by NA in Wing.Chord and Culmen 
+data$Wing.Chord[data$Wing.Chord == "0"] <- NA
+data$Culmen[data$Culmen == "0"] <- NA
+
+# If Molt information is F (fresh) for all the rows in a molt column, R will treat 
+# it as a logical vector and will replace all Fs with FALSE. We need to change any 
+# logical column to a character column
 
 # First, check for logical columns 
 class(data$Head.Gorget.Molt)
@@ -71,29 +98,6 @@ if(is.logical(data$Tail.Molt)){
     select(-tail2)
 }
 
-# Capitalize all characters and factors across data frame 
-data <- mutate_all(data, .funs=toupper)
-
-# Remove all leading and trailing white spaces
-data <- mutate_all(data,str_trim, side=c("both"))
-
-# Create columns to indicate if the data will be used for capture mark recapture
-# (CMR) analysis and to add the protocol used to collect it. For training data
-# change 'HMN' with TRAIN in line 84. If data was not collected with HMN's protocol
-# change "Y" with "N" in line 84
-data <- mutate(data, CMR = "Y", Protocol = "HMN")
-
-# Change Date column from character to date
-class(data$Date)
-data <- data %>% 
-           mutate(Date = ymd(Date))
-class(data$Date)
-
-# Split column Date by year, month, and day
-data <- mutate(data, Year = year(Date), 
-                  Month = month(Date),
-                  Day = day(Date))  
-
 # Duplicate Band Status column to match columns' names in main database when 
 # merging data frames  
 data <- data %>% 
@@ -108,7 +112,9 @@ data <- data %>%
 any(duplicated(data$Band.Number)) # Are there duplicate band numbers?
 which(duplicated(data$Band.Number))  # Which one is duplicated? 
 
-# If duplicates are found, resolve the issue manually in final csv file created with this code
+# If duplicates are found, resolve the issue manually in session's csv file 
+# and run the code again before continuing with the data validation and 
+# summarizing data for reports 
 
 #### Data validation with pointblank package ####
 
@@ -144,6 +150,7 @@ validation <-
                                            "K","L","M","N","O",NA)) %>% 
   col_vals_regex(vars(Band.Number), regex = pattern, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Leg.Condition), set = c("1","2","3","4","5","6","7",NA)) %>%
+  col_vals_regex(vars(Replaced.Band.Number), regex = pattern, na_pass = TRUE) %>%
   col_vals_in_set(vars(Gorget.Color), set = c("O","R","V","P","B","G","GP","NS",
                                               "LS","MS","HS",NA)) %>% 
   col_vals_between(vars(Gorget.Count),0, 99, na_pass = TRUE) %>% 
@@ -152,6 +159,8 @@ validation <-
   col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>%
   col_vals_in_set(vars(Bill.Trait), set = c("R", "D",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
+  col_vals_between(vars(Wing.Chord),x, x, na_pass = TRUE) %>%
+  col_vals_between(vars(Culmen),x, x, na_pass = TRUE) %>%
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
   col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2","NOT TAKEN",NA)) %>%
   col_vals_in_set(vars(Head.Gorget.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%

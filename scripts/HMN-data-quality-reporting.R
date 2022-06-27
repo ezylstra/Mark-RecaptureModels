@@ -1,7 +1,7 @@
 # Vetting and validation of monitoring data
 # Hummingbird Monitoring Network 
 # Gaby Samaniego gaby@savehummingbirds.org
-# Updated 2022-06-21
+# Updated 2022-06-27
 
 library(tidyverse)
 library(pointblank)
@@ -14,14 +14,15 @@ library(stringr)
 data <- read.csv("data/HC_0326_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
-# Replace <NA> created when reading csv file with NA values
+# Replace <NA> values created by KoBoToolbox electronic form when reading csv 
+# file with NA values
 data <- data %>% 
   mutate(across(.fns = ~replace(., .x == "<NA>", NA)))
 
 # Capitalize all characters and factors across data frame 
 data <- mutate_all(data, .funs=toupper)
 
-# Remove all leading and trailing white spaces
+# Remove all leading and trailing white spaces across data frame
 data <- mutate_all(data,str_trim, side=c("both"))
 
 # Change Date column from character to date
@@ -36,14 +37,16 @@ data <- mutate(data, Year = year(Date),
                Day = day(Date))  
 
 # Create columns to indicate if the data will be used for capture mark recapture
-# (CMR) analysis and to add the protocol used to collect it. For training data
-# change 'HMN' with TRAIN in line 42. If data was not collected with HMN's protocol
+# analysis (CMR) and to add the protocol used to collect it. For training data
+# change 'HMN' with TRAIN in line 43. If data was not collected with HMN's protocol
 # change "Y" with "N" in same line
 data <- mutate(data, CMR = "Y", Protocol = "HMN")
 
-# Change 0 by NA in Wing.Chord and Culmen 
+# Change multiple values required on the electronic KoBoToolbox form to NA  
 data$Wing.Chord[data$Wing.Chord == "0"] <- NA
 data$Culmen[data$Culmen == "0"] <- NA
+data$CP.Breed[data$CP.Breed == "NOT TAKEN"] <- NA
+data$Buffy[data$Buffy == "% GREEN"] <- NA
 
 # If Molt information is F (fresh) for all the rows in a molt column, R will treat 
 # it as a logical vector and will replace all Fs with FALSE. We need to change any 
@@ -156,13 +159,13 @@ validation <-
   col_vals_between(vars(Gorget.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_between(vars(Head.Count),0, 99, na_pass = TRUE) %>% 
   col_vals_in_set(vars(Grooves), set = c("0","1","2","3",NA)) %>% 
-  col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>%
+  col_vals_in_set(vars(Buffy), set = c("Y","N","S",NA)) %>%
   col_vals_in_set(vars(Bill.Trait), set = c("R", "D",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
   col_vals_between(vars(Wing.Chord),35.0, 79.0, na_pass = TRUE) %>%
   col_vals_between(vars(Culmen),12.0,34.0, na_pass = TRUE) %>%
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
-  col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2","NOT TAKEN",NA)) %>%
+  col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2",NA)) %>%
   col_vals_in_set(vars(Head.Gorget.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Body.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Primaries.Molt), set = c("1","2","3","4","5","6","7","8","9",
@@ -182,12 +185,11 @@ interrogate(validation) %>%
 
 #### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ####
 
-# Bring in data, BBL letter codes
+# Bring in BBL letter codes
 letter_codes <- read.csv("data/BBL_letter_codes.csv")
 
 # Separate letter from numbers in Band.Number column. Band numbers have six 
 # digits, they are always 1 letter (A-Z) followed by five numbers (0-9)
-unique(data$Band.Number)
 data$band_letter <-substr(data$Band.Number,
                                start = 1, 
                                stop = 1)
@@ -217,11 +219,11 @@ data <- data %>%
            Tarsus.Measurement, Band.Size, Species, Sex, Age, Replaced.Band.Number) %>%
   rename(Band.Number = Band.Number.New)
 
-# Check new band numbers
+# Check new band numbers with BBL code 
 unique(data$Band.Number)
 
 #### Compare if recaptured birds coincide with band number, species, and sex to 
-#### the first capture  #### 
+#### their first capture  #### 
 
 # Bring in all band numbers used by HMN's monitoring program 
 all_bands <- read.csv("data/updated_raw_data.csv")
@@ -237,7 +239,7 @@ all_bands <- all_bands %>%
 
 # Extract recaptures from session's data
 session_recaps <- data %>% 
-  filter(Band.Status == "R") %>% 
+  filter(Band.Status == "R", "5", "6") %>% 
   select(Band.Number, Species, Sex, Age, Location, Year)
   
 # Check for inconsistencies with Band Numbers, species, age and sex for the 
@@ -247,8 +249,8 @@ for (BN in session_recaps$Band.Number) {
     filter(Band.Number == BN) %>% 
     select(Species, Sex, Age, Location) 
   if(nrow(original_caps) == 0){
-    print(paste0("Band Number ", BN, " not in main database")) # Band number provably applied in previous sessions of current monitoring year
-    next
+    print(paste0("Band Number ", BN, " not in main database")) # Band number provably 
+    next                    # applied in previous sessions of current monitoring year
   }
   if(original_caps$Species[1] != session_recaps$Species[session_recaps$Band.Number == BN]){
     print(paste0("Species code inconsistent for ", BN))

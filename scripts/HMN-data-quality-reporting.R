@@ -159,8 +159,8 @@ validation <-
   col_vals_in_set(vars(Buffy), set = c("Y","N","S","% GREEN",NA)) %>%
   col_vals_in_set(vars(Bill.Trait), set = c("R", "D",NA)) %>% 
   col_vals_between(vars(Green.on.back),0, 99, na_pass = TRUE) %>%
-  col_vals_between(vars(Wing.Chord),x, x, na_pass = TRUE) %>%
-  col_vals_between(vars(Culmen),x, x, na_pass = TRUE) %>%
+  col_vals_between(vars(Wing.Chord),35.0, 79.0, na_pass = TRUE) %>%
+  col_vals_between(vars(Culmen),12.0,34.0, na_pass = TRUE) %>%
   col_vals_in_set(vars(Fat), set = c("0","1","2","3","P","T",NA)) %>%
   col_vals_in_set(vars(CP.Breed), set = c("9","8","7","5","2","NOT TAKEN",NA)) %>%
   col_vals_in_set(vars(Head.Gorget.Molt), set = c("1","2","3","F","L","M","R",NA)) %>%
@@ -169,7 +169,7 @@ validation <-
                                            "0","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Secondaries.Molt), set = c("1","2","3","4","5","6","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Tail.Molt), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
-  col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
+  col_vals_between(vars(Weight), 2.0, 11.0, na_pass = TRUE)
   
 # Interrogate creates a report after validation  
 # If report shows columns that didn't pass the validation (fail), get_sundered

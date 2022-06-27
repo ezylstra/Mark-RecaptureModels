@@ -11,42 +11,13 @@ library(stringr)
 ##### Data wrangling and cleaning ##### 
 
 # Bring in data for monitoring session 
-data <- read.csv("data/HC_0326_HMNBandingData_2022.csv", 
+data <- read.csv("data/MPGF_0621_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
 # Replace <NA> values created by KoBoToolbox electronic form when reading csv 
 # file with NA values
 data <- data %>% 
   mutate(across(.fns = ~replace(., .x == "<NA>", NA)))
-
-# Capitalize all characters and factors across data frame 
-data <- mutate_all(data, .funs=toupper)
-
-# Remove all leading and trailing white spaces across data frame
-data <- mutate_all(data,str_trim, side=c("both"))
-
-# Change Date column from character to date
-class(data$Date)
-data <- data %>% 
-  mutate(Date = ymd(Date))
-class(data$Date)
-
-# Split column Date by year, month, and day
-data <- mutate(data, Year = year(Date), 
-               Month = month(Date),
-               Day = day(Date))  
-
-# Create columns to indicate if the data will be used for capture mark recapture
-# analysis (CMR) and to add the protocol used to collect it. For training data
-# change 'HMN' with TRAIN in line 43. If data was not collected with HMN's protocol
-# change "Y" with "N" in same line
-data <- mutate(data, CMR = "Y", Protocol = "HMN")
-
-# Change multiple values required on the electronic KoBoToolbox form to NA  
-data$Wing.Chord[data$Wing.Chord == "0"] <- NA
-data$Culmen[data$Culmen == "0"] <- NA
-data$CP.Breed[data$CP.Breed == "NOT TAKEN"] <- NA
-data$Buffy[data$Buffy == "% GREEN"] <- NA
 
 # If Molt information is F (fresh) for all the rows in a molt column, R will treat 
 # it as a logical vector and will replace all Fs with FALSE. We need to change any 
@@ -100,6 +71,35 @@ if(is.logical(data$Tail.Molt)){
     mutate(Tail.Molt = tail2) %>% 
     select(-tail2)
 }
+
+# Capitalize all characters and factors across data frame 
+data <- mutate_all(data, .funs=toupper)
+
+# Remove all leading and trailing white spaces across data frame
+data <- mutate_all(data,str_trim, side=c("both"))
+
+# Change Date column from character to date
+class(data$Date)
+data <- data %>% 
+  mutate(Date = mdy(Date))
+class(data$Date)
+
+# Split column Date by year, month, and day
+data <- mutate(data, Year = year(Date), 
+               Month = month(Date),
+               Day = day(Date))  
+
+# Create columns to indicate if the data will be used for capture mark recapture
+# analysis (CMR) and to add the protocol used to collect it. For training data
+# change 'HMN' with TRAIN in line 96. If data was not collected with HMN's protocol
+# change "Y" with "N" in same line
+data <- mutate(data, CMR = "Y", Protocol = "HMN")
+
+# Change multiple values required on the electronic KoBoToolbox form to NA  
+data$Wing.Chord[data$Wing.Chord == "0"] <- NA
+data$Culmen[data$Culmen == "0"] <- NA
+data$CP.Breed[data$CP.Breed == "NOT TAKEN"] <- NA
+data$Buffy[data$Buffy == "% GREEN"] <- NA
 
 # Duplicate Band Status column to match columns' names in main database when 
 # merging data frames  
@@ -172,9 +172,11 @@ validation <-
                                            "0","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Secondaries.Molt), set = c("1","2","3","4","5","6","F","L","M","R",NA)) %>%
   col_vals_in_set(vars(Tail.Molt), set = c("1","2","3","4","5","F","L","M","R",NA)) %>% 
-  col_vals_between(vars(Weight), 2.0, 11.0, na_pass = TRUE)
+  col_vals_between(vars(Weight), 2, 9, na_pass = TRUE)
   
 # Interrogate creates a report after validation  
+interrogate(validation)
+
 # If report shows columns that didn't pass the validation (fail), get_sundered
 # shows failed values by rows
 interrogate(validation) %>% 
@@ -226,10 +228,10 @@ unique(data$Band.Number)
 #### their first capture  #### 
 
 # Bring in all band numbers used by HMN's monitoring program 
-all_bands <- read.csv("data/updated_raw_data.csv")
+all_bands <- read.csv("data/updated_raw_data.csv",
+                      na.strings = c("",NA))
 
 # Change band number from character to numeric
-class(all_bands$Band.Number)
 all_bands$Band.Number <- as.numeric(as.character((all_bands$Band.Number)))
 class(all_bands$Band.Number)
 
@@ -239,7 +241,7 @@ all_bands <- all_bands %>%
 
 # Extract recaptures from session's data
 session_recaps <- data %>% 
-  filter(Band.Status == "R", "5", "6") %>% 
+  filter(Band.Status == "R") %>% 
   select(Band.Number, Species, Sex, Age, Location, Year)
   
 # Check for inconsistencies with Band Numbers, species, age and sex for the 
@@ -272,7 +274,6 @@ for (BN in session_recaps$Band.Number) {
 
 # If inconsistencies are found, resolve them manually in final csv file created with this code 
 
-
 #### Check for session's recaps Age ####
 
 # Find first capture year for all bands   
@@ -294,7 +295,7 @@ for (BN in session_recaps$Band.Number) {
     next
   }
   if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN]){
-    message(first_cap$spp , first_cap$sex ,  BN , " banded on ", first_cap$first_year_captured)
+    message(first_cap$spp," ", first_cap$sex," ", BN , " banded in ", first_cap$first_year_captured)
   }
 }
 

@@ -11,7 +11,7 @@ library(stringr)
 ##### Data wrangling and cleaning ##### 
 
 # Bring in data for monitoring session 
-data <- read.csv("data/MPGF_0621_HMNBandingData_2022.csv", 
+data <- read.csv("data/SWRS_0423_HMNBandingData_2022.csv", 
                     na.strings = c("",NA))
 
 # Replace <NA> values created by KoBoToolbox electronic form when reading csv 
@@ -182,8 +182,11 @@ interrogate(validation)
 interrogate(validation) %>% 
   get_sundered_data(type = "fail")
 
-# If inconsistencies are found, resolve them manually in final csv file created 
-# with this code 
+# If inconsistencies are found, for Band.Status, Band.Number and Species, resolve
+# the issue manually in session's csv file and run the code again before continuing 
+# with updating letter code in band number and summarizing data for reports.
+# If inconsistencies with other columns are found, they can be resolved in final 
+# csv created with this code and the end of script 
 
 #### Replace letters in band numbers with Bird Banding Laboratory (BBL) codes ####
 
@@ -231,7 +234,7 @@ unique(data$Band.Number)
 all_bands <- read.csv("data/updated_raw_data.csv",
                       na.strings = c("",NA))
 
-# Change band number from character to numeric
+# Change band number from character to numeric before sorting the data
 all_bands$Band.Number <- as.numeric(as.character((all_bands$Band.Number)))
 class(all_bands$Band.Number)
 
@@ -315,8 +318,8 @@ data %>%
 
 #### Create new csv with the validated data ####
 
-# Create csv with vetted data. Make sure to update the location code in the 
-# output name  
+# Create csv with vetted data. Make sure to update the location code and date in 
+# the output name  
 write.csv(vetted_data,"output/vetted_HC_data.csv", row.names = FALSE)
 
 

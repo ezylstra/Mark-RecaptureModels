@@ -43,10 +43,6 @@ band_data <- mutate_all(band_data,str_trim, side=c("both"))
 band_data <- band_data %>% 
   mutate(Date = mdy(Date))
 
-if(class(band_data$Date) != "Date") {  # Ensure the conversion was successful
-  message("Date column was NOT successfully converted to Date class")
-}
-
 # Split column Date by year, month, and day
 band_data <- mutate(band_data, Year = year(Date), 
                     Month = month(Date),

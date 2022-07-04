@@ -156,3 +156,72 @@ total(BTLH_breeding, n_females)
 
 # Sites with data up to 3 years 
 
+#####################
+
+# Select BTLH data
+VCHU <- new_data %>% 
+  filter(Species == "VCHU") 
+
+count(VCHU, Protocol) # Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021)
+
+VCHU_HMN <- new_data %>% 
+  filter(Species == "VCHU", Protocol == "HMN")
+
+count(VCHU_HMN, CMR) # N 1005? Why N?
+
+#### Sites where BTLH occurs ####
+
+VCHU_sites <- VCHU_HMN %>% 
+  group_by(latitude, longitude, elevation, State, region, Location) %>%
+  summarize(first_yr = min(year),
+            last_yr = max(year),
+            n_yrs = length(unique(year)),
+            n_mo = length(unique(mo)),
+            n_dates = length(unique(date)),
+            n_indiv = length(unique(Band.Number)),
+            n_captures = length(Band.Number)) %>%
+  arrange(n_captures) %>% 
+  as.data.frame
+
+#### Sites where BTLH breeds ####
+
+# Change F for FEMALE and M for MALE
+VCHU_HMN$Sex[VCHU_HMN$Sex == "F"] <- "FEMALE"
+VCHU_HMN$Sex[VCHU_HMN$Sex == "M"] <- "MALE"
+
+# Change CPBreed from character to numeric
+VCHU_HMN$CPBreed <- as.numeric(as.character((VCHU_HMN$CPBreed)))
+class(VCHU_HMN$CPBreed)
+
+VCHU_breeding <- VCHU_HMN %>% 
+  group_by(latitude, longitude, elevation, State, region, Location) %>% 
+  filter(Sex == "FEMALE") %>%
+  as.data.frame
+
+
+
+summarize(n_yrs = length(unique(year)),
+          n_females = length(unique(Band.Number)),
+          n_females_CPB2 = length(unique(Band.Number[CPBreed == 2])),
+          n_females_CPB5 = length(unique(Band.Number[CPBreed == 5])),
+          n_females_CPB7 = length(unique(Band.Number[CPBreed == 7])),
+          n_females_CPB8 = length(unique(Band.Number[CPBreed == 8])),
+          n_females_CPB9 = length(unique(Band.Number[CPBreed == 9])),) %>%  
+  as.data.frame
+
+count(VCHU_HMN, CPBreed)      
+
+filter(BTLH_HMN, Sex == "FEMALE")
+
+class(BTLH_HMN$Sex)
+class(BTLH_HMN$CPBreed)
+
+count(BTLH_HMN, Sex)
+total(VCHU_breeding, n_females)
+
+# Summarize breeding conditions by year also 
+# Have BTLH been breeding earlier? If so, is this correlated to climate? 
+# Can I answer this question with our data? 
+
+# Sites with data up to 3 years 
+

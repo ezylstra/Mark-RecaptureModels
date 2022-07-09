@@ -33,6 +33,16 @@ for (molt_col in molt_colnames) {  #
   band_data <- select(band_data, -new_col)
 }
 
+# If Sex information is F (female) for all the rows in the Sex column, R will treat
+# it as a logical vector and will replace all Fs with FALSE. Change logical column
+# to character column 
+if(is.logical(band_data$Sex)){
+  band_data <- band_data %>% 
+    mutate(new_sex = ifelse(Sex == FALSE, "F", NA)) %>% 
+    mutate(Sex = new_sex) %>% 
+    select(-new_sex)
+}
+
 # Capitalize all characters and factors across data frame 
 band_data <- mutate_all(band_data, .funs=toupper)
 

@@ -173,21 +173,32 @@ BTLH_sites_final <- left_join(BTLH_sites_filtered,
   write.csv("output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 
-#### Sites where BTLH breeds ####
+#### BTLH breeding #### 
+
+## Need to think about this... 
 
 # Change F for FEMALE and M for MALE
 BTLH_HMN$Sex[BTLH_HMN$Sex == "F"] <- "FEMALE"
 BTLH_HMN$Sex[BTLH_HMN$Sex == "M"] <- "MALE"
 
-# Change CPBreed from character to numeric
-BTLH_HMN$CPBreed <- as.numeric(as.character((BTLH_HMN$CPBreed)))
-class(BTLH_HMN$CPBreed)
+# Organize BTLH data by sites and summarize it 
+BTLH_sites <- BTLH_HMN %>% 
+  group_by(Location, State) %>%
+  summarize(First.Year = min(Year),
+            Last.Year = max(Year),
+            N.Years = length(unique(Year)),
+            N.Months = length(unique(Month)),
+            N.Dates = length(unique(Date)),
+            N.Individuals = length(unique(Band.Number)),
+            N.Captures = length(Band.Number)) %>%
+  arrange(N.Captures) %>% 
+  as.data.frame
+
 
 BTLH_breeding <- BTLH_HMN %>% 
   group_by(latitude, longitude, elevation, State, region, Location) %>% 
   filter(Sex == "FEMALE") %>%
   as.data.frame
-
 
 
 summarize(n_yrs = length(unique(year)),
@@ -215,72 +226,31 @@ total(BTLH_breeding, n_females)
 
 # Sites with data up to 3 years 
 
-#####################
+##### MAP #####
 
-# Select BTLH data
-VCHU <- new_data %>% 
-  filter(Species == "VCHU") 
+library(rgdal)
+library(broom)
+library(maps)
 
-count(VCHU, Protocol) # Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021)
+# Read shape file
+BTLH_distribution <- readOGR(dsn = "data/Broad-tailed range map",
+                             layer = "data_0")
 
-VCHU_HMN <- new_data %>% 
-  filter(Species == "VCHU", Protocol == "HMN")
+# Create a tidy format of the map
+BTLH_distribution_tidy <- tidy(BTLH_distribution)
 
-count(VCHU_HMN, CMR) # N 1005? Why N?
+ggplot(BTLH_distribution_tidy, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = "black", 
+               size = 0.1, 
+               fill = "lightgrey") +
+  borders("world", xlim = c(-125, -85), ylim = c(15, 40)) +
+  theme_minimal() 
+  
+ggplot(BTLH_distribution_tidy, aes(x = long, y = lat)) +
+  geom_point(data = BTLH_sites_coordinates, 
+             mapping = aes(x = Longitude, y = Latitude),
+             color = "red",
+             size = 2)
+   
 
-#### Sites where BTLH occurs ####
-
-VCHU_sites <- VCHU_HMN %>% 
-  group_by(latitude, longitude, elevation, State, region, Location) %>%
-  summarize(first_yr = min(year),
-            last_yr = max(year),
-            n_yrs = length(unique(year)),
-            n_mo = length(unique(mo)),
-            n_dates = length(unique(date)),
-            n_indiv = length(unique(Band.Number)),
-            n_captures = length(Band.Number)) %>%
-  arrange(n_captures) %>% 
-  as.data.frame
-
-#### Sites where BTLH breeds ####
-
-# Change F for FEMALE and M for MALE
-VCHU_HMN$Sex[VCHU_HMN$Sex == "F"] <- "FEMALE"
-VCHU_HMN$Sex[VCHU_HMN$Sex == "M"] <- "MALE"
-
-# Change CPBreed from character to numeric
-VCHU_HMN$CPBreed <- as.numeric(as.character((VCHU_HMN$CPBreed)))
-class(VCHU_HMN$CPBreed)
-
-VCHU_breeding <- VCHU_HMN %>% 
-  group_by(latitude, longitude, elevation, State, region, Location) %>% 
-  filter(Sex == "FEMALE") %>%
-  as.data.frame
-
-
-
-summarize(n_yrs = length(unique(year)),
-          n_females = length(unique(Band.Number)),
-          n_females_CPB2 = length(unique(Band.Number[CPBreed == 2])),
-          n_females_CPB5 = length(unique(Band.Number[CPBreed == 5])),
-          n_females_CPB7 = length(unique(Band.Number[CPBreed == 7])),
-          n_females_CPB8 = length(unique(Band.Number[CPBreed == 8])),
-          n_females_CPB9 = length(unique(Band.Number[CPBreed == 9])),) %>%  
-  as.data.frame
-
-count(VCHU_HMN, CPBreed)      
-
-filter(BTLH_HMN, Sex == "FEMALE")
-
-class(BTLH_HMN$Sex)
-class(BTLH_HMN$CPBreed)
-
-count(BTLH_HMN, Sex)
-total(VCHU_breeding, n_females)
-
-# Summarize breeding conditions by year also 
-# Have BTLH been breeding earlier? If so, is this correlated to climate? 
-# Can I answer this question with our data? 
-
-# Sites with data up to 3 years 
 

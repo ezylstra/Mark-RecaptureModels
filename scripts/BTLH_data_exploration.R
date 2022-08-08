@@ -18,15 +18,14 @@ band_data <- mutate_all(raw_data, .funs=toupper)
 # Remove all leading and trailing white spaces
 band_data <- mutate_all(band_data,str_trim, side=c("both"))
 
-# Remove unnecesary columns
+# Remove unnecessary columns
 band_data <- band_data %>% 
   select(-Tarsus, -BS_Paper, -TBS_test, -TBS_Paper, -CMR, -latitude, -longitude,
          -elevation, -region, -session, -week, -dayofyear, -DayBlock, -T1, -t3, 
          -Diff_factor, -Diff_factorA, -TARSUS_UNIT, -BAND_UNIT, -Leg.Condition, 
          -Orig_Tarsus.Condition, -Field_BAND.SIZE)    
 
-##### Change column's names #####
-
+# Change column's names 
 band_data <- band_data %>% 
   rename(Bander = Initials.Bdr,
          Date = date,
@@ -59,8 +58,6 @@ band_data <- band_data %>%
          Recapture.Time.3 = recap.time.3,
          Recapture.Time.4 = recap.time.4)
 
-##### Band Numbers #####
-
 # If any 'XXXXXX' in Band.Number, replace it with NA 
 if (any(unique(band_data$Band.Number) == "XXXXXX")) {
   message("Replacing band number 'XXXXXX' with NA")
@@ -68,8 +65,7 @@ if (any(unique(band_data$Band.Number) == "XXXXXX")) {
     mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
 }
 
-##### Format columns #####
-
+# Format columns
 # Change date column from character to date
 band_data <- band_data %>% 
   mutate(Date = mdy(Date))
@@ -85,8 +81,8 @@ band_data <- band_data %>%
 
 ##### Update Band.Status ##### 
 
-# Verify that first use (date) of a band number corresponds to band status 1
-# and following captures correspond to recaptures or band status R 
+# Verify that first use of a band number (date) corresponds to band status 1 (new)
+# and following captures correspond to band status R (recapture) 
 
 # Extract the rows that equal first capture and recaptures 
 new__recap_bands <- subset(band_data, Band.Status %in% c("1","R"))
@@ -99,10 +95,11 @@ unique(new__recap_bands$Band.Status)
 # Create a capture number column 
 new__recap_bands$capture_number <- sequence(from = 1, rle(new__recap_bands$Band.Number)$lengths)
 
+# Create a new column with best band status 
 new__recap_bands$best_band_status <- ifelse(new__recap_bands$capture_number == 1, "1","R")
 
 # Subset other band status from data 
-# 4 = band destroyed, 6 = band removed, 8 = band lost, F = forain band
+# 4 = band destroyed, 6 = band removed, 8 = band lost, F = foreign band
 other_band_status <- band_data %>% 
   filter(Band.Status %in% c("4", "6", "8", "F"))
 
@@ -111,7 +108,7 @@ all_bands <- other_band_status %>%
   bind_rows(new__recap_bands) %>% 
   arrange(Band.Number, Date)
 
-# Reorganize data frame 
+##### Reorganize data frame ##### 
 new_data <- all_bands %>% 
   select(-capture_number) %>% 
   relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,

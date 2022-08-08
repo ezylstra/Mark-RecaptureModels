@@ -70,8 +70,11 @@ if (any(unique(band_data$Band.Number) == "XXXXXX")) {
 band_data <- band_data %>% 
   mutate(Date = mdy(Date))
 
-# Change band number from character to numeric
+# Change Band.Number from character to numeric
 band_data$Band.Number <- as.numeric(as.character((band_data$Band.Number)))
+
+# Change CP.Breed from character to numeric
+band_data$CP.Breed <- as.numeric(as.character((band_data$CP.Breed)))
 
 ##### Sort data #####
 

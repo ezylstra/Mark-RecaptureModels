@@ -75,7 +75,7 @@ band_data$Band.Number <- as.numeric(as.character((band_data$Band.Number)))
 
 ##### Sort data #####
 
-# Sort data by band number, date, species and sex
+# Sort data by Band.Number, Date, Species, and Sex
 band_data <- band_data %>% 
   arrange(Band.Number, Date, Species, Sex)
 
@@ -84,10 +84,10 @@ band_data <- band_data %>%
 # Verify that first use of a band number (date) corresponds to band status 1 (new)
 # and following captures correspond to band status R (recapture) 
 
-# Extract the rows that equal first capture and recaptures 
+# Extract the rows that equal first capture (1) and recaptures (R) 
 new__recap_bands <- subset(band_data, Band.Status %in% c("1","R"))
 
-# Extract the rows that equal a band number 
+# Extract the rows that equal a band number and create a new column for Best.Band.Status
 new_bands <- unique(new__recap_bands$Band.Number)
 new__recap_bands$best_band_status <- NA
 unique(new__recap_bands$Band.Status)
@@ -95,7 +95,7 @@ unique(new__recap_bands$Band.Status)
 # Create a capture number column 
 new__recap_bands$capture_number <- sequence(from = 1, rle(new__recap_bands$Band.Number)$lengths)
 
-# Create a new column with best band status 
+# Fill in Best.Band.Status with 1 and R  
 new__recap_bands$best_band_status <- ifelse(new__recap_bands$capture_number == 1, "1","R")
 
 # Subset other band status from data 
@@ -116,7 +116,7 @@ new_data <- all_bands %>%
   rename(Best.Band.Status = best_band_status)
 
 count(new_data, Band.Status)
-count(new_data, best_band_status)
+count(new_data, Best.Band.Status)
 
 # Replace NA values for band status 4, 6, 8, and F in Best.Band.Status
 new_data$Best.Band.Status[new_data$Band.Status == "4"] <- 4
@@ -130,13 +130,13 @@ new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 BTLH <- new_data %>% 
   filter(Species == "BTLH") 
 
-count(BTLH, Protocol) # Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021)
+count(BTLH, Protocol) # Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021 for education)
 
+# Select BTLH data that follows HMN's protocol
 BTLH_HMN <- new_data %>% 
   filter(Species == "BTLH", Protocol == "HMN")
 
-##### Sites where BTLH occurs #####
-
+# Organize BTLH data by sites and summarize it 
 BTLH_sites <- BTLH_HMN %>% 
   group_by(Location, State) %>%
   summarize(First.Year = min(Year),
@@ -152,11 +152,10 @@ BTLH_sites <- BTLH_HMN %>%
 # Remove sites with less than 10 bids captured and 1 year of monitoring
 # 21 sites < 10 birds 
 # 4 sites < 1 year 
-
 BTLH_sites_filtered <- BTLH_sites %>% 
   filter(N.Years != 1, N.Captures > 10)
 
-# Replace coordinates and elevation data
+# Replace coordinates and elevation data 
 
 # Bring in site information 
 BTLH_sites_coordinates <- read.csv("data/BTLH_sites.csv")
@@ -167,7 +166,8 @@ BTLH_sites_final <- left_join(BTLH_sites_filtered,
                             by = "Location") %>% 
   relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
            Last.Year, N.Years, N.Months, N.Dates, N.Individuals, 
-           N.Captures)
+           N.Captures) %>% 
+  write.csv("output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 
 #### Sites where BTLH breeds ####

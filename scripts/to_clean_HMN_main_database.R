@@ -7,23 +7,26 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 
+##### Data wrangling #####
+
 # Bring in raw data
 raw_data <- read.csv("data/updated_raw_data.csv")
 
 # Capitalize all characters and factors across data frame 
-data <- mutate_all(raw_data, .funs=toupper)
+band_data <- mutate_all(raw_data, .funs=toupper)
 
 # Remove all leading and trailing white spaces
-data <- mutate_all(raw_data,str_trim, side=c("both"))
+band_data <- mutate_all(band_data,str_trim, side=c("both"))
 
-# Change date column from character to date
-class(data$date)
-data <- data %>% 
-  mutate(date = mdy(date))
-class(data$date)
+# To do! 
+# Ask Susan about the columns to remove or update/change, then complete the code
+# below 
 
-# Remove columns 
-data <- data %>% 
+# Do we need data for session, week, day of year, day block in raw data???? 
+# If needed for analysis we can get this information with the date 
+
+# Remove columns
+band_data <- band_data %>% 
   select(-Tarsus,                   # Checklist for paper
          -BS_Paper,                 # Checklist for paper
          -TBS_test,                 # Checklist for paper
@@ -32,21 +35,92 @@ data <- data %>%
          -t3,                       # Unknown use
          -Diff_factor,              # Unknown use
          -Diff_factorA,             # Unknown use
-        -TARSUS_UNIT,               
-        -BAND_UNIT,
-        -Leg.Condition,
-        -Orig_Tarsus.Condition,
-        -TARSUS.CONDITION,
-        -Field_BAND.SIZE,
-        -BAND.SIZE)    
+         -TARSUS_UNIT,               
+         -BAND_UNIT,
+         -Leg.Condition,
+         -Orig_Tarsus.Condition,
+         -Field_BAND.SIZE)    
+
+##### Change latitude, longitude and elevation #####
+
+# To do!
+# Update site data
+# Join banding data with site data
+
+
+##### Split columns that contain two variables #####
+
+# To do! 
+# Tarsus.Measurement and Leg.Condition
+# Buffy and % Green on Back for RUHU
+
+##### Cambiar los datos de fotos, muestras, etc, a los campos nuevos definidos
+##### en el formulario nuevo de KoBo
+
+# Actualizar la base de datos en Excel con los cambios 
+
+##### Change column's names #####
+str(band_data)
+
+band_data <- band_data %>% 
+  rename(Bander = Initials.Bdr,
+         Region = region,
+         Session = session,
+         Week = week,
+         Day.Of.Year = dayofyear,
+         Day.Block = DayBlock,
+         Date = date,
+         Year = year,
+         Month = mo,
+         Day = day,
+         Time = time,
+         Old.Band.Status = OldBand.Status,
+         Band.Size = BAND.SIZE,
+         Gorget.Color = GPORCOlOR,
+         Gorget.Count = GorCount....,
+         Head.Count = Head.GCnt....,
+         Primary.Width.P.10.Shape = PriWidth...P10.Shape,
+         Wing.Tail.Trait = Wng.TailTrait,
+         Tail.Center = TailCent,
+         Tail.Middle = TailMid,
+         Tail.Outer = TailOut,
+         Tail.Measurement = TailMeas....,
+         Wing.Chord = WingCd,
+         Pollen.Color.Location = Pollen..Color,
+         Fat = Fat.fie1d.data,
+         CP.Breed = CPBreed,
+         Head.Gorget.Molt = Gorget.head.molt,
+         Primaries.Molt = PriMary.Molt,
+         Secondaries.Molt = Secondary.Molt,
+         Day.Recaptures = Day.Recap..,
+         Recapture.Time.1 = recap.time.1,
+         Recapture.Time.2 = recap.time.2,
+         Recapture.Time.3 = recap.time.3,
+         Recapture.Time.4 = recap.time.4)
+
+##### Band Numbers #####
 
 # If any 'XXXXXX' in Band.Number, replace it with NA 
 data <- data %>% 
   mutate(Band.Number = na_if(Band.Number, "XXXXXX"))
 
+##### Band Status ##### 
+
+# 
+
+
+##### Format columns #####
+
+# To do! Complete the code once the changes to each columns are done  
+
+# Change date column from character to date
+data <- data %>% 
+  mutate(date = mdy(date))
+
 # Change band number from character to numeric
 data$Band.Number <- as.numeric(as.character((data$Band.Number)))
-class(data$Band.Number)
+
+#####        #####
 
 # Sort data by band number, date, species and sex
 data <- data %>% 

@@ -169,8 +169,10 @@ BTLH_sites_final <- left_join(BTLH_sites_filtered,
                             by = "Location") %>% 
   relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
            Last.Year, N.Years, N.Months, N.Dates, N.Individuals, 
-           N.Captures) %>% 
-  write.csv("output/BTLH_sites_raw_data.csv", row.names = FALSE)
+           N.Captures)
+
+# Write csv with the data for BTLH
+write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 
 #### BTLH breeding #### 
@@ -251,6 +253,6 @@ ggplot(BTLH_distribution_tidy, aes(x = long, y = lat)) +
              mapping = aes(x = Longitude, y = Latitude),
              color = "red",
              size = 2)
-   
+ 
 
-
+ggplot(BTLH_)

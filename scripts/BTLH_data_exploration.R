@@ -228,7 +228,7 @@ total(BTLH_breeding, n_females)
 
 # Sites with data up to 3 years 
 
-##### MAP #####
+##### BTLH distribution map and monitoring points #####
 
 library(rgdal)
 library(broom)
@@ -241,18 +241,18 @@ BTLH_distribution <- readOGR(dsn = "data/Broad-tailed range map",
 # Create a tidy format of the map
 BTLH_distribution_tidy <- tidy(BTLH_distribution)
 
-ggplot(BTLH_distribution_tidy, aes(x = long, y = lat, group = group)) +
+#Plot BTLH distribution and HMN sites with BTLH data  
+ggplot(BTLH_distribution_tidy, aes(x = long, y = lat, group = group),) +
   geom_polygon(color = "black", 
                size = 0.1, 
                fill = "lightgrey") +
-  borders("world", xlim = c(-125, -85), ylim = c(15, 40)) +
-  theme_minimal() 
-  
-ggplot(BTLH_distribution_tidy, aes(x = long, y = lat)) +
-  geom_point(data = BTLH_sites_coordinates, 
-             mapping = aes(x = Longitude, y = Latitude),
-             color = "red",
-             size = 2)
- 
+  borders("world", xlim = c(-120, -100), ylim = c(15, 40),) +
+  borders("state") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  geom_point(data = BTLH_sites_final, 
+           mapping = aes(x = Longitude, y = Latitude, group = State), # Added State as group to avoid error
+           color = "red",
+           size = 1)
+            
 
-ggplot(BTLH_)

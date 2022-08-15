@@ -175,6 +175,8 @@ write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 #### BTLH age/sex structure #### 
 
+## I am working on it, please ignore it for now 
+
 # Organize BTLH data by sites and summarize it 
 BTLH_age_sex <- BTLH_HMN %>% 
   group_by(Location, State) %>%
@@ -216,7 +218,6 @@ total(BTLH_breeding, n_females)
 # Have BTLH been breeding earlier? If so, is this correlated to climate? 
 # Can I answer this question with our data? 
 
-# Sites with data up to 3 years 
 
 ##### BTLH distribution map and monitoring points #####
 
@@ -260,9 +261,8 @@ map1 +
   labs(title = "BTLH Distribution Map with HMN sites") 
  
 
-
-
-  coord_equal()  # adjusts map coordinates to polygon
+# I want to use this code to adjust the map to the distribution polygon 
+coord_equal()  # adjusts map coordinates to polygon
   
   
                             

@@ -124,18 +124,13 @@ new_data$Best.Band.Status[new_data$Band.Status == "6"] <- 6
 new_data$Best.Band.Status[new_data$Band.Status == "8"] <- 8
 new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 
-##### BTLH DATA ##### 
+##### BTLH DATA EXPLORATION ##### 
 
-# Select BTLH data
-BTLH <- new_data %>% 
-  filter(Species == "BTLH") 
-
-count(BTLH, Protocol) 
-# Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021 for education)
-
-# Select BTLH data that follows HMN's protocol
+# Select BTLH data for HMN's sites
 BTLH_HMN <- new_data %>% 
-  filter(Species == "BTLH", Protocol == "HMN")
+  filter(Species == "BTLH", 
+         Protocol == "HMN",
+         Sex != "U") # Removed individuals with unknown sex 
 
 # Organize BTLH data by sites and summarize it 
 BTLH_sites <- BTLH_HMN %>% 
@@ -145,18 +140,24 @@ BTLH_sites <- BTLH_HMN %>%
             N.Years = length(unique(Year)),
             N.Months = length(unique(Month)),
             N.Days = length(unique(Date)),
-            N.Individuals = length(unique(Band.Number)),
-            N.Captures = length(Band.Number)) %>% 
+            N.Captures = length(Band.Number),
+            Individuals.Banded = length(unique(Band.Number)),
+            N.Males = length(unique(Band.Number[Sex == "M"])),
+            N.Females = length(unique(Band.Number[Sex == "F"]))) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
 
 # Remove sites with less than 10 bids captured and 1 year of monitoring
-# 21 sites < 10 birds 
+# 21 sites < 10 birds   
 # 4 sites < 1 year 
+# HSR (155 BTLH) started in 2021, we'll have data for 2022
+# SC (Sabino Canyon, 48 BTLH) has data just for 2011, but monitored 2006-2015. Interesting, what happened in 2011? 
+
+
 BTLH_sites_filtered <- BTLH_sites %>% 
   filter(N.Years != 1, N.Captures > 10)
 
-# Add coordinates and elevation data for each site 
+# Add coordinates, elevation, and years of activity for each site 
 
 # Bring in site information 
 BTLH_sites_coordinates <- read.csv("data/BTLH_sites.csv")
@@ -166,53 +167,14 @@ BTLH_sites_final <- left_join(BTLH_sites_filtered,
                             BTLH_sites_coordinates, 
                             by = "Location") %>% 
   relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
-           Last.Year, N.Years, N.Months, N.Days, N.Individuals, 
+           Last.Year, N.Years, N.Active.Years, N.Months, N.Days, Individuals.Banded, 
            N.Captures)
 
 # Write csv with the data for BTLH
 write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 
-#### BTLH age/sex structure #### 
-
-## I am working on it, please ignore it for now 
-
-# Organize BTLH data by sites and summarize it 
-BTLH_age_sex <- BTLH_HMN %>% 
-  group_by(Location, State) %>%
-  summarize(N.Males = length(unique(Sex)),
-            N.Females = length(unique(Month)),
-            N.Dates = length(unique(Date)),
-            N.Individuals = length(unique(Band.Number)),
-            N.Captures = length(Band.Number)) %>%
-  arrange(N.Captures) %>% 
-  as.data.frame
-
-
-BTLH_breeding <- BTLH_HMN %>% 
-  group_by(latitude, longitude, elevation, State, region, Location) %>% 
-  filter(Sex == "FEMALE") %>%
-  as.data.frame
-
-
-summarize(n_yrs = length(unique(year)),
-          n_females = length(unique(Band.Number)),
-          n_females_CPB2 = length(unique(Band.Number[CPBreed == 2])),
-          n_females_CPB5 = length(unique(Band.Number[CPBreed == 5])),
-          n_females_CPB7 = length(unique(Band.Number[CPBreed == 7])),
-          n_females_CPB8 = length(unique(Band.Number[CPBreed == 8])),
-          n_females_CPB9 = length(unique(Band.Number[CPBreed == 9])),) %>%  
-  as.data.frame
-
-count(BTLH_HMN, CPBreed)      
-
-filter(BTLH_HMN, Sex == "FEMALE")
-
-class(BTLH_HMN$Sex)
-class(BTLH_HMN$CPBreed)
-
-count(BTLH_HMN, Sex)
-total(BTLH_breeding, n_females)
+##### BREEDING CONDITIONS #####
 
 # Summarize breeding conditions by year also 
 # Have BTLH been breeding earlier? If so, is this correlated to climate? 

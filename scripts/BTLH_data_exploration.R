@@ -14,9 +14,17 @@ raw_data <- read.csv("data/updated_raw_data.csv")
 
 # Capitalize all characters and factors across data frame 
 band_data <- mutate_all(raw_data, .funs=toupper)
+# EZ: Getting an error when I run this related to TailMid column
+# If you're also getting error, suggest replacing above with the following:
+# band_data <- raw_data %>%
+#   mutate(across(!TailMid, .funs = toupper))
 
 # Remove all leading and trailing white spaces
 band_data <- mutate_all(band_data,str_trim, side=c("both"))
+# EZ: Getting an error related to non UTF-8 strings in Comment column
+# If you're also getting error, suggest replacing above with the following:
+# band_data <- band_data %>%
+#   mutate(across(!Comment, str_trim, side = "both"))
 
 # Remove unnecessary columns
 band_data <- band_data %>% 
@@ -146,6 +154,9 @@ BTLH_sites <- BTLH_HMN %>%
             N.Females = length(unique(Band.Number[Sex == "F"]))) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
+# EZ: a few sites have the same location name except there's a 1 after it.
+# Can the data from these sites be combined?  (if, for example, the banding
+# station was moved just a little ways away but it's basically the same site)
 
 # Remove sites with less than 10 bids captured and 1 year of monitoring
 # 21 sites < 10 birds   
@@ -226,7 +237,91 @@ map1 +
 # I want to use this code to adjust the map to the distribution polygon 
 coord_equal()  # adjusts map coordinates to polygon
   
-  
+# EZ: code below should work to plot banding locations on top of the range map
+map2 <- ggplot(BTLH_distribution_tidy,
+               aes(x = long,
+                   y = lat,
+                   group = group,
+                   fill = LEGEND)) +
+  geom_polygon(color = "black", size = 0.1) +
+  borders("world", xlim = c(-130, -100), ylim = c(15, 40)) +
+  borders("state") +  
+  coord_equal() + 
+  theme_bw() +
+  theme(axis.title = element_blank(),
+        legend.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom") + 
+  labs(title = "BTLH Distribution Map") 
+map2
+
+# Adding locations of banding stations:
+# Note: need to specify that group and fill (plotting features
+# from the polygon layer) are NULL for these point features.
+map2 +
+  geom_point(data = BTLH_sites_final, 
+             mapping = aes(x = Longitude, 
+                           y = Latitude,
+                           group = NULL,
+                           fill = NULL),
+             color = "black",
+             size = 1,
+             show.legend = FALSE) +
+  labs(title = "BTLH Distribution Map with HMN sites") 
+
+# Zooming into the banding locations
+# I also added an example of how to label them, but only did for a few sites
+# since many are in such close proximity to each other:
+map3 <- ggplot(BTLH_distribution_tidy,
+               aes(x = long,
+                   y = lat,
+                   group = group,
+                   fill = LEGEND)) +
+  geom_polygon(color = "black", size = 0.1) +
+  borders("world", regions = c("us", "mexico")) +
+  borders("state") +  
+  theme_bw() +
+  theme(axis.title = element_blank(),
+        legend.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom") + 
+  labs(title = "BTLH Distribution Map") 
+
+map3 + geom_point(data = BTLH_sites_final,
+                  mapping = aes(x = Longitude, 
+                                y = Latitude,
+                                group = NULL,
+                                fill = NULL),
+                  color = "black",
+                  size = 2,
+                  show.legend = FALSE) +
+  coord_map(xlim = c(-120, -100), ylim = c(30, 42)) +
+  labs(title = "BTLH Distribution Map with HMN sites") 
+
+BTLH_sites_final <- BTLH_sites_final %>%
+  mutate(nudge_lat = Latitude + 0.3)
+
+map3 + geom_point(data = BTLH_sites_final,
+                  mapping = aes(x = Longitude, 
+                                y = Latitude,
+                                group = NULL,
+                                fill = NULL),
+                  color = "black",
+                  size = 2,
+                  show.legend = FALSE) +
+  coord_map(xlim = c(-120, -100), ylim = c(30, 42)) +
+  labs(title = "BTLH Distribution Map with HMN sites") +
+  geom_text(data = BTLH_sites_final[4:6,],
+            aes(x = Longitude, 
+                y = nudge_lat,
+                group = NULL,
+                fill = NULL,
+                label = Location),
+            color = "black",
+            size = 3)
+
                             
 
             

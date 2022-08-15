@@ -95,7 +95,7 @@ new_bands <- unique(new__recap_bands$Band.Number)
 new__recap_bands$best_band_status <- NA
 unique(new__recap_bands$Band.Status)
 
-# Create a capture number column 
+# Create a capture number column and add sequence of captures
 new__recap_bands$capture_number <- sequence(from = 1, rle(new__recap_bands$Band.Number)$lengths)
 
 # Fill in Best.Band.Status with 1 and R  
@@ -106,7 +106,7 @@ new__recap_bands$best_band_status <- ifelse(new__recap_bands$capture_number == 1
 other_band_status <- band_data %>% 
   filter(Band.Status %in% c("4", "6", "8", "F"))
 
-# Merge all band status
+# Merge all band status (1, R, 4, 6, 8, F)
 all_bands <- other_band_status %>% 
   bind_rows(new__recap_bands) %>% 
   arrange(Band.Number, Date)
@@ -117,9 +117,6 @@ new_data <- all_bands %>%
   relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,
            Old.Band.Status, Band.Status, best_band_status) %>% 
   rename(Best.Band.Status = best_band_status)
-
-count(new_data, Band.Status)
-count(new_data, Best.Band.Status)
 
 # Replace NA values for band status 4, 6, 8, and F in Best.Band.Status
 new_data$Best.Band.Status[new_data$Band.Status == "4"] <- 4
@@ -133,7 +130,8 @@ new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 BTLH <- new_data %>% 
   filter(Species == "BTLH") 
 
-count(BTLH, Protocol) # Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021 for education)
+count(BTLH, Protocol) 
+# Engelman 8622, HMN 16465, Train 797, NA 16 (Utah site 2021 for education)
 
 # Select BTLH data that follows HMN's protocol
 BTLH_HMN <- new_data %>% 
@@ -146,9 +144,9 @@ BTLH_sites <- BTLH_HMN %>%
             Last.Year = max(Year),
             N.Years = length(unique(Year)),
             N.Months = length(unique(Month)),
-            N.Dates = length(unique(Date)),
+            N.Days = length(unique(Date)),
             N.Individuals = length(unique(Band.Number)),
-            N.Captures = length(Band.Number)) %>%
+            N.Captures = length(Band.Number)) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
 
@@ -158,38 +156,30 @@ BTLH_sites <- BTLH_HMN %>%
 BTLH_sites_filtered <- BTLH_sites %>% 
   filter(N.Years != 1, N.Captures > 10)
 
-# Replace coordinates and elevation data 
+# Add coordinates and elevation data for each site 
 
 # Bring in site information 
 BTLH_sites_coordinates <- read.csv("data/BTLH_sites.csv")
 
-# Add coordinates and elevation data 
+# Join tables to add coordinates and elevation data 
 BTLH_sites_final <- left_join(BTLH_sites_filtered, 
                             BTLH_sites_coordinates, 
                             by = "Location") %>% 
   relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
-           Last.Year, N.Years, N.Months, N.Dates, N.Individuals, 
+           Last.Year, N.Years, N.Months, N.Days, N.Individuals, 
            N.Captures)
 
 # Write csv with the data for BTLH
 write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
 
 
-#### BTLH breeding #### 
-
-## Need to think about this... 
-
-# Change F for FEMALE and M for MALE
-BTLH_HMN$Sex[BTLH_HMN$Sex == "F"] <- "FEMALE"
-BTLH_HMN$Sex[BTLH_HMN$Sex == "M"] <- "MALE"
+#### BTLH age/sex structure #### 
 
 # Organize BTLH data by sites and summarize it 
-BTLH_sites <- BTLH_HMN %>% 
+BTLH_age_sex <- BTLH_HMN %>% 
   group_by(Location, State) %>%
-  summarize(First.Year = min(Year),
-            Last.Year = max(Year),
-            N.Years = length(unique(Year)),
-            N.Months = length(unique(Month)),
+  summarize(N.Males = length(unique(Sex)),
+            N.Females = length(unique(Month)),
             N.Dates = length(unique(Date)),
             N.Individuals = length(unique(Band.Number)),
             N.Captures = length(Band.Number)) %>%
@@ -234,25 +224,48 @@ library(rgdal)
 library(broom)
 library(maps)
 
-# Read shape file
-BTLH_distribution <- readOGR(dsn = "data/Broad-tailed range map",
-                             layer = "data_0")
+# Read shape file downloaded from UICN 
+BTLH_distribution <- readOGR(dsn = "data/Broad-tailed range map", #dsn = data source name
+                             layer = "data_0") # layer = name of the shape file 
 
-# Create a tidy format of the map
+# Convert spatial object to a data frame to use with ggplot2
 BTLH_distribution_tidy <- tidy(BTLH_distribution)
 
-#Plot BTLH distribution and HMN sites with BTLH data  
-ggplot(BTLH_distribution_tidy, aes(x = long, y = lat, group = group),) +
-  geom_polygon(color = "black", 
-               size = 0.1, 
-               fill = "lightgrey") +
-  borders("world", xlim = c(-120, -100), ylim = c(15, 40),) +
-  borders("state") +
+# Add data from downloaded distribution map to tidy object created in line 246 
+BTLH_distribution$id <- row.names(BTLH_distribution) 
+BTLH_distribution_tidy <- left_join(BTLH_distribution_tidy, BTLH_distribution@data)
+
+#Plot BTLH basic distribution map  
+map1 <- ggplot(BTLH_distribution_tidy, aes(x = long, y = lat, 
+                                   group = group, # Group keeps the polygon's shape
+                                   fill = LEGEND)) + # Colors the map by range
+  geom_polygon(color = "black", size = 0.1) + 
   theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + # Remove grid from map
+  borders("world", xlim = c(-130, -100), ylim = c(15, 40)) +
+  borders("state") +
+  labs(title = "BTLH Distribution Map") 
+  
+
+map1
+
+# Add HMN sites to BTLH distribution map 
+map1 +
   geom_point(data = BTLH_sites_final, 
-           mapping = aes(x = Longitude, y = Latitude, group = State), # Added State as group to avoid error
-           color = "red",
-           size = 1)
+             mapping = aes(x = Longitude, y = Latitude,
+                           group = State, # Added State as group to avoid error
+                           fill = Location),
+             color = "red",
+             size = 1) +
+  labs(title = "BTLH Distribution Map with HMN sites") 
+ 
+
+
+
+  coord_equal()  # adjusts map coordinates to polygon
+  
+  
+                            
+
             
 

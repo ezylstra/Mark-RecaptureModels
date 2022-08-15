@@ -1,4 +1,4 @@
-"Location","State","Latitude","Longitude","Elevation","First.Year","Last.Year","N.Years","N.Months","N.Dates","N.Individuals","N.Captures"
+"Location","State","Latitude","Longitude","Elevation","First.Year","Last.Year","N.Years","N.Months","N.Days","N.Individuals","N.Captures"
 "SCSNA","AZ",31.48797222,-110.8786111,1118,"2009","2011",3,5,9,15,15
 "KP","AZ",31.95794444,-111.5972222,2066,"2003","2004",2,4,8,18,18
 "CH","AZ",32.00472222,-109.3569444,1648,"2003","2005",3,6,10,26,26

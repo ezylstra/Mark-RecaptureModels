@@ -229,23 +229,28 @@ for (BN in session_recaps$Band.Number) {
     print(paste0("Band Number ", BN, " not in main database")) # Band number provably 
     next                    # applied in previous sessions of current monitoring year
   }
-  if(original_caps$Species[1] != session_recaps$Species[session_recaps$Band.Number == BN]){
+  if(original_caps$Species[1] != session_recaps$Species[session_recaps$Band.Number == BN & 
+                                                        !is.na(session_recaps$Band.Number)]){ # !is.na code avoids the error when BN is NA
     print(paste0("Species code inconsistent for ", BN))
     message("Original species for ", BN , " was ",  original_caps$Species)
   }
-  if(original_caps$Sex[1] != session_recaps$Sex[session_recaps$Band.Number == BN]){
+  if(original_caps$Sex[1] != session_recaps$Sex[session_recaps$Band.Number == BN & 
+                                                !is.na(session_recaps$Band.Number)]){
     print(paste0("Sex code inconsistent for ", BN))
     message("Original sex for ", BN , " was ",  original_caps$Sex)
   }
-  if(original_caps$Age[1] != session_recaps$Age[session_recaps$Band.Number == BN]){
+  if(original_caps$Age[1] != session_recaps$Age[session_recaps$Band.Number == BN & 
+                                                !is.na(session_recaps$Band.Number)]){
     print(paste0("Age code inconsistent for ", BN))
     message("Original Age for ", BN , " was ", original_caps$Age )
   }
-  if(original_caps$Location[1] != session_recaps$Location[session_recaps$Band.Number == BN]){
+  if(original_caps$Location[1] != session_recaps$Location[session_recaps$Band.Number == BN & 
+                                                          !is.na(session_recaps$Band.Number)]){
     print(paste0("Location code inconsistent for ", BN))
     message("Original location for ", BN , " was ",  original_caps$Location)
   }
 }
+
 
 # If inconsistencies are found, resolve them manually in final csv file created with this code 
 
@@ -268,10 +273,12 @@ for (BN in session_recaps$Band.Number) {
     print(paste0("Band Number ", BN, " not in main database"))
     next
   }
-  if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN]){
+  if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN & 
+                                                             !is.na(session_recaps$Band.Number)]){ # !is.na code avoids the error when BN is NA
     message(first_cap$spp," ", first_cap$sex," ", BN , " banded in ", first_cap$first_year_captured)
   }
 }
+
 
 #### Get summarized data for reports #### 
 

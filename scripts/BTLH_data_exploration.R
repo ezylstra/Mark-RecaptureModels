@@ -80,16 +80,22 @@ band_data$Band.Number <- as.numeric(as.character((band_data$Band.Number)))
 # Change CP.Breed from character to numeric
 band_data$CP.Breed <- as.numeric(as.character((band_data$CP.Breed)))
 
-## TO DO ## 
-# Merge sites e.g. MA1 - MA when banding locations are moved just a little ways 
-# away but it's basically the same site
+# Merge data for banding locations that are close to each other or are moved just 
+# a little ways away but it's basically the same site
+
 # Locations to check: 
-# MA - MA1
-# AL - AL1
-# RA - RA1
-# PA - PA2
-# W1?
-# T2? 
+# MA - MA1 <- YES, Both sites close together MA1 has data  for 2002, MA1 has data from 2003 forward 
+# AL - AL1 <- MAYBE, AL1 has 5 records but on different monitoring dates than AL, maybe it was a training site?
+# RA - RA1 <- NO, Both sites in Arizona, RA1 is a "training" site 
+# PA - PA2 <- NO, PA is a site in Arizona, PA2 is a site in British Columbia 
+# SWRS - SWRS1 <- YES
+# W1 - NO, training site 
+# T2 - NO, training site    
+
+band_data$Location[band_data$Location == "MA1"] <- "MA"
+band_data$Location[band_data$Location == "SWRS1"] <- "SWRS"
+
+
 
 ##### Sort data #####
 

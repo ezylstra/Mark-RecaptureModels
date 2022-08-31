@@ -83,19 +83,17 @@ band_data$CP.Breed <- as.numeric(as.character((band_data$CP.Breed)))
 # Merge data for banding locations that are close to each other or are moved just 
 # a little ways away but it's basically the same site
 
-# Locations to check: 
-# MA - MA1 <- YES, Both sites close together MA1 has data  for 2002, MA1 has data from 2003 forward 
-# AL - AL1 <- MAYBE, AL1 has 5 records but on different monitoring dates than AL, maybe it was a training site?
+# Locations to merge: 
+# MA - MA1 <- YES, Both sites close together MA1 has data  for 2002, MA has data from 2003 forward 
+# AL - AL1 <- NO, AL1 has 5 records but on different monitoring dates than AL, maybe it was a training site? Protocol is HMN for both
 # RA - RA1 <- NO, Both sites in Arizona, RA1 is a "training" site 
 # PA - PA2 <- NO, PA is a site in Arizona, PA2 is a site in British Columbia 
-# SWRS - SWRS1 <- YES
+# SWRS - SWRS1 <- YES, SWRS1 was the site we used while the station was closed due to covid, they are very close together
 # W1 - NO, training site 
 # T2 - NO, training site    
 
 band_data$Location[band_data$Location == "MA1"] <- "MA"
 band_data$Location[band_data$Location == "SWRS1"] <- "SWRS"
-
-
 
 ##### Sort data #####
 
@@ -132,7 +130,7 @@ all_bands <- other_band_status %>%
   bind_rows(new__recap_bands) %>% 
   arrange(Band.Number, Date)
 
-##### Reorganize data frame ##### 
+##### Reorganize data frame ##### Contains ALL HMN's band data 
 new_data <- all_bands %>% 
   select(-capture_number) %>% 
   relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,
@@ -147,13 +145,16 @@ new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 
 ##### BTLH DATA EXPLORATION ##### 
 
-# Select BTLH data for HMN's sites
+# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
+# and exclude sites that have < 1 year of data and < 10 birds captured. 
 BTLH_HMN <- new_data %>% 
   filter(Species == "BTLH", 
          Protocol == "HMN",
-         Sex != "U") # Removed individuals with unknown sex 
+         Sex != "U", # Removes 10 individuals with unknown sex
+         !(Location %in% c("BL","BM","IC","IP","MXL","RR","TU","WR","AV","CNM","CO", 
+         "MOCA","TV", "AL1","PO","AR","KS","CLAY","FL","SG","RC","SC","HSR")))
 
-# Organize BTLH data by sites and summarize it 
+# Organize BTLH data by monitoring sites and summarize it 
 BTLH_sites <- BTLH_HMN %>% 
   group_by(Location, State) %>%
   summarize(First.Year = min(Year),
@@ -163,27 +164,19 @@ BTLH_sites <- BTLH_HMN %>%
             N.Days = length(unique(Date)),
             N.Captures = length(Band.Number),
             Individuals.Banded = length(unique(Band.Number)),
+            N.Recaptures = length(unique(Band.Number[Band.Status == "R"])),
             N.Males = length(unique(Band.Number[Sex == "M"])),
             N.Females = length(unique(Band.Number[Sex == "F"]))) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
 
-# Remove sites with less than 10 bids captured and 1 year of monitoring
-# 21 sites < 10 birds   
-# 4 sites < 1 year 
-# HSR (155 BTLH) started in 2021, we'll have data for 2022
-# SC (Sabino Canyon, 48 BTLH) has data just for 2011, but monitored 2006-2015. Interesting, what happened in 2011? 
-
-BTLH_sites_filtered <- BTLH_sites %>% 
-  filter(N.Years != 1, N.Captures > 10)
-
-# Add coordinates, elevation, and years of activity for each site 
+# Add coordinates, elevation, and years of activity for each monitoring site 
 
 # Bring in site information 
 BTLH_sites_coordinates <- read.csv("data/BTLH_sites.csv")
 
-# Join tables to add coordinates and elevation data 
-BTLH_sites_final <- left_join(BTLH_sites_filtered, 
+# Join tables
+BTLH_sites_final <- left_join(BTLH_sites, 
                             BTLH_sites_coordinates, 
                             by = "Location") %>% 
   relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
@@ -192,13 +185,6 @@ BTLH_sites_final <- left_join(BTLH_sites_filtered,
 
 # Write csv with the data for BTLH
 write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
-
-
-##### BREEDING CONDITIONS #####
-
-# Summarize breeding conditions by year also 
-# Have BTLH been breeding earlier? If so, is this correlated to climate? 
-# Can I answer this question with our data? 
 
 
 ##### BTLH distribution map and monitoring points #####
@@ -215,7 +201,7 @@ BTLH_distribution <- readOGR(dsn = "data/Broad-tailed range map", #dsn = data so
 # Convert spatial object to a data frame to use with ggplot2
 BTLH_distribution_tidy <- tidy(BTLH_distribution)
 
-# Add data from downloaded distribution map to tidy object created in line 207 
+# Add data from downloaded distribution map to tidy object created in line 203 
 BTLH_distribution$id <- row.names(BTLH_distribution) 
 BTLH_distribution_tidy <- left_join(BTLH_distribution_tidy, BTLH_distribution@data)
 
@@ -297,5 +283,70 @@ map4 <-map1 + geom_point(data = BTLH_sites_final,
 
 map4                            
 
-            
+##### Create map containing HMN's sites within BTLH breeding range #####  
+
+library(sf)
+
+# Read shape file with sf package 
+BTLH_distribution_sf <- st_read(dsn = "data/Broad-tailed range map/data_0.shp") 
+
+# Convert BTLH sites data frame into sf object
+wgs84 <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" # From Jeff's code to add to sf object
+
+sites_sf <- BTLH_sites_coordinates %>%
+  mutate_at(vars(Longitude, Latitude), as.numeric) %>%   # coordinates must be numeric,from internet
+  st_as_sf( # converts object to an sf object
+    coords = c("Longitude", "Latitude"),
+    crs = wgs84) # this worked! 
+
+# st_within returns logical vector indicating whether a point is within the polygon
+points_within <- st_within(x = sites_sf, y = BTLH_distribution_sf) %>% 
+  lengths > 0 # I got it! False and true! 7 points are within the breeding range! 
+
+# use this vector (the logical vector?) to select rows from city_obs that are within the city polygon
+
+
+
+
+### From Jeff's code
+
+
+# use that vector to select rows from 
+# city_obs that are within the city polygon
+
+points_within <- sf::st_within(x = city_obs_sf, y = city_sf) %>% lengths > 0
+city_obs <- city_obs[points_within, ]
+write.csv(x = city_obs,
+          file = city_file,
+          row.names = FALSE)
+
+
+
+
+
+##### BTLH BREEDING DATA #####
+
+# Summarize breeding conditions by year also 
+# Have BTLH been breeding earlier? If so, is this correlated to climate? 
+# Can I answer this question with our data? 
+
+# Are BTLH breeding in/near our monitoring sites? 
+
+# CP.Breed measures egg development. Values 9 and 8 in CP.Breed = breeding, 
+# Replace value 8 in CP.Breed by 9 
+
+BTLH_breeding <- BTLH_HMN %>% 
+  group_by(Location, State) %>% 
+  summarize(N.Captures = length(Band.Number),
+            Individuals.Banded = length(unique(Band.Number)),
+            N.Females = length(unique(Band.Number[Sex == "F"])),
+            N.Females.Breeding.9 = length(unique(Band.Number[CP.Breed == 9])),
+            N.Females.Breeding.8 = length(unique(Band.Number[CP.Breed == 8])),
+            N.Females.Breeding.7 = length(unique(Band.Number[CP.Breed == 7])),
+            N.Females.Breeding.5 = length(unique(Band.Number[CP.Breed == 5])),
+            N.Females.Breeding.2 = length(unique(Band.Number[CP.Breed == 2]))) %>% 
+  arrange(N.Captures) %>% 
+  as.data.frame
+
+  
 

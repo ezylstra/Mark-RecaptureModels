@@ -285,6 +285,8 @@ map4
 
 ##### Create map containing HMN's sites within BTLH breeding range #####  
 
+# obtain sites within BTLH distribution range
+
 library(sf)
 
 # Read shape file with sf package 
@@ -303,26 +305,40 @@ sites_sf <- BTLH_sites_coordinates %>%
 points_within <- st_within(x = sites_sf, y = BTLH_distribution_sf) %>% 
   lengths > 0 # I got it! False and true! 7 points are within the breeding range! 
 
-# use this vector (the logical vector?) to select rows from city_obs that are within the city polygon
-
-
-
-
-### From Jeff's code
-
-
-# use that vector to select rows from 
-# city_obs that are within the city polygon
-
-points_within <- sf::st_within(x = city_obs_sf, y = city_sf) %>% lengths > 0
-city_obs <- city_obs[points_within, ]
-write.csv(x = city_obs,
-          file = city_file,
+# use this vector to select rows from the data frame containing BTLH sites info 
+# that are within the distribution polygon
+BTLH_sites_in_range <- BTLH_sites_coordinates[points_within, ]
+write.csv(x = BTLH_sites_in_range,
+          file = "BTLH_sites_coordinates",
           row.names = FALSE)
+BTLH_sites_in_range
 
+# Create the map 
 
+# Code to fix location of the label on map 
+BTLH_sites_in_range <- BTLH_sites_in_range %>%
+  mutate(nudge_lat = Latitude + 0.3)  
 
-
+map5 <- map1 + geom_point(data = BTLH_sites_in_range,
+                          mapping = aes(x = Longitude, 
+                                        y = Latitude,
+                                        group = NULL,
+                                        fill = NULL),
+                          color = "black",
+                          size = 2,
+                          show.legend = FALSE) +
+  coord_map(xlim = c(-120, -100), ylim = c(30, 42)) +
+  labs(title = "BTLH Distribution Map with HMN sites within the species' range") +
+  geom_text(data = BTLH_sites_in_range,
+            aes(x = Longitude, 
+                y = nudge_lat, # Moves the label, so it is not on top of the point 
+                group = NULL,
+                fill = NULL,
+                label = Location),
+            color = "black",
+            size = 3)
+  
+map5
 
 ##### BTLH BREEDING DATA #####
 

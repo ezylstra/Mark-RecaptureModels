@@ -351,7 +351,8 @@ BTLH_sites_in_range
 
 # Code to fix location of the label on map 
 BTLH_sites_in_range <- BTLH_sites_in_range %>%
-  mutate(nudge_lat = Latitude + 0.3)  
+  mutate(nudge_lat = Latitude + 0.7,
+         nudge_log = Longitude + 0.3)  
 
 map5 <- map1 + geom_point(data = BTLH_sites_in_range,
                           mapping = aes(x = Longitude, 
@@ -364,7 +365,7 @@ map5 <- map1 + geom_point(data = BTLH_sites_in_range,
   coord_map(xlim = c(-120, -100), ylim = c(30, 42)) +
   labs(title = "BTLH Distribution Map with HMN sites within the species' range") +
   geom_text(data = BTLH_sites_in_range,
-            aes(x = Longitude, 
+            aes(x = nudge_log, 
                 y = nudge_lat, # Moves the label, so it is not on top of the point 
                 group = NULL,
                 fill = NULL,
@@ -387,6 +388,16 @@ map5
 
 BTLH_breeding <- BTLH_HMN %>% 
   group_by(Location, State) %>% 
+  summarize(N.Females = length(unique(Band.Number[Sex == "F"])),
+            CP.Breed = count(CP.Breed))
+  
+
+count(BTLH_HMN$CP.Breed)
+class(BTLH_HMN$CP.Breed)
+unique(BTLH_HMN$CP.Breed)
+
+
+%>% 
   summarize(N.Captures = length(Band.Number),
             Individuals.Banded = length(unique(Band.Number)),
             N.Females = length(unique(Band.Number[Sex == "F"])),
@@ -397,6 +408,7 @@ BTLH_breeding <- BTLH_HMN %>%
             N.Females.Breeding.2 = length(unique(Band.Number[CP.Breed == 2]))) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
+
 
   
 

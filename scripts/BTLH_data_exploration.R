@@ -7,7 +7,7 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 
-##### Data wrangling #####
+##### DATA WRANGLING #####
 
 # Bring in raw data
 raw_data <- read.csv("data/updated_raw_data.csv")
@@ -70,6 +70,7 @@ if (any(unique(band_data$Band.Number) == "XXXXXX")) {
 }
 
 # Format columns
+
 # Change date column from character to date
 band_data <- band_data %>% 
   mutate(Date = mdy(Date))
@@ -130,7 +131,7 @@ all_bands <- other_band_status %>%
   bind_rows(new__recap_bands) %>% 
   arrange(Band.Number, Date)
 
-##### Reorganize data frame ##### Contains ALL HMN's band data 
+# Reorganize data frame, new_data Contains ALL HMN's banding data 
 new_data <- all_bands %>% 
   select(-capture_number) %>% 
   relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,
@@ -143,6 +144,7 @@ new_data$Best.Band.Status[new_data$Band.Status == "6"] <- 6
 new_data$Best.Band.Status[new_data$Band.Status == "8"] <- 8
 new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 
+
 ##### BTLH DATA EXPLORATION ##### 
 
 # Select BTLH data for sites that follow HMN's protocol, sex are male and female,
@@ -150,44 +152,76 @@ new_data$Best.Band.Status[new_data$Band.Status == "F"] <- "F"
 BTLH_HMN <- new_data %>% 
   filter(Species == "BTLH", 
          Protocol == "HMN",
-         Sex != "U", # Removes 10 individuals with unknown sex
+         Sex != "U", # Removes 10 individuals with unknown sex. These haven't been recaptured
          !(Location %in% c("BL","BM","IC","IP","MXL","RR","TU","WR","AV","CNM","CO", 
          "MOCA","TV", "AL1","PO","AR","KS","CLAY","FL","SG","RC","SC","HSR")))
+          # We know these sites have < 1 year of data and < 10 birds captured from 
+          # previous data exploration 
 
-# Organize BTLH data by monitoring sites and summarize it 
-BTLH_sites <- BTLH_HMN %>% 
+# Organize BTLH banding data by monitoring sites and summarize it 
+BTLH_data <- BTLH_HMN %>% 
   group_by(Location, State) %>%
-  summarize(First.Year = min(Year),
-            Last.Year = max(Year),
-            N.Years = length(unique(Year)),
-            N.Months = length(unique(Month)),
-            N.Days = length(unique(Date)),
-            N.Captures = length(Band.Number),
+  summarize(N.Captures = length(Band.Number),
             Individuals.Banded = length(unique(Band.Number)),
             N.Recaptures = length(unique(Band.Number[Band.Status == "R"])),
             N.Males = length(unique(Band.Number[Sex == "M"])),
             N.Females = length(unique(Band.Number[Sex == "F"]))) %>% 
   arrange(N.Captures) %>% 
   as.data.frame
-
-# Add coordinates, elevation, and years of activity for each monitoring site 
+  
+# Add coordinates and elevation for each monitoring site 
 
 # Bring in site information 
 BTLH_sites_coordinates <- read.csv("data/BTLH_sites.csv")
 
 # Join tables
-BTLH_sites_final <- left_join(BTLH_sites, 
+BTLH_sites_data <- left_join(BTLH_data, 
                             BTLH_sites_coordinates, 
                             by = "Location") %>% 
-  relocate(Location, State, Latitude, Longitude, Elevation, First.Year, 
-           Last.Year, N.Years, N.Active.Years, N.Months, N.Days, Individuals.Banded, 
-           N.Captures)
+  relocate(Location, State, Latitude, Longitude, Elevation, N.Captures)
 
-# Write csv with the data for BTLH
-write.csv(BTLH_sites_final, "output/BTLH_sites_raw_data.csv", row.names = FALSE)
+##### SITES' INFORMATION AND SAMPLING EFFORT #####
 
+# Select banding data that follows HMN's protocol and includes sites with BTLH data.
+# By using ALL the banding data set (new_data) instead of BTLH_HMN we are including 
+# all the monitoring days at each site regardless of BTLH been trapped   
+sites <- new_data %>% 
+  filter(Protocol == "HMN",
+         Location %in% c("SCSNA","KP","CH","HC","CAVO","BRCA","GC","CFCK","ESC",  
+                         "FG","RA","FH","MI","MG","MA","AL","SWRS","SH","MV","PP",
+                         "EC","PA","WCAT","PCBNM","DGS","ML"))
+                        # Location with BTLH data from previous data exploration
 
-##### BTLH distribution map and monitoring points #####
+# Summarize site's activity  
+site_activity <- sites %>% 
+  group_by(Location) %>% 
+  summarize(N.Active.Years = length(unique(Year)),
+            First.Year = min(Year),
+            Last.Year = max(Year),
+            N.Banding.Days = length(unique(Date))) %>% 
+  as.data.frame 
+
+# Estimate site effort
+estimates_site_effort <- sites %>% 
+  group_by(Location, State, Year) %>% 
+  summarize(N.Banding.Days = length(unique(Date))) %>% 
+  group_by(Location) %>% 
+  summarize(Range = range(N.Banding.Days),
+            Mean = mean(N.Banding.Days))
+
+##### CREATE FINAL DATA FRAME WITH BTLH DATA AND SITES #####
+
+# Join BTLH data with site's activity
+BTLH <- left_join(BTLH_sites_data,
+                  site_activity, 
+                  by = "Location") %>% 
+  relocate(Location, State, Latitude, Longitude, Elevation, First.Year, Last.Year,
+           N.Active.Years, N.Banding.Days, N.Captures)
+
+# Write csv with BTLH data 
+write.csv(BTLH, "output/BTLH_sites_data.csv", row.names = FALSE)
+
+##### BTLH  DISTRIBUTION MAPS WITH MONITORING POINTS #####
 
 library(rgdal)
 library(broom)

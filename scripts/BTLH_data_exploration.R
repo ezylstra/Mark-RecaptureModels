@@ -262,7 +262,7 @@ map1
 
 # Add HMN's banding locations to BTLH distribution map 
 map2 <- map1 +
-    geom_point(data = BTLH_sites_final, 
+    geom_point(data = BTLH_sites_data, 
              mapping = aes(x = Longitude, 
                            y = Latitude,
                            group = NULL, # NULL = plotting features from the polygon layer
@@ -275,7 +275,7 @@ map2 <- map1 +
 map2
 
 # Zooming into the banding locations using map1 
-map3 <- map1 + geom_point(data = BTLH_sites_final,
+map3 <- map1 + geom_point(data = BTLH_sites_data,
                   mapping = aes(x = Longitude, 
                                 y = Latitude,
                                 group = NULL,
@@ -292,11 +292,11 @@ map3
 # Adding monitoring sites labels to the map 
 
 # Code to fix location of the label on map 
-BTLH_sites_final <- BTLH_sites_final %>%
+BTLH_sites_data <- BTLH_sites_data %>%
   mutate(nudge_lat = Latitude + 0.3)  
 
 # Create map with labels  
-map4 <-map1 + geom_point(data = BTLH_sites_final,
+map4 <-map1 + geom_point(data = BTLH_sites_data,
                   mapping = aes(x = Longitude, 
                                 y = Latitude,
                                 group = NULL,
@@ -306,7 +306,7 @@ map4 <-map1 + geom_point(data = BTLH_sites_final,
                   show.legend = FALSE) +
   coord_map(xlim = c(-120, -100), ylim = c(30, 42)) +
   labs(title = "BTLH Distribution Map with HMN sites") +
-  geom_text(data = BTLH_sites_final[4:6,], # Just added a few labels to the map
+  geom_text(data = BTLH_sites_data[4:6,], # Just added a few labels to the map
             aes(x = Longitude, 
                 y = nudge_lat, # Moves the label, so it is not on top of the point 
                 group = NULL,
@@ -388,27 +388,18 @@ map5
 
 BTLH_breeding <- BTLH_HMN %>% 
   group_by(Location, State) %>% 
-  summarize(N.Females = length(unique(Band.Number[Sex == "F"])),
-            CP.Breed = count(CP.Breed))
-  
-
-count(BTLH_HMN$CP.Breed)
-class(BTLH_HMN$CP.Breed)
-unique(BTLH_HMN$CP.Breed)
-
-
-%>% 
-  summarize(N.Captures = length(Band.Number),
-            Individuals.Banded = length(unique(Band.Number)),
-            N.Females = length(unique(Band.Number[Sex == "F"])),
-            N.Females.Breeding.9 = length(unique(Band.Number[CP.Breed == 9])),
-            N.Females.Breeding.8 = length(unique(Band.Number[CP.Breed == 8])),
-            N.Females.Breeding.7 = length(unique(Band.Number[CP.Breed == 7])),
-            N.Females.Breeding.5 = length(unique(Band.Number[CP.Breed == 5])),
-            N.Females.Breeding.2 = length(unique(Band.Number[CP.Breed == 2]))) %>% 
-  arrange(N.Captures) %>% 
-  as.data.frame
-
-
+  summarize(N.Females.Captured = length(Band.Number[Sex == "F"]),
+            CP.Breed.2 = length(Band.Number[CP.Breed == 2]),
+            CP.Breed.5 = length(Band.Number[CP.Breed == 5]),
+            CP.Breed.7 = length(Band.Number[CP.Breed == 7]),
+            CP.Breed.8 = length(Band.Number[CP.Breed == 8]),
+            CP.Breed.9 = length(Band.Number[CP.Breed == 9]),
+            CP.Breed.0 = length(Band.Number[CP.Breed == 0]))
+            
+# Why is this code adding the NA values to the actual number of cp2, 5, and so on?             
+            
+breeding <- BTLH_HMN %>% 
+  group_by(Location, State) %>% 
+  count(CP.Breed)
   
 

@@ -377,29 +377,45 @@ map5
 
 ##### BTLH BREEDING DATA #####
 
-# Summarize breeding conditions by year also 
 # Have BTLH been breeding earlier? If so, is this correlated to climate? 
-# Can I answer this question with our data? 
-
 # Are BTLH breeding in/near our monitoring sites? 
 
 # CP.Breed measures egg development. Values 9 and 8 in CP.Breed = breeding, 
-# Replace value 8 in CP.Breed by 9 
+# Should we merge them? After talking with Susan merge 0 and 2, both are normal,
+# 7 and 5? 
 
-BTLH_breeding <- BTLH_HMN %>% 
-  group_by(Location, State) %>% 
-  summarize(N.Females.Captured = length(Band.Number[Sex == "F"]),
-            CP.Breed.2 = length(Band.Number[CP.Breed == 2]),
-            CP.Breed.5 = length(Band.Number[CP.Breed == 5]),
-            CP.Breed.7 = length(Band.Number[CP.Breed == 7]),
-            CP.Breed.8 = length(Band.Number[CP.Breed == 8]),
-            CP.Breed.9 = length(Band.Number[CP.Breed == 9]),
-            CP.Breed.0 = length(Band.Number[CP.Breed == 0]))
-            
-# Why is this code adding the NA values to the actual number of cp2, 5, and so on?             
-            
+# These are the  numbers I want to get in the data summary              
 breeding <- BTLH_HMN %>% 
-  group_by(Location, State) %>% 
+  group_by(Location, State) %>%
+  filter(Sex == "F") %>% 
   count(CP.Breed)
+
+# I  don't think I need the unique band.number for this part, I might be wrong
+BTLH_breeding_1 <- BTLH_HMN %>% 
+  group_by(Location, State) %>%
+  filter(Sex == "F") %>% 
+  summarize(N.Females.Captured = length(Band.Number),
+            N.Individual.Banded = length(unique(Band.Number)),
+            CP.Breed.2 = length(unique(Band.Number[CP.Breed == "2"])),
+            CP.Breed.5 = length(unique(Band.Number[CP.Breed == "5"])),
+            CP.Breed.7 = length(unique(Band.Number[CP.Breed == "7"])),
+            CP.Breed.8 = length(unique(Band.Number[CP.Breed == "8"])),
+            CP.Breed.9 = length(unique(Band.Number[CP.Breed == "9"]))) 
+              
+# Adds the NA values to the actual number of each CP.Breed 
+BTLH_breeding_2 <- BTLH_HMN %>% 
+  group_by(Location, State) %>%
+  filter(Sex == "F") %>% 
+  summarize(N.Females.Captured = length(Band.Number),
+            N.Individual.Banded = length(unique(Band.Number)),
+            CP.Breed.2 = length(Band.Number[CP.Breed == "2"]),
+            CP.Breed.5 = length(Band.Number[CP.Breed == "5"]),
+            CP.Breed.7 = length(Band.Number[CP.Breed == "7"]),
+            CP.Breed.8 = length(Band.Number[CP.Breed == "8"]),
+            CP.Breed.9 = length(Band.Number[CP.Breed == "9"])) 
+            
+# Why is this code adding the NA values to the actual number of CP.Breed?             
+
+
   
 

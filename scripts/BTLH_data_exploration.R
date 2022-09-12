@@ -163,7 +163,7 @@ BTLH_data <- BTLH_HMN %>%
   group_by(Location, State) %>%
   summarize(N.Captures = length(Band.Number),
             Individuals.Banded = length(unique(Band.Number)),
-            N.Recaptures = length(unique(Band.Number[Band.Status == "R"])),
+            N.Recaptures = length(unique(Band.Number[Best.Band.Status == "R"])),
             N.Males = length(unique(Band.Number[Sex == "M"])),
             N.Females = length(unique(Band.Number[Sex == "F"]))) %>% 
   arrange(N.Captures) %>% 
@@ -387,8 +387,10 @@ map5
 # These are the  numbers I want to get in the data summary              
 breeding <- BTLH_HMN %>% 
   group_by(Location, State) %>%
-  filter(Sex == "F") %>% 
-  count(CP.Breed)
+  filter(Sex == "F" &
+           !is.na(CP.Breed)) %>% 
+  count(CP.Breed) %>% 
+  pivot_wider(names_from = CP.Breed, values_from = n)
 
 # I  don't think I need the unique band.number for this part, I might be wrong
 BTLH_breeding_1 <- BTLH_HMN %>% 
@@ -405,7 +407,8 @@ BTLH_breeding_1 <- BTLH_HMN %>%
 # Adds the NA values to the actual number of each CP.Breed 
 BTLH_breeding_2 <- BTLH_HMN %>% 
   group_by(Location, State) %>%
-  filter(Sex == "F") %>% 
+  filter(Sex == "F" &
+         !is.na(CP.Breed)) %>% 
   summarize(N.Females.Captured = length(Band.Number),
             N.Individual.Banded = length(unique(Band.Number)),
             CP.Breed.2 = length(Band.Number[CP.Breed == "2"]),
@@ -417,5 +420,5 @@ BTLH_breeding_2 <- BTLH_HMN %>%
 # Why is this code adding the NA values to the actual number of CP.Breed?             
 
 
-  
+
 

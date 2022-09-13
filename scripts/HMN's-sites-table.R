@@ -140,7 +140,7 @@ new_data <- new_data %>%
 
 ##### SUMMARIZE DATA FOR HMN's SITES #####
 
-# Summarize data for all HMN's banidng sites  
+# Summarize data for all HMN's banding sites  
 HMN_sites <- new_data %>% 
   filter(Protocol == "HMN",
          !(Location %in% c("AL1"))) %>% #AL1 has 5 records on a different monitoring date
@@ -155,14 +155,16 @@ HMN_sites <- new_data %>%
             N.Recaptures = length(unique(Band.Number[Best.Band.Status == "R"])),
             N.Males = length(unique(Band.Number[Sex == "M"])),
             N.Females = length(unique(Band.Number[Sex == "F"])),
-            Individual.BTLH = length(unique(Band.Number[Species == "BTLH"]))) %>%
+            Individual.BTLH = length(unique(Band.Number[Species == "BTLH"]))) %>% 
+  unite(Active.Years,c(First.Year, Last.Year), sep = '-') %>%
   arrange(State) %>% 
   as.data.frame 
 
-# Replace numeric month to it's abbreviation name 
+# Replace numeric month to it's abbreviation name and merge them in one column
 HMN_sites <- HMN_sites %>% 
   mutate(Start.Month = month.abb[as.numeric(Start.Month)]) %>% 
-  mutate(End.Month = month.abb[as.numeric(End.Month)])
+  mutate(End.Month = month.abb[as.numeric(End.Month)]) %>% 
+  unite(Banding.Period, c(Start.Month, End.Month), sep = '-')
 
 # Breeding information
 
@@ -176,9 +178,16 @@ breeding_data <- new_data %>%
            !is.na(CP.Breed)) %>% 
   count(CP.Breed) %>% 
   pivot_wider(names_from = CP.Breed, values_from = n) %>% 
+  rename(CP.Breed.2 = "2", CP.Breed.5 = "5", CP.Breed.7 = "7", CP.Breed.9 = "9",
+         CP.Breed.3 = "3", CP.Breed.0 = "0") %>% 
   arrange(State)
 
-# Why are there missing CA sites in the breeding data???
+CP.Breed <- breeding_data %>% 
+  group_by(Location, State) %>% 
+  filter(CP.Breed)
+
+# Breeding data dropped some sites off because they don't have breeding females
+# at those sites, CP.Breed were NA for all the data
 
 # Add coordinates and elevation for all HMN's sites 
 
@@ -186,7 +195,7 @@ breeding_data <- new_data %>%
 sites_coordinates <-read.csv("data/HMN_sites_coordinates.csv",
                              na.strings = c("",NA))
 
-# Join tables
+# Add coordinates to table
 all_sites_data <- left_join(HMN_sites, 
                              sites_coordinates, 
                              by = "Location") 
@@ -195,5 +204,9 @@ all_sites_data <- all_sites_data %>%
   relocate(Location, State, Elevation, Latitude, Longitude) %>% 
   as.data.frame 
 
+# Add breeding information table
+
+
+# Create csv to 
 write.csv(all_sites_data, "output/HMN_all_sites.csv", row.names = FALSE)
 

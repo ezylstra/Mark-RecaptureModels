@@ -1,5 +1,5 @@
-# Create HMN's sites sumarize table
-# Gaby Samaniego 
+# Create HMN's sites summarized table
+# Gaby Samaniego gaby@savehummingbirds.org
 # 2022-09-08
 
 library(tidyverse)
@@ -7,7 +7,8 @@ library(lubridate)
 library(stringr)
 
 # Bring in raw data
-raw_data <- read.csv("data/updated_raw_data.csv")
+raw_data <- read.csv("data/updated_raw_data.csv",
+                     na.strings = c("",NA))
 
 ##### DATA WRANGLING #####
 
@@ -84,6 +85,11 @@ band_data$Year <- as.numeric(as.character((band_data$Year)))
 # Change Month from character to numeric
 band_data$Month <- as.numeric(as.character((band_data$Month)))
 
+# Merge data for banding locations that are close to each other or are moved just 
+# a little ways away but it's basically the same site
+band_data$Location[band_data$Location == "MA1"] <- "MA"
+band_data$Location[band_data$Location == "SWRS1"] <- "SWRS"
+
 ##### Update Band.Status ##### 
 
 # Verify that first use of a band number (date) corresponds to band status 1 (new)
@@ -135,9 +141,9 @@ new_data <- new_data %>%
 ##### SUMMARIZE DATA FOR HMN's SITES #####
 
 # Summarize data for all HMN's banidng sites  
-
 HMN_sites <- new_data %>% 
-  filter(Protocol == "HMN") %>%
+  filter(Protocol == "HMN",
+         !(Location %in% c("AL1"))) %>% #AL1 has 5 records on a different monitoring date
   group_by(Location, State) %>% 
   summarize(First.Year = min(Year),
             Last.Year = max(Year),
@@ -153,12 +159,25 @@ HMN_sites <- new_data %>%
   arrange(State) %>% 
   as.data.frame 
 
-write.csv(HMN_sites, "output/BTLH_sites_data.csv", row.names = FALSE)
+# Replace numeric month to it's abbreviation name 
+HMN_sites <- HMN_sites %>% 
+  mutate(Start.Month = month.abb[as.numeric(Start.Month)]) %>% 
+  mutate(End.Month = month.abb[as.numeric(End.Month)])
 
-# Add coordinates and elevation information to table
+# Add coordinates and elevation for all HMN's sites 
 
+# Bring in site information 
+sites_coordinates <-read.csv("data/HMN_sites_coordinates.csv",
+                             na.strings = c("",NA))
 
+# Join tables
+all_sites_data <- left_join(HMN_sites, 
+                             sites_coordinates, 
+                             by = "Location") 
 
+all_sites_data <- all_sites_data %>% 
+  relocate(Location, State, Elevation, Latitude, Longitude) %>% 
+  as.data.frame 
 
-
+write.csv(all_sites_data, "output/HMN_all_sites.csv", row.names = FALSE)
 

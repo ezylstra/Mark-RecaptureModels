@@ -168,11 +168,11 @@ HMN_sites <- HMN_sites %>%
 
 # Breeding information
 
-# Change CP.Breed 8 to 9 
+# Merge data for CP.Breed 8 and 9 
 new_data$CP.Breed[new_data$CP.Breed == 8] <- 9
 
 breeding_data <- new_data %>% 
-  group_by(Location, State) %>%
+  group_by(Location) %>%
   filter(Protocol == "HMN",
          Sex == "F" &
            !is.na(CP.Breed)) %>% 
@@ -180,11 +180,8 @@ breeding_data <- new_data %>%
   pivot_wider(names_from = CP.Breed, values_from = n) %>% 
   rename(CP.Breed.2 = "2", CP.Breed.5 = "5", CP.Breed.7 = "7", CP.Breed.9 = "9",
          CP.Breed.3 = "3", CP.Breed.0 = "0") %>% 
-  arrange(State)
-
-CP.Breed <- breeding_data %>% 
-  group_by(Location, State) %>% 
-  filter(CP.Breed)
+  select(CP.Breed.9) %>% 
+  rename(Breeding.Females = CP.Breed.9) 
 
 # Breeding data dropped some sites off because they don't have breeding females
 # at those sites, CP.Breed were NA for all the data
@@ -204,7 +201,10 @@ all_sites_data <- all_sites_data %>%
   relocate(Location, State, Elevation, Latitude, Longitude) %>% 
   as.data.frame 
 
-# Add breeding information table
+# Add breeding information to table
+all_sites_data <- left_join(all_sites_data,
+                            breeding_data,
+                            by = "Location")
 
 
 # Create csv to 

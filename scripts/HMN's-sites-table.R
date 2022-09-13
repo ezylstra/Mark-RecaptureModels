@@ -164,6 +164,22 @@ HMN_sites <- HMN_sites %>%
   mutate(Start.Month = month.abb[as.numeric(Start.Month)]) %>% 
   mutate(End.Month = month.abb[as.numeric(End.Month)])
 
+# Breeding information
+
+# Change CP.Breed 8 to 9 
+new_data$CP.Breed[new_data$CP.Breed == 8] <- 9
+
+breeding_data <- new_data %>% 
+  group_by(Location, State) %>%
+  filter(Protocol == "HMN",
+         Sex == "F" &
+           !is.na(CP.Breed)) %>% 
+  count(CP.Breed) %>% 
+  pivot_wider(names_from = CP.Breed, values_from = n) %>% 
+  arrange(State)
+
+# Why are there missing CA sites in the breeding data???
+
 # Add coordinates and elevation for all HMN's sites 
 
 # Bring in site information 

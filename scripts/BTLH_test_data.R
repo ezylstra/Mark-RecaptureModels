@@ -169,12 +169,8 @@ test.dat <- BTLH_HMN %>%
   arrange(Band.Number)%>% 
   select(Location, Month, Band.Number, Year, Sex, Age) %>% 
   filter(Location == "ML",
-         Year == "2005" | # Tried &, and 2005:2007 %in%
-         Year == "2006" |
-         Year == "2007",
-         Month == "5" |
-           Month == "6" |
-           Month == "7") %>%  
+         Year %in% 2005:2007, 
+         Month %in% 5:7) %>%  
   group_by(Band.Number, Year, Sex) %>%  
   summarize(N.observation = length(Year))%>%
   mutate(Observed = 1) %>% 

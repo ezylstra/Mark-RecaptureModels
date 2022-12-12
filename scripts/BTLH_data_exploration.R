@@ -386,11 +386,53 @@ map5
 
 # These are the  numbers I want to get in the data summary              
 breeding <- BTLH_HMN %>% 
-  group_by(Location, State) %>%
+  group_by(Location, State, Date, Month) %>%
   filter(Sex == "F" &
            !is.na(CP.Breed)) %>% 
   count(CP.Breed) %>% 
-  pivot_wider(names_from = CP.Breed, values_from = n)
+  pivot_wider(names_from = CP.Breed, values_from = n) %>% 
+  rename(CP.Breed.2 = "2", CP.Breed.5 = "5", CP.Breed.7 = "7", CP.Breed.8 = "8",
+         CP.Breed.9 = "9", CP.Breed.0 = "0") %>% 
+  select(CP.Breed.9, CP.Breed.8) %>% 
+  summarize(Breeding.Females = CP.Breed.8 + CP.Breed.9) %>% 
+  filter(!is.na(Breeding.Females))
+
+
+# Migration.... 
+
+BTLH_migration <- BTLH_HMN %>% 
+  group_by(Month) %>% 
+  filter(Species == "BTLH") %>% 
+  count(Species)
+
+
+
+
+
+
+
+
+# Check for session's recaptures Age 
+for (BN in session_recaps$Band.Number) {
+  first_cap <- first_capture %>% 
+    filter(Band.Number == BN) %>% 
+    select(spp, sex, age, location, first_year_captured) 
+  if(nrow(first_cap) == 0){
+    print(paste0("Band Number ", BN, " not in main database"))
+    next
+  }
+  if(first_cap$first_year_captured[1] != session_recaps$Year[session_recaps$Band.Number == BN]){
+    message(first_cap$spp," ", first_cap$sex," ", BN , " banded in ", first_cap$first_year_captured)
+  }
+}
+
+
+
+
+
+
+
+
 
 # I  don't think I need the unique band.number for this part, I might be wrong
 BTLH_breeding_1 <- BTLH_HMN %>% 

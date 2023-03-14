@@ -154,10 +154,14 @@ BTLH_HMN <- new_data %>%
          Protocol == "HMN",
          Sex != "U", # Removes 10 individuals with unknown sex. These haven't been recaptured
          !(Location %in% c("BL","BM","IC","IP","MXL","RR","TU","WR","AV","CNM","CO", 
-         "MOCA","TV", "AL1","PO","AR","KS","CLAY","FL","SG","RC","SC","HSR")))
+         "MOCA","TV", "AL1","PO","AR","KS","CLAY","FL","SG","RC","SC","HSR"))) %>%
+  as.data.frame
           # We know these sites have < 1 year of data and < 10 birds captured from 
           # previous data exploration 
-
+  
+# Write csv with BTLH data 
+write.csv(BTLH_HMN, 'output/BTLH_all_data.csv', row.names = FALSE)
+  
 # Organize BTLH banding data by monitoring sites and summarize it 
 BTLH_data <- BTLH_HMN %>% 
   group_by(Location, State) %>%
@@ -411,7 +415,6 @@ BTLH_migration <- BTLH_HMN %>%
 
 
 
-
 # Check for session's recaptures Age 
 for (BN in session_recaps$Band.Number) {
   first_cap <- first_capture %>% 
@@ -425,9 +428,6 @@ for (BN in session_recaps$Band.Number) {
     message(first_cap$spp," ", first_cap$sex," ", BN , " banded in ", first_cap$first_year_captured)
   }
 }
-
-
-
 
 
 

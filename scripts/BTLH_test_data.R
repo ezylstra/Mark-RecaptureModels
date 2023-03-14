@@ -71,7 +71,7 @@ if (any(unique(band.data$Band.Number) == "XXXXXX")) {
 }
 
 sum(is.na(band.data$Band.Number))
-# Total 46 NA
+# Total 46 NAs
 
 # Format columns
 
@@ -118,11 +118,12 @@ new.recap.bands <- subset(band.data, Band.Status %in% c("1","R"))
 
 # Extract the rows that equal a band number and create a new column for Best.Band.Status
 new.bands <- unique(new.recap.bands$Band.Number)
-new.recap.bands$best.band.status <- NA
+new.recap.bands$best.band.status <- NA 
 unique(new.recap.bands$Band.Status)
 
 # Create a capture number column and add sequence of captures
-new.recap.bands$capture.number <- sequence(from = 1, rle(new.recap.bands$Band.Number)$lengths)
+new.recap.bands$capture.number <- sequence(from = 1, 
+                                           rle(new.recap.bands$Band.Number)$lengths)
 
 # Fill in Best.Band.Status with 1 and R  
 new.recap.bands$best.band.status <- ifelse(new.recap.bands$capture.number == 1, "1","R")
@@ -150,7 +151,6 @@ new.data$Best.Band.Status[new.data$Band.Status == "6"] <- 6
 new.data$Best.Band.Status[new.data$Band.Status == "8"] <- 8
 new.data$Best.Band.Status[new.data$Band.Status == "F"] <- "F"
 
-
 # Check for inconsistencies in the data for Species, Age and Sex 
 
 # Code from Erin's script in GitHub
@@ -165,17 +165,20 @@ check.species <- new.data %>%
 (errors.species <- check.species$Band.Number[check.species$Number.Species > 1])
 
 # Band Numbers with errors: database info matches field datasheets
+# 710018209: Asked BC bander to check this issue, waiting on response. 
+# 710027442: Banded 2018 as ANHU F age 2, recaptured as BCHU F age 1 in 2022 @ FH
 # 710027763: Recap 2020 as ANHU M @ HC, banded 2021 as RUHU M @ MPGF. Mistake in Rec
-# 710069805: Banded Aug/2020 as RUHU M @ FH, recap Mar/2020 as BBLH M @ HC. Mistake in Rec
+# 710069503: Banded May/2021 as BCHU F @ CFCK, recap same year and in 2022 band marked as destroyed
+# 710069805: Banded Aug/2020 as RUHU M @ FH, recap Mar/2020 as BBLH M @ HC. Mistake in Recapture
 # 810005126: Banded Jun/2020 as BCHU F @ ESC, recap Aug/2020 as HYHU @ ESC. Don't know mistake 
+# 810008171: Banded 2021 as BCHU M age 1 @ CFCK, then band destroyed in 2022
 # 810008256: Band applied twice Jul/14/21 as RUHU F @ WCAT and Jul/31/21 as BCHU F @ REDC. Don't know mistake
-# 710018209:   
-# 710069503: 
-# 810008171: 
+# 810008431: Banded in 2021 @ REDC as BCHU F age 1, then band destroyed in 2022
+# 810008438: Banded in 2021 as RUHU F age 1, then recaptured in 2022 as BCHU F age 1 @ ESC
 
 # To remove the band numbers with inconsistencies use:
 # new_data <- filter(new_data, !Band.Number %in% errors_species)
-# This code removes the 7 records 
+# This code removes 21 records from the 10 band numbers with mistakes   
 new.data <- filter(new.data, !Band.Number %in% errors.species)
 
 # Is each band number associated with a single sex?
@@ -189,7 +192,6 @@ check.sex <- new.data %>%
 
 # Band Numbers with errors:
 # 310089627: VCHU individual not in breeding condition when recaptured in 2021
-# 710062205: Band missed read at GM, waiting on bander to fix mistake. Updated 2023-02-28
 # If working with VCHU data consider reviewing the sex column and reading comments
 # for all VCHU records
 
@@ -244,10 +246,10 @@ errors.BTLH.sites <- grooves.errors %>%
 # 710028068: recapture two years later, traits miss identified 
 
 # Band numbers I couldn't figure it out
-# 910099411: traits of a juvenile, but id as adult
+# 910099411: traits of a juvenile, but identified as adult. Banded in 2021, recaptured same year
 
 # I need to look into all records with errors to try to fix them, but for now, 
-# all BTLH bands are good to go
+# all BTLH bands for thesis are good to go
 
 # Second: Has age been assigned correctly to individuals in the same year?
 
@@ -261,28 +263,7 @@ age.check$Band.Number[age.check$Age.Category > 1]
 # Band numbers with errors are:
 # 710066220  ANHU F caught same year first age 1 recapture age 2 2020 HC by Susan
 # 710069375  ANHU F caught same year first age 1 recapture age 2 2020 HC by Susan and Birget 
-
-
-# --------------------------- SKIP THIS PART ------------------------------- # 
-
-# This is the first time I tried the code for future references  
-# Select one site (ML), three years (2005-2007) and data for May to July for
-# each year
-test.dat <- BTLH.thesis %>% 
-  arrange(Band.Number)%>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>% 
-  filter(Location == "ML",
-         Year %in% 2005:2007, 
-         Month %in% 5:7) %>%  
-  group_by(Band.Number, Year, Sex) %>%  
-  summarize(N.observation = length(Year))%>%
-  mutate(Observed = 1) %>% 
-  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
-              values_fill = 0) %>% 
-  relocate(Band.Number, '2005', '2006', '2007', Sex) %>% 
-  unite(cap.his, c('2005','2006','2007'), sep = '')
- 
-# IT WORKS! :) 
+# None BTLH, so for now we are good to go. I need to check these errors to update the database
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
 
@@ -298,7 +279,7 @@ BTLH.thesis <- new.data %>%
 # ch is for capture history
 ch.ML <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
   filter(Location == "ML",
          Year %in% 2002:2022, 
          Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
@@ -319,7 +300,7 @@ ch.ML <- BTLH.thesis %>%
 # ch is for capture history
 ch.DGS <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
   filter(Location == "DGS",
          Year %in% 2008:2022, 
          Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
@@ -337,7 +318,7 @@ ch.DGS <- BTLH.thesis %>%
 # ch is for capture history
 ch.WCAT <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
   filter(Location == "WCAT",
          Year %in% 2014:2022, 
          Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
@@ -355,7 +336,7 @@ ch.WCAT <- BTLH.thesis %>%
 # ch is for capture history
 ch.PCBNM <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
   filter(Location == "PCBNM",
          Year %in% 2016:2021, # 2015 doesn't have data for months 5:7 
          Month %in% 5:7)%>%  # I need to think this better, ideally I'll use dates starting mid-May 
@@ -366,6 +347,96 @@ ch.PCBNM <- BTLH.thesis %>%
               values_fill = 0)%>% 
   relocate(Band.Number, '2016','2017','2018','2019','2020','2021', Sex) %>% 
   unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '')
+
+# --------------------------- SKIP THIS PART ------------------------------- # 
+
+# This is the first time I tried the code to create a capture history.  
+# Select one site (ML), three years (2005-2007) and data for May to July for
+# each year
+test.dat <- BTLH.thesis %>% 
+  arrange(Band.Number)%>% 
+  select(Location, Month, Band.Number, Year, Sex, Age) %>%
+  filter(Location == "ML",
+         Year %in% 2005:2007, 
+         Month %in% 5:7) %>%  
+  group_by(Band.Number, Year, Sex, Age) %>%  
+  summarize(N.observation = length(Year))%>% # Gets number of observations per each year
+  mutate(Observed = 1) %>% # New column with value 1 for observed that year 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
+              values_fill = 0) %>% 
+  relocate(Band.Number, '2005','2006','2007', Sex) %>% 
+  unite(cap.his, c('2005','2006','2007'), sep = '') 
+
+# IT WORKS! :) 
+
+# Add age at first capture 
+
+# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
+# and sites for thesis 
+BTLH.thesis <- new.data %>% 
+  filter(Species == "BTLH", 
+         Protocol == "HMN",
+         Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
+         Age != 'NA',  # Removes 1 individual with unknown age. It has nnot been recaptured
+         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'))
+
+
+# Extract the rows that equal a band number and create a new column for Best.Band.Status
+new.age.bands <- unique(new.age$Band.Number) # 470 band numbers
+new.age$best.age <- NA
+unique(new.age$Age)
+
+
+new.bands <- unique(new.recap.bands$Band.Number)
+new.recap.bands$best.band.status <- NA
+unique(new.recap.bands$Band.Status)
+
+# Create a capture number column and add sequence of captures
+new.recap.bands$capture.number <- sequence(from = 1, rle(new.recap.bands$Band.Number)$lengths)
+new.age$capture.order <- sequence(from = 1, rle(new.age$Band.Number)$lenghths)
+
+
+
+# Fill in Best.Band.Status with 1 and R  
+new.recap.bands$best.band.status <- ifelse(new.recap.bands$capture.number == 1, "1","R")
+
+# Subset other band status from data 
+# 4 = band destroyed, 6 = band removed, 8 = band lost, F = foreign band
+other.band.status <- band.data %>% 
+  filter(Band.Status %in% c("4", "6", "8", "F"))
+
+# Merge all band status (1, R, 4, 6, 8, F)
+all.bands <- other.band.status %>% 
+  bind_rows(new.recap.bands) %>% 
+  arrange(Band.Number, Date)
+
+# Reorganize data frame, new_data Contains ALL HMN's banding data 
+new.data <- all.bands %>% 
+  select(-capture.number) %>% 
+  relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,
+           Old.Band.Status, Band.Status, best.band.status) %>% 
+  rename(Best.Band.Status = best.band.status)
+
+# Replace NA values for band status 4, 6, 8, and F in Best.Band.Status
+new.data$Best.Band.Status[new.data$Band.Status == "4"] <- 4
+new.data$Best.Band.Status[new.data$Band.Status == "6"] <- 6
+new.data$Best.Band.Status[new.data$Band.Status == "8"] <- 8
+new.data$Best.Band.Status[new.data$Band.Status == "F"] <- "F"
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
 
 
 

@@ -377,7 +377,7 @@ BTLH.thesis <- new.data %>%
   filter(Species == "BTLH", 
          Protocol == "HMN",
          Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
-         Age != 'NA',  # Removes 1 individual with unknown age. It has nnot been recaptured
+         Age != 'NA',  # Removes 1 individual with unknown age. It has not been recaptured
          Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'))
 
 

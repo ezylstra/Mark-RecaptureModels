@@ -372,7 +372,12 @@ test.dat <- BTLH.thesis %>%
 
 # IT WORKS! :) 
 
+# --------------------------------------------------------------------------- #
+
 # Add 'age at first capture' to the capture history 
+
+# 'age at first capture' is the age an individual was assigned the first time it
+# was trapped 
 
 # Extract the age of the individuals at first capture 
 # Sort data by band number
@@ -392,12 +397,13 @@ BTLH.thesis$first.age <- NA
 for (BN in BTLH.unique.bands) {
     BTLH.thesis$first.age <- BTLH.thesis %>% 
       filter(Band.Number == BN) %>% 
-      select(Age) # Would this select the first age becuase the data set is sorted by date?
+      select(Age) # Would this select the first age because the data set is sorted by date?
 }
 
 # I think the problem is that I am trying to use two data sets with different 
 # number of rows
 # Maybe I need to use the ifelse function instead? 
+
 
 
 

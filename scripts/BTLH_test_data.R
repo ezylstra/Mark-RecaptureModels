@@ -392,7 +392,7 @@ BTLH.thesis$first.age <- NA
 for (BN in BTLH.unique.bands) {
     BTLH.thesis$first.age <- BTLH.thesis %>% 
       filter(Band.Number == BN) %>% 
-      select(Age)
+      select(Age) # Would this select the first age becuase the data set is sorted by date?
 }
 
 # I think the problem is that I am trying to use two data sets with different 

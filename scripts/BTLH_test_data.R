@@ -1,4 +1,4 @@
-# Preparing capture histories for survival analysis 
+# Preparing capture histories and survival analysis 
 # Sites: Gaby's thesis ML, DGS, WCAT, PCBNM 
 # Gaby Samaniego
 # gaby@savehummingbirds.org
@@ -8,6 +8,7 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 library(data.table) # Used to combine lists in a data frame
+library(RMark)
 
 #------------------------- DATA WRANGLING ---------------------------------#
 
@@ -249,7 +250,7 @@ errors.BTLH.sites <- grooves.errors %>%
 # 910099411: traits of a juvenile, but identified as adult. Banded in 2021, recaptured same year
 
 # I need to look into all records with errors to try to fix them, but for now, 
-# all BTLH bands for thesis are good to go
+# all BTLH bands for the thesis are good to go
 
 # Second: Has age been assigned correctly to individuals in the same year?
 
@@ -273,7 +274,9 @@ BTLH.thesis <- new.data %>%
   filter(Species == "BTLH", 
          Protocol == "HMN",
          Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
-         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'))
+         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
+         Band.Number != "NA", # Removes 2 unbanded individuals
+         Band.Number != '810051818') # Removes individual without age, captured once in 2022 
 
 # Create capture history for all Mount Lemmon Data, for all years
 # ch is for capture history
@@ -321,7 +324,7 @@ ch.WCAT <- BTLH.thesis %>%
   select(Location, Month, Band.Number, Year, Sex) %>% 
   filter(Location == "WCAT",
          Year %in% 2014:2022, 
-         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
+         Month %in% 5:7) %>% # I need to think this better, ideally I'll use dates starting mid-May 
   group_by(Band.Number, Year, Sex) %>%  
   summarize(N.observation = length(Year))%>%
   mutate(Observed = 1) %>% 
@@ -369,67 +372,32 @@ test.dat <- BTLH.thesis %>%
 
 # IT WORKS! :) 
 
-# Add age at first capture 
+# Add 'age at first capture' to the capture history 
 
-# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
-# and sites for thesis 
-BTLH.thesis <- new.data %>% 
-  filter(Species == "BTLH", 
-         Protocol == "HMN",
-         Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
-         Age != 'NA',  # Removes 1 individual with unknown age. It has not been recaptured
-         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'))
-
-
-# Extract the rows that equal a band number and create a new column for Best.Band.Status
-new.age.bands <- unique(new.age$Band.Number) # 470 band numbers
-new.age$best.age <- NA
-unique(new.age$Age)
-
-
-new.bands <- unique(new.recap.bands$Band.Number)
-new.recap.bands$best.band.status <- NA
-unique(new.recap.bands$Band.Status)
-
-# Create a capture number column and add sequence of captures
-new.recap.bands$capture.number <- sequence(from = 1, rle(new.recap.bands$Band.Number)$lengths)
-new.age$capture.order <- sequence(from = 1, rle(new.age$Band.Number)$lenghths)
-
-
-
-# Fill in Best.Band.Status with 1 and R  
-new.recap.bands$best.band.status <- ifelse(new.recap.bands$capture.number == 1, "1","R")
-
-# Subset other band status from data 
-# 4 = band destroyed, 6 = band removed, 8 = band lost, F = foreign band
-other.band.status <- band.data %>% 
-  filter(Band.Status %in% c("4", "6", "8", "F"))
-
-# Merge all band status (1, R, 4, 6, 8, F)
-all.bands <- other.band.status %>% 
-  bind_rows(new.recap.bands) %>% 
+# Extract the age of the individuals at first capture 
+# Sort data by band number
+BTLH.thesis <- BTLH.thesis %>% 
   arrange(Band.Number, Date)
 
-# Reorganize data frame, new_data Contains ALL HMN's banding data 
-new.data <- all.bands %>% 
-  select(-capture.number) %>% 
-  relocate(Protocol, Bander, State, Location, Date, Year, Month, Day, Time,
-           Old.Band.Status, Band.Status, best.band.status) %>% 
-  rename(Best.Band.Status = best.band.status)
+# How many unique band numbers are there?
+length(unique(BTLH.thesis[['Band.Number']])) # There are 6888 unique band numbers
 
-# Replace NA values for band status 4, 6, 8, and F in Best.Band.Status
-new.data$Best.Band.Status[new.data$Band.Status == "4"] <- 4
-new.data$Best.Band.Status[new.data$Band.Status == "6"] <- 6
-new.data$Best.Band.Status[new.data$Band.Status == "8"] <- 8
-new.data$Best.Band.Status[new.data$Band.Status == "F"] <- "F"
+# Extract the rows that equal a band number 
+BTLH.unique.bands <- unique(BTLH.thesis$Band.Number) 
 
+# Create a new row for 'age at first capture'
+BTLH.thesis$first.age <- NA
 
+# Fill in 'age at first capture' with a for loop
+for (BN in BTLH.unique.bands) {
+    BTLH.thesis$first.age <- BTLH.thesis %>% 
+      filter(Band.Number == BN) %>% 
+      select(Age)
+}
 
-
-
-
-
-
+# I think the problem is that I am trying to use two data sets with different 
+# number of rows
+# Maybe I need to use the ifelse function instead? 
 
 
 

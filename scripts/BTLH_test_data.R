@@ -14,6 +14,10 @@ library(data.table) # Used to combine lists in a data frame
 # Bring in raw data
 raw.data <- read.csv("data/2002-2022_raw_data.csv",
                      na.strings = c("",NA))
+# ERZ: Can trim white spaces when you read in the original file and avoid 
+# having to do this later
+# raw.data <- read.csv("data/2002-2022_raw_data.csv",
+#                      na.strings = c("",NA), strip.white = TRUE)
 
 # Remove unnecessary columns
 band.data <- raw.data %>% 
@@ -56,6 +60,8 @@ band.data <- band.data %>%
          Recapture.Time.4 = recap.time.4)
 
 # Remove all leading and trailing white spaces
+# ERZ: Can remove the next two lines of code if you use the strip.white
+# argument in read.csv()
 band.data <- band.data %>%
   mutate(across(!Comment, str_trim, side = "both")) # To avoid error with comment column
 
@@ -269,12 +275,16 @@ age.check$Band.Number[age.check$Age.Category > 1]
 
 # Select BTLH data for sites that follow HMN's protocol, sex are male and female,
 # and sites for thesis 
+# ERZ: suggesting a modificaiton of NA filter below, since I'm not sure that 
+# what you have there will work (though I think it may not matter if there 
+# aren't any BTLH with NA bands)
 BTLH.thesis <- new.data %>% 
   filter(Species == "BTLH", 
          Protocol == "HMN",
          Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
          Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
          Band.Number != "NA", # Removes 2 unbanded individuals
+         # !is.na(Band.Number),
          Band.Number != '810051818') # Removes individual without age, captured once in 2022 
 
 # Create capture history for all Mount Lemmon Data, for all years
@@ -407,6 +417,19 @@ for (BN in BTLH.unique.bands) {
 # number of rows
 # Maybe I need to use the ifelse function instead? 
 
+# ERZ: created a test dataframe that solves the problem (I think). Used 
+# group_by(), mutate(), and ungroup() to produce the original dataframe, but 
+# with an age-at-first-capture column (ageFC) with a single value for each bird.
+# (used a subset of columns to simplify)
+test <- BTLH.thesis %>%
+  select(Band.Number, Location, Date, Year, Month, 
+         Day, Best.Band.Status, Sex, Age) %>%
+  arrange(Band.Number, Date) %>%
+  group_by(Band.Number) %>%
+  mutate(ageFC = Age[1]) %>%
+  ungroup() %>%
+  data.frame()
+
 
 # -------------------------- Survival Analysis -------------------------------#
 
@@ -430,8 +453,32 @@ ML.process <- process.data(ML.data,
 # Create the design data list and PIM structure
 ML.ddl <- make.design.data(ML.process)
 
+# Checks:
+test[1:30,]
+bandcheck <- unique(test$Band.Number[test$ageFC == 2 & test$Best.Band.Status == "R"])
+# 201 individuals captured multiple times, first as juveniles.
+test[test$Band.Number == bandcheck[1],]
+test[test$Band.Number == bandcheck[200],]
+
+
+# And yes, I think the for loop was problematic because of differing number
+# of rows. If you had wanted to use loops to do the same thing, I'd suggest 
+# creating a new dataframe with one row per bird. Then adding an ageFC column
+# based on information from BTLH.thesis, and then using a join or match 
+# function to add that ageFC back to BTLH.thesis. Something like:
+
 
 # Think about effort...
+
+# BTLH.thesis <- arrange(BTLH.thesis, Band.Number, Date)
+# ubands <- data.frame(Band.Number = BTLH.unique.bands)
+# for (i in 1:nrow(ubands)) {
+#   ubands$ageFC[i] <- BTLH.thesis$Age[BTLH.thesis$Band.Number == ubands$Band.Number[i]][1]
+# }
+# BTLH.thesis$ageFC2 <- ubands$ageFC[match(BTLH.thesis$Band.Number, ubands$Band.Number)]
+
+
+
 
 
 

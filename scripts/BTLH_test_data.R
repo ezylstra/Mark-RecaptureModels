@@ -8,7 +8,6 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 library(data.table) # Used to combine lists in a data frame
-library(RMark)
 
 #------------------------- DATA WRANGLING ---------------------------------#
 
@@ -297,7 +296,8 @@ ch.ML <- BTLH.thesis %>%
            '2020','2021','2022', Sex) %>% 
   unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
                    '2011','2012','2013','2014','2015','2016','2017','2018','2019',
-                   '2020','2021','2022'), sep = '')
+                   '2020','2021','2022'), sep = '') %>% 
+  as.data.frame
 
 # Create capture history for all Dunton Guard Station Data, for all years
 # ch is for capture history
@@ -315,7 +315,8 @@ ch.DGS <- BTLH.thesis %>%
   relocate(Band.Number, '2008','2009','2010','2011','2012','2013','2014','2015',
            '2016','2017','2018','2019','2020','2021','2022', Sex) %>% 
   unite(cap.his, c('2008','2009','2010','2011','2012','2013','2014','2015','2016',
-                   '2017','2018','2019','2020','2021','2022'), sep = '')
+                   '2017','2018','2019','2020','2021','2022'), sep = '') %>% 
+  as.data.frame
 
 # Create capture history for all Wildcat Rest Area data, for all years
 # ch is for capture history
@@ -333,7 +334,8 @@ ch.WCAT <- BTLH.thesis %>%
   relocate(Band.Number, '2014','2015','2016','2017','2018','2019','2020','2021',
            '2022', Sex) %>% 
   unite(cap.his, c('2014','2015','2016','2017','2018','2019','2020','2021','2022'), 
-        sep = '')
+        sep = '') %>% 
+  as.data.frame
 
 # Create capture history for all Bandelier National Monument data, for all years
 # ch is for capture history
@@ -349,7 +351,8 @@ ch.PCBNM <- BTLH.thesis %>%
   pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
               values_fill = 0)%>% 
   relocate(Band.Number, '2016','2017','2018','2019','2020','2021', Sex) %>% 
-  unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '')
+  unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '') %>% 
+  as.data.frame
 
 # --------------------------- SKIP THIS PART ------------------------------- # 
 
@@ -405,12 +408,30 @@ for (BN in BTLH.unique.bands) {
 # Maybe I need to use the ifelse function instead? 
 
 
+# -------------------------- Survival Analysis -------------------------------#
+
+library(RMark)
+
+# Prepare data set
+ML.data <- ch.ML %>% 
+  rename(ch = cap.his,
+         sex = Sex) %>% 
+  select(-Band.Number)
+
+# Change sex from character to factor
+ML.data$sex <- as.factor(as.character((ML.data$sex)))
+
+# Process data to CJS format
+ML.process <- process.data(ML.data,
+                           model = 'CJS',
+                           begin.time = 2002,
+                           groups = 'sex')
+
+# Create the design data list and PIM structure
+ML.ddl <- make.design.data(ML.process)
 
 
-
- 
-
-
+# Think about effort...
 
 
 

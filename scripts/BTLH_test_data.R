@@ -13,11 +13,8 @@ library(data.table) # Used to combine lists in a data frame
 
 # Bring in raw data
 raw.data <- read.csv("data/2002-2022_raw_data.csv",
-                     na.strings = c("",NA))
-# ERZ: Can trim white spaces when you read in the original file and avoid 
-# having to do this later
-# raw.data <- read.csv("data/2002-2022_raw_data.csv",
-#                      na.strings = c("",NA), strip.white = TRUE)
+                     na.strings = c("",NA),
+                     strip.white = TRUE) # Trims white spaces
 
 # Remove unnecessary columns
 band.data <- raw.data %>% 
@@ -58,12 +55,6 @@ band.data <- band.data %>%
          Recapture.Time.2 = recap.time.2,
          Recapture.Time.3 = recap.time.3,
          Recapture.Time.4 = recap.time.4)
-
-# Remove all leading and trailing white spaces
-# ERZ: Can remove the next two lines of code if you use the strip.white
-# argument in read.csv()
-band.data <- band.data %>%
-  mutate(across(!Comment, str_trim, side = "both")) # To avoid error with comment column
 
 # Capitalize all characters and factors across data frame 
 band.data <- band.data %>% 
@@ -273,21 +264,19 @@ age.check$Band.Number[age.check$Age.Category > 1]
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
 
+# -------------- Capture histories without age at first capture -------------- # 
+
 # Select BTLH data for sites that follow HMN's protocol, sex are male and female,
 # and sites for thesis 
-# ERZ: suggesting a modificaiton of NA filter below, since I'm not sure that 
-# what you have there will work (though I think it may not matter if there 
-# aren't any BTLH with NA bands)
 BTLH.thesis <- new.data %>% 
   filter(Species == "BTLH", 
          Protocol == "HMN",
          Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
          Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
-         Band.Number != "NA", # Removes 2 unbanded individuals
-         # !is.na(Band.Number),
+         !is.na(Band.Number), # Removes NAs form Band.Number
          Band.Number != '810051818') # Removes individual without age, captured once in 2022 
 
-# Create capture history for all Mount Lemmon Data, for all years
+# Create capture history for all Mount Lemmon data, for all years without age
 # ch is for capture history
 ch.ML <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
@@ -309,7 +298,7 @@ ch.ML <- BTLH.thesis %>%
                    '2020','2021','2022'), sep = '') %>% 
   as.data.frame
 
-# Create capture history for all Dunton Guard Station Data, for all years
+# Create capture history for all Dunton Guard Station Data, for all years without age
 # ch is for capture history
 ch.DGS <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
@@ -328,7 +317,7 @@ ch.DGS <- BTLH.thesis %>%
                    '2017','2018','2019','2020','2021','2022'), sep = '') %>% 
   as.data.frame
 
-# Create capture history for all Wildcat Rest Area data, for all years
+# Create capture history for all Wildcat Rest Area data, for all years without age
 # ch is for capture history
 ch.WCAT <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
@@ -347,7 +336,7 @@ ch.WCAT <- BTLH.thesis %>%
         sep = '') %>% 
   as.data.frame
 
-# Create capture history for all Bandelier National Monument data, for all years
+# Create capture history for all Bandelier National Monument data, for all years without age
 # ch is for capture history
 ch.PCBNM <- BTLH.thesis %>% 
   arrange(Band.Number) %>% 
@@ -359,79 +348,53 @@ ch.PCBNM <- BTLH.thesis %>%
   summarize(N.observation = length(Year))%>%
   mutate(Observed = 1) %>% 
   pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
-              values_fill = 0)%>% 
+              values_fill = 0) %>% 
   relocate(Band.Number, '2016','2017','2018','2019','2020','2021', Sex) %>% 
   unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '') %>% 
   as.data.frame
 
-# --------------------------- SKIP THIS PART ------------------------------- # 
+# ------------------ Capture Histories with age at first capture ------------- #
 
-# This is the first time I tried the code to create a capture history.  
-# Select one site (ML), three years (2005-2007) and data for May to July for
-# each year
-test.dat <- BTLH.thesis %>% 
-  arrange(Band.Number)%>% 
-  select(Location, Month, Band.Number, Year, Sex, Age) %>%
-  filter(Location == "ML",
-         Year %in% 2005:2007, 
-         Month %in% 5:7) %>%  
-  group_by(Band.Number, Year, Sex, Age) %>%  
-  summarize(N.observation = length(Year))%>% # Gets number of observations per each year
-  mutate(Observed = 1) %>% # New column with value 1 for observed that year 
-  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
-              values_fill = 0) %>% 
-  relocate(Band.Number, '2005','2006','2007', Sex) %>% 
-  unite(cap.his, c('2005','2006','2007'), sep = '') 
-
-# IT WORKS! :) 
-
-# --------------------------------------------------------------------------- #
-
-# Add 'age at first capture' to the capture history 
-
-# 'age at first capture' is the age an individual was assigned the first time it
-# was trapped 
-
-# Extract the age of the individuals at first capture 
-# Sort data by band number
-BTLH.thesis <- BTLH.thesis %>% 
-  arrange(Band.Number, Date)
-
-# How many unique band numbers are there?
-length(unique(BTLH.thesis[['Band.Number']])) # There are 6888 unique band numbers
-
-# Extract the rows that equal a band number 
-BTLH.unique.bands <- unique(BTLH.thesis$Band.Number) 
-
-# Create a new row for 'age at first capture'
-BTLH.thesis$first.age <- NA
-
-# Fill in 'age at first capture' with a for loop
-for (BN in BTLH.unique.bands) {
-    BTLH.thesis$first.age <- BTLH.thesis %>% 
-      filter(Band.Number == BN) %>% 
-      select(Age) # Would this select the first age because the data set is sorted by date?
-}
-
-# I think the problem is that I am trying to use two data sets with different 
-# number of rows
-# Maybe I need to use the ifelse function instead? 
-
-# ERZ: created a test dataframe that solves the problem (I think). Used 
-# group_by(), mutate(), and ungroup() to produce the original dataframe, but 
-# with an age-at-first-capture column (ageFC) with a single value for each bird.
-# (used a subset of columns to simplify)
-test <- BTLH.thesis %>%
+# Create data frame to add age at first capture for all individuals 
+BTLH.with.age <- BTLH.thesis %>%
   select(Band.Number, Location, Date, Year, Month, 
          Day, Best.Band.Status, Sex, Age) %>%
   arrange(Band.Number, Date) %>%
   group_by(Band.Number) %>%
-  mutate(ageFC = Age[1]) %>%
+  mutate(Age.FC = Age[1]) %>% # [1] automatically takes the first capture
   ungroup() %>%
   data.frame()
 
+# Checks:
+test[1:30,]
+bandcheck <- unique(test$Band.Number[test$ageFC == 2 & test$Best.Band.Status == "R"])
+# 201 individuals captured multiple times, first as juveniles.
+test[test$Band.Number == bandcheck[1],]
+test[test$Band.Number == bandcheck[200],]
 
-# -------------------------- Survival Analysis -------------------------------#
+# Create capture history for all Mount Lemmon Data, for all years
+# ch is for capture history
+ch.ML.age <- BTLH.data %>% 
+  arrange(Band.Number) %>% 
+  select(Location, Month, Band.Number, Year, Sex, Age.FC) %>% 
+  filter(Location == "ML",
+         Year %in% 2002:2022, 
+         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
+  group_by(Band.Number, Year, Sex, Age.FC) %>%  
+  summarize(N.observation = length(Year))%>%
+  mutate(Observed = 1) %>% 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex, Age.FC), 
+              values_fill = 0) %>% 
+  mutate('2020' = ".", '2004' = ".") %>%  # Create column for missing years and fill it with a dot
+  relocate(Band.Number, '2002','2003','2004','2005','2006','2007','2008','2009',
+           '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
+           '2020','2021','2022', Sex, Age.FC) %>% 
+  unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
+                   '2011','2012','2013','2014','2015','2016','2017','2018','2019',
+                   '2020','2021','2022'), sep = '') %>% 
+  as.data.frame
+
+# -------------------------- SURVIVAL ANALYSIS -------------------------------#
 
 library(RMark)
 
@@ -452,31 +415,6 @@ ML.process <- process.data(ML.data,
 
 # Create the design data list and PIM structure
 ML.ddl <- make.design.data(ML.process)
-
-# Checks:
-test[1:30,]
-bandcheck <- unique(test$Band.Number[test$ageFC == 2 & test$Best.Band.Status == "R"])
-# 201 individuals captured multiple times, first as juveniles.
-test[test$Band.Number == bandcheck[1],]
-test[test$Band.Number == bandcheck[200],]
-
-
-# And yes, I think the for loop was problematic because of differing number
-# of rows. If you had wanted to use loops to do the same thing, I'd suggest 
-# creating a new dataframe with one row per bird. Then adding an ageFC column
-# based on information from BTLH.thesis, and then using a join or match 
-# function to add that ageFC back to BTLH.thesis. Something like:
-
-
-# Think about effort...
-
-# BTLH.thesis <- arrange(BTLH.thesis, Band.Number, Date)
-# ubands <- data.frame(Band.Number = BTLH.unique.bands)
-# for (i in 1:nrow(ubands)) {
-#   ubands$ageFC[i] <- BTLH.thesis$Age[BTLH.thesis$Band.Number == ubands$Band.Number[i]][1]
-# }
-# BTLH.thesis$ageFC2 <- ubands$ageFC[match(BTLH.thesis$Band.Number, ubands$Band.Number)]
-
 
 
 

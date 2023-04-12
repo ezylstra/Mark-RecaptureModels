@@ -264,7 +264,8 @@ age.check$Band.Number[age.check$Age.Category > 1]
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
 
-# -------------- Capture histories without age at first capture -------------- # 
+# -------------- Capture histories without age at first capture -------------- #
+# --------------------- including juveniles and adults ----------------------- #
 
 # Select BTLH data for sites that follow HMN's protocol, sex are male and female,
 # and sites for thesis 
@@ -273,8 +274,11 @@ BTLH.thesis <- new.data %>%
          Protocol == "HMN",
          Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
          Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
-         !is.na(Band.Number), # Removes NAs form Band.Number
+         !is.na(Band.Number), # Removes NAs from Band.Number
          Band.Number != '810051818') # Removes individual without age, captured once in 2022 
+
+# There are a total of 11,506 records for BTLH in ML, WCAT, PCBNM and DGS 
+# Including ages 1 and 2, and sex F and M
 
 # Create capture history for all Mount Lemmon data, for all years without age
 # ch is for capture history
@@ -354,9 +358,10 @@ ch.PCBNM <- BTLH.thesis %>%
   as.data.frame
 
 # ------------------ Capture Histories with age at first capture ------------- #
+# ----------------------- including juveniles and adults --------------------- #
 
 # Create data frame to add age at first capture for all individuals 
-BTLH.with.age <- BTLH.thesis %>%
+BTLH.with.first.age <- BTLH.thesis %>%
   select(Band.Number, Location, Date, Year, Month, 
          Day, Best.Band.Status, Sex, Age) %>%
   arrange(Band.Number, Date) %>%
@@ -366,15 +371,15 @@ BTLH.with.age <- BTLH.thesis %>%
   data.frame()
 
 # Checks:
-test[1:30,]
-bandcheck <- unique(test$Band.Number[test$ageFC == 2 & test$Best.Band.Status == "R"])
-# 201 individuals captured multiple times, first as juveniles.
-test[test$Band.Number == bandcheck[1],]
-test[test$Band.Number == bandcheck[200],]
+bandcheck <- unique(BTLH.with.first.age$Band.Number[BTLH.with.first.age$Age.FC == 2 & 
+                                                      BTLH.with.first.age$Best.Band.Status == "R"])
+# 201 individuals captured multiple times, first as juveniles
+BTLH.with.first.age[BTLH.with.first.age$Band.Number == bandcheck[1],]
+BTLH.with.first.age[BTLH.with.first.age$Band.Number == bandcheck[200],]
 
 # Create capture history for all Mount Lemmon Data, for all years
 # ch is for capture history
-ch.ML.age <- BTLH.data %>% 
+ch.ML.age <- BTLH.with.first.age %>% 
   arrange(Band.Number) %>% 
   select(Location, Month, Band.Number, Year, Sex, Age.FC) %>% 
   filter(Location == "ML",
@@ -394,12 +399,109 @@ ch.ML.age <- BTLH.data %>%
                    '2020','2021','2022'), sep = '') %>% 
   as.data.frame
 
-# -------------------------- SURVIVAL ANALYSIS -------------------------------#
+# -------------- Capture histories without age at first capture -------------- #
+# ----------------------- and just adult individuals ------------------------- #
+
+# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
+# sites for thesis, and are adults 
+BTLH.adults <- new.data %>% 
+  filter(Species == "BTLH", 
+         Protocol == "HMN",
+         Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
+         Age == 1, 
+         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
+         !is.na(Band.Number), # Removes NAs from Band.Number
+         Band.Number != '810051818') # Removes individual without age, captured once in 2022 
+
+# There are a total of 10,204 records for BTLH in ML, WCAT, PCBNM and DGS 
+# Age 1, and sex F and M
+
+# Create capture history for all Mount Lemmon data, for all years without age and just adults
+# ch is for capture history
+ch.ML.adults <- BTLH.adults %>% 
+  arrange(Band.Number) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
+  filter(Location == "ML",
+         Year %in% 2002:2022, 
+         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
+  group_by(Band.Number, Year, Sex) %>%  
+  summarize(N.observation = length(Year))%>%
+  mutate(Observed = 1) %>% 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
+              values_fill = 0) %>% 
+  mutate('2020' = ".", '2004' = ".") %>%  # Create column for missing years and fill it with a dot
+  relocate(Band.Number, '2002','2003','2004','2005','2006','2007','2008','2009',
+           '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
+           '2020','2021','2022', Sex) %>% 
+  unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
+                   '2011','2012','2013','2014','2015','2016','2017','2018','2019',
+                   '2020','2021','2022'), sep = '') %>% 
+  as.data.frame
+
+# Create capture history for all Dunton Guard Station Data, for all years without age and just adults
+# ch is for capture history
+ch.DGS.adults <- BTLH.adults %>% 
+  arrange(Band.Number) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
+  filter(Location == "DGS",
+         Year %in% 2008:2022, 
+         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
+  group_by(Band.Number, Year, Sex) %>%  
+  summarize(N.observation = length(Year))%>%
+  mutate(Observed = 1) %>% 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
+              values_fill = 0) %>% 
+  relocate(Band.Number, '2008','2009','2010','2011','2012','2013','2014','2015',
+           '2016','2017','2018','2019','2020','2021','2022', Sex) %>% 
+  unite(cap.his, c('2008','2009','2010','2011','2012','2013','2014','2015','2016',
+                   '2017','2018','2019','2020','2021','2022'), sep = '') %>% 
+  as.data.frame
+
+# Create capture history for all Wildcat Rest Area data, for all years without age and just adults
+# ch is for capture history
+ch.WCAT.adults <- BTLH.adults %>% 
+  arrange(Band.Number) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
+  filter(Location == "WCAT",
+         Year %in% 2014:2022, 
+         Month %in% 5:7) %>% # I need to think this better, ideally I'll use dates starting mid-May 
+  group_by(Band.Number, Year, Sex) %>%  
+  summarize(N.observation = length(Year))%>%
+  mutate(Observed = 1) %>% 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
+              values_fill = 0) %>% 
+  relocate(Band.Number, '2014','2015','2016','2017','2018','2019','2020','2021',
+           '2022', Sex) %>% 
+  unite(cap.his, c('2014','2015','2016','2017','2018','2019','2020','2021','2022'), 
+        sep = '') %>% 
+  as.data.frame
+
+# Create capture history for all Bandelier National Monument data, for all years without age and just adults
+# ch is for capture history
+ch.PCBNM.adults <- BTLH.adults %>% 
+  arrange(Band.Number) %>% 
+  select(Location, Month, Band.Number, Year, Sex) %>% 
+  filter(Location == "PCBNM",
+         Year %in% 2016:2021, # 2015 doesn't have data for months 5:7 
+         Month %in% 5:7)%>%  # I need to think this better, ideally I'll use dates starting mid-May 
+  group_by(Band.Number, Year, Sex) %>%  
+  summarize(N.observation = length(Year))%>%
+  mutate(Observed = 1) %>% 
+  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
+              values_fill = 0) %>% 
+  relocate(Band.Number, '2016','2017','2018','2019','2020','2021', Sex) %>% 
+  unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '') %>% 
+  as.data.frame
+
+
+# -------------------------- SURVIVAL ANALYSIS ------------------------------- #
 
 library(RMark)
 
+# ------------------------------ ML DATA ------------------------------------- #
+
 # Prepare data set
-ML.data <- ch.ML %>% 
+ML.data <- ch.ML.adults %>%
   rename(ch = cap.his,
          sex = Sex) %>% 
   select(-Band.Number)
@@ -416,4 +518,13 @@ ML.process <- process.data(ML.data,
 # Create the design data list and PIM structure
 ML.ddl <- make.design.data(ML.process)
 
+# Specify parameters for models
+
+# For survival probability
+Phi.dot <- list(formula = ~1)
+Phi.time <- list(formula = ~time)
+Phi.sex <- list(formula = ~sex)
+
+p.dot <- list(formula = ~1)
+p.time <- list(formula = ~time)
 

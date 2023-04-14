@@ -277,7 +277,7 @@ BTLH.thesis <- new.data %>%
          !is.na(Band.Number), # Removes NAs from Band.Number
          Band.Number != '810051818') # Removes individual without age, captured once in 2022 
 
-# There are a total of 11,506 records for BTLH in ML, WCAT, PCBNM and DGS 
+# There are a total of 11,506 records for BTLH in ML, WCAT, PCBNM and DGS
 # Including ages 1 and 2, and sex F and M
 
 # Create capture history for all Mount Lemmon data, for all years without age
@@ -493,6 +493,17 @@ ch.PCBNM.adults <- BTLH.adults %>%
   unite(cap.his, c('2016','2017','2018','2019','2020','2021'), sep = '') %>% 
   as.data.frame
 
+# --------------------------- CALCULATE EFFORT ------------------------------- #
+
+# Summary of banding effort as the number of trapping days per year
+banding.days <- BTLH.thesis %>% 
+  group_by(Location, Year) %>% 
+  summarize(Location = unique(Location),
+            Total.Banding.Days.Per.Year = length(unique(Date))) %>% 
+  as.data.frame()
+
+# For future analysis consider trap hours per banding day, as some days have less 
+# than 5 hours per banding day. Not a lot, but some do
 
 # -------------------------- SURVIVAL ANALYSIS ------------------------------- #
 
@@ -500,8 +511,8 @@ library(RMark)
 
 # ------------------------------ ML DATA ------------------------------------- #
 
-# Prepare data set
-ML.data <- ch.ML.adults %>%
+# Prepare data set for RMark 
+ML.data <- ch.ML.adults %>% # Use only adults for this analysis 
   rename(ch = cap.his,
          sex = Sex) %>% 
   select(-Band.Number)
@@ -518,6 +529,27 @@ ML.process <- process.data(ML.data,
 # Create the design data list and PIM structure
 ML.ddl <- make.design.data(ML.process)
 
+# Add effort as a covariate 
+ML.effort <- banding.days %>% 
+  filter(Location == 'ML')
+  
+# Add years where effort was 0 
+ML.effort[nrow(ML.effort) + 1,] = c('ML', '2004', 0)
+ML.effort[nrow(ML.effort) + 1,] = c('ML', '2020', 0)
+
+# Prepare data frame to add to ddl
+ML.effort <- ML.effort %>%  
+  select(-Location) %>% 
+  arrange(Year) %>% 
+  rename(time = Year,
+         effort = Total.Banding.Days.Per.Year) %>% 
+  mutate_if(is.character, as.numeric) %>% 
+  as.data.frame
+
+# Add effort to the ddl 
+ML.ddl$p = merge_design.covariates(ML.ddl$p, ML.effort)
+summary(ML.ddl$p$effort)
+
 # Specify parameters for models
 
 # For survival probability
@@ -525,6 +557,9 @@ Phi.dot <- list(formula = ~1)
 Phi.time <- list(formula = ~time)
 Phi.sex <- list(formula = ~sex)
 
+# For 
 p.dot <- list(formula = ~1)
 p.time <- list(formula = ~time)
+p.effort <- list(formula = ~effort)
 
+# Time???? 

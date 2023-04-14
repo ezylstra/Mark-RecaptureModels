@@ -563,19 +563,28 @@ Phi.dot <- list(formula = ~1)
 Phi.time <- list(formula = ~time)
 Phi.sex <- list(formula = ~sex)
 Phi.Time <- list(formula = ~Time) # Time as a continuous variable?
-Phi.sex
+Phi.sexPlusTime <- list(formula = ~sex + Time)
 
 # For re-capture probability
 p.dot <- list(formula = ~1)
 p.time <- list(formula = ~time)
 p.effort <- list(formula = ~effort)
-p.time.plu.effort <- list(formula = ~time + effort)
+p.sex <- list(formula = ~sex)
+p.TimePluseffort <- list(formula = ~Time + effort)
 
 # Run models
+# Simple model
+ML.phi.dot.p.dot <- mark(ML.process,
+                         ML.ddl,
+                         model.parameters = list(Phi = Phi.dot,
+                                                 p = p.dot))
 
+ML.phi.sexPlusTime.p.TimePluseffort <- mark(ML.process,
+                                            ML.ddl,
+                                            model.parameters = list(Phi = Phi.sexPlusTime,
+                                                                    p = p.TimePluseffort))
 
-
-
+ML.phi.dot.p
 
 
 

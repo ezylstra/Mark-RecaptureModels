@@ -573,18 +573,26 @@ p.sex <- list(formula = ~sex)
 p.TimePluseffort <- list(formula = ~Time + effort)
 
 # Run models
-# Simple model
+# Simple model, intercept only 
 ML.phi.dot.p.dot <- mark(ML.process,
                          ML.ddl,
                          model.parameters = list(Phi = Phi.dot,
                                                  p = p.dot))
+ML.phisex.p.effort <- mark(ML.process,
+                           ML.ddl,
+                           model.parameters = list(Phi = Phi.sex,
+                                                   p = p.effort))
+
 
 ML.phi.sexPlusTime.p.TimePluseffort <- mark(ML.process,
                                             ML.ddl,
                                             model.parameters = list(Phi = Phi.sexPlusTime,
                                                                     p = p.TimePluseffort))
+str(ML.phi.sexPlusTime.p.TimePluseffort)
 
-ML.phi.dot.p
+# Collect models
+ML.cjs.results <- collect.models()
+ML.cjs.results
 
 
 

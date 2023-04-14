@@ -417,6 +417,7 @@ BTLH.adults <- new.data %>%
 # Age 1, and sex F and M
 
 # Create capture history for all Mount Lemmon data, for all years without age and just adults
+# Without . for missing years 2004 and 2020
 # ch is for capture history
 ch.ML.adults <- BTLH.adults %>% 
   arrange(Band.Number) %>% 
@@ -429,13 +430,12 @@ ch.ML.adults <- BTLH.adults %>%
   mutate(Observed = 1) %>% 
   pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
               values_fill = 0) %>% 
-  mutate('2020' = ".", '2004' = ".") %>%  # Create column for missing years and fill it with a dot
-  relocate(Band.Number, '2002','2003','2004','2005','2006','2007','2008','2009',
+  relocate(Band.Number, '2002','2003','2005','2006','2007','2008','2009',
            '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
-           '2020','2021','2022', Sex) %>% 
-  unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
+           '2021','2022', Sex) %>% 
+  unite(cap.his, c('2002','2003','2005','2006','2007','2008','2009','2010',
                    '2011','2012','2013','2014','2015','2016','2017','2018','2019',
-                   '2020','2021','2022'), sep = '') %>% 
+                   '2021','2022'), sep = '') %>% 
   as.data.frame
 
 # Create capture history for all Dunton Guard Station Data, for all years without age and just adults
@@ -520,22 +520,28 @@ ML.data <- ch.ML.adults %>% # Use only adults for this analysis
 # Change sex from character to factor
 ML.data$sex <- as.factor(as.character((ML.data$sex)))
 
-# Process data to CJS format
+# Process the encounter (capture) history data frame for Mark anaysis
 ML.process <- process.data(ML.data,
                            model = 'CJS',
                            begin.time = 2002,
-                           groups = 'sex')
+                           groups = 'sex',
+                           time.intervals = c(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1)) 
+summary(ML.process)
 
-# Create the design data list and PIM structure
+# Create design data frame for Mark model specification based in PIM (parameter index matrix)
 ML.ddl <- make.design.data(ML.process)
+
+ML.ddl$Phi
+ML.ddl$p
 
 # Add effort as a covariate 
 ML.effort <- banding.days %>% 
   filter(Location == 'ML')
-  
-# Add years where effort was 0 
-ML.effort[nrow(ML.effort) + 1,] = c('ML', '2004', 0)
-ML.effort[nrow(ML.effort) + 1,] = c('ML', '2020', 0)
+
+# Skip this part, don't need this information any more due to time.intervals   
+#### Add years where effort was 0 
+# ML.effort[nrow(ML.effort) + 1,] = c('ML', '2004', 0)
+# ML.effort[nrow(ML.effort) + 1,] = c('ML', '2020', 0)
 
 # Prepare data frame to add to ddl
 ML.effort <- ML.effort %>%  
@@ -556,10 +562,20 @@ summary(ML.ddl$p$effort)
 Phi.dot <- list(formula = ~1)
 Phi.time <- list(formula = ~time)
 Phi.sex <- list(formula = ~sex)
+Phi.Time <- list(formula = ~Time) # Time as a continuous variable?
+Phi.sex
 
-# For 
+# For re-capture probability
 p.dot <- list(formula = ~1)
 p.time <- list(formula = ~time)
 p.effort <- list(formula = ~effort)
+p.time.plu.effort <- list(formula = ~time + effort)
 
-# Time???? 
+# Run models
+
+
+
+
+
+
+

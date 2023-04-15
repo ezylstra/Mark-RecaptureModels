@@ -495,13 +495,16 @@ ch.PCBNM.adults <- BTLH.adults %>%
 
 # --------------------------- CALCULATE EFFORT ------------------------------- #
 
-# Summary of banding effort as the number of trapping days per year
+# Summary of banding effort as the number of trapping days per year for May to July
 banding.days <- BTLH.thesis %>% 
-  group_by(Location, Year) %>% 
+  group_by(Location, Year, Month) %>%
+  filter(Month %in% 5:7) %>% 
   summarize(Location = unique(Location),
-            Total.Banding.Days.Per.Year = length(unique(Date))) %>% 
+            Banding.Days = length(unique(Date))) %>% 
+  aggregate(Banding.Days ~ Year + Location,
+            FUN = function(x) c(sum(x))) %>% 
   as.data.frame()
-
+  
 # For future analysis consider trap hours per banding day, as some days have less 
 # than 5 hours per banding day. Not a lot, but some do
 
@@ -520,7 +523,7 @@ ML.data <- ch.ML.adults %>% # Use only adults for this analysis
 # Change sex from character to factor
 ML.data$sex <- as.factor(as.character((ML.data$sex)))
 
-# Process the encounter (capture) history data frame for Mark anaysis
+# Process the encounter (capture) history data frame for Mark analysis
 ML.process <- process.data(ML.data,
                            model = 'CJS',
                            begin.time = 2002,
@@ -548,7 +551,7 @@ ML.effort <- ML.effort %>%
   select(-Location) %>% 
   arrange(Year) %>% 
   rename(time = Year,
-         effort = Total.Banding.Days.Per.Year) %>% 
+         effort = Banding.Days) %>% 
   mutate_if(is.character, as.numeric) %>% 
   as.data.frame
 

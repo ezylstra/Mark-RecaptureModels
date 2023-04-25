@@ -5,6 +5,7 @@
 # 2022-02-28
 
 library(tidyverse)
+library(tidyr)
 library(lubridate)
 library(stringr)
 library(data.table) # Used to combine lists in a data frame
@@ -534,9 +535,6 @@ summary(ML.process)
 # Create design data frame for Mark model specification based in PIM (parameter index matrix)
 ML.ddl <- make.design.data(ML.process)
 
-ML.ddl$Phi
-ML.ddl$p
-
 # Add effort as a covariate 
 ML.effort <- banding.days %>% 
   filter(Location == 'ML')
@@ -575,7 +573,7 @@ p.effort <- list(formula = ~effort)
 p.sex <- list(formula = ~sex)
 p.TimePluseffort <- list(formula = ~Time + effort)
 
-# Run models
+# Run a few models for practice
 # Simple model, intercept only 
 ML.phi.dot.p.dot <- mark(ML.process,
                          ML.ddl,
@@ -586,7 +584,6 @@ ML.phisex.p.effort <- mark(ML.process,
                            model.parameters = list(Phi = Phi.sex,
                                                    p = p.effort))
 
-
 ML.phi.sexPlusTime.p.TimePluseffort <- mark(ML.process,
                                             ML.ddl,
                                             model.parameters = list(Phi = Phi.sexPlusTime,
@@ -596,6 +593,159 @@ str(ML.phi.sexPlusTime.p.TimePluseffort)
 # Collect models
 ML.cjs.results <- collect.models()
 ML.cjs.results
+
+# Run models using a function
+# The function defines and runs a set of models and returns a marklist with the 
+# results and a model.table. It uses the processed and designed data created
+# previously 
+
+ML.models <- function()
+{
+  Phi.dot <- list(formula = ~1)
+  Phi.Time <- list(formula = ~Time)
+  Phi.sex <- list(formula = ~sex)
+  Phi.time <- list(formula = ~time)
+  Phi.sexPlusTime <- list(formula = ~sex + Time)
+  Phi.sexandTime <- list(formula = ~sex * Time)
+  p.dot <- list(formula = ~1)
+  p.time <- list(formula = ~time)
+  p.effort <- list(formula = ~effort)
+  p.timeandeffort <- list(formula = ~time + effort)
+  cml <- create.model.list("CJS") # Creates a dataframe of all combinations of parameter specifications for each parameter in a particular type of MARK model
+  results <- mark.wrapper(cml, # Constructs and runs a set of MARK models from a dataframe (cml)
+                          data = ML.process,
+                          ddl = ML.ddl,
+                          adjust = FALSE) # Accepts the parameter counts from MARK
+  return(results)
+}
+
+# Store the results in a marklist.
+#
+ML.results <- ML.models()
+ML.results
+
+# Two models with lowest DeltaAIC:
+# Phi(~sex + Time)p(~time)
+# Phi(~sex + Time)p(~time + effort)
+
+# From Erin: 
+
+# As an example, visualize estimates from a Phi(Time + sex)p(time) model
+
+# Isolate the model you want to use for inferences (only necessary if you
+# ran a bunch of models with a function. If not, you can use the original
+# model name instead of "best".  As an example here, I'm assuming that we ran
+# a bunch of models with a function called results_simple() and a 
+# Phi(Time + sex)p(time) model was the 10th model in that set.)
+
+# Here best model was 15 
+best <- ML.results[[15]]
+best
+
+# Look at beta-hats
+best$results$beta
+
+# Extract real estimates (Note that these will just be estimates for years 
+# when surveys were done because we used time.intervals to skip years 
+# surveys weren't done)
+best$results$real
+
+library(tidyr)
+
+# Separate rownames into useful columns and do a little clean up
+reals <- best$results$real %>%
+  rownames_to_column("rowname") %>%
+  separate_wider_delim(rowname,  # takes a string column and splits it into multiple new columns
+                       delim = " ",
+                       names = c("param", "sex", NA, NA, "yr")) %>%
+  mutate(sex = str_sub(sex, 2, 2),
+         yr = as.numeric(str_sub(yr, 2, 5))) %>%
+  select(-c(fixed, note)) %>%
+  data.frame()
+reals
+
+# Visualize recapture probabilities -----------------------------------------#
+
+# Plot estimates of recapture probability (just for years when surveys done)
+p_reals <- reals %>%
+  filter(param == "p")
+p_fig <- ggplot(p_reals, aes(x = yr, y = estimate)) +
+  geom_point(size = 1.5) +
+  geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0) +
+  theme_classic() +
+  ylab("Estimated recapture probability (95% CI)") + 
+  xlab("")
+p_fig
+
+
+# Visualize survival probabilities ------------------------------------------#
+# Here, I'm not using values from the dataframe with real estimates (reals) 
+# because it doesn't include years when surveys weren't done, and we'd like 
+# estimates for every year (and we'd like to create smooth curves over time for
+# trend models).  Instead, we'll have to use the beta-hats to calculate the
+# real estimates.
+
+# Create values of Time to use for predicting Phi
+Time.values <- seq(0, max(ml_ddl$Phi$Time), by = 0.2)
+# Convert Time to year, for axis labels
+year.values <- Time.values + 2002 
+
+# Create dataframe to store predictions for each combination of sex and Time
+# (Note that we're calculating values for a fraction of a year in order to 
+# generate smooth curves. Further below we'll just extract the years and 
+# plot each separately)
+pred_df <- data.frame(Intercept = 1,
+                      Time = rep(Time.values, 2),
+                      sexM = rep(c(0, 1), each = length(Time.values)))
+# Look at prediction dataframe
+head(pred_df); tail(pred_df)
+
+# Extract beta-hats with lower/upper CIs for Phi parameter
+betas <- best$results$beta$estimate[1:3]
+betas_lcl <- best$results$beta$lcl[1:3]
+betas_ucl <- best$results$beta$ucl[1:3]
+# Note: you could use the mean +/- SE instead if you'd like
+# betas_lse <- betas - best$results$beta$se[1:3]
+# betas_use <- betas + best$results$beta$se[1:3]
+
+# Make predictions on the logit scale (mean, lower CI, upper CI)
+# %*% is used for matrix multiplication. Here it means we'll multiply each 
+# row of the pred_df dataframe by the vector of beta-hats. 
+estimate_logit <- as.matrix(pred_df) %*% as.matrix(betas)
+lcl_logit <- as.matrix(pred_df) %*% as.matrix(betas_lcl)
+ucl_logit <- as.matrix(pred_df) %*% as.matrix(betas_ucl)
+
+# Convert predictions to the probability (real) scale
+pred_df$estimate <- exp(estimate_logit) / (1 + exp(estimate_logit))
+pred_df$lcl <- exp(lcl_logit) / (1 + exp(lcl_logit))
+pred_df$ucl <- exp(ucl_logit) / (1 + exp(ucl_logit))
+
+# Add year to dataframe
+pred_df$yr <- year.values
+# Check that predictions for 2002 look the same as what's in model output
+head(pred_df); head(reals)
+
+# Plot smooth survival curves for males, females
+pred_df$Sex <- as.factor(ifelse(pred_df$sexM == 1, "Male", "Female"))
+phi_fig <- ggplot(pred_df, aes(x = yr, y = estimate, group = Sex)) +
+  geom_line(size = 1.5, aes(color = Sex)) +
+  geom_ribbon(aes(ymin = lcl, ymax = ucl, fill = Sex), alpha = 0.2) +
+  theme_classic() +
+  ylab("Estimated annual survival (95% CI)") + 
+  xlab("")
+phi_fig
+
+# Plot annual values with error bars (= 95% CIs)
+phi_annual <- filter(pred_df, yr %in% min(yr):max(yr))
+phi_fig_ann <- ggplot(phi_annual, aes(x = yr, y = estimate, group = Sex)) +
+  geom_point(size = 1.5, aes(color = Sex), 
+             position = position_dodge(width = 0.6)) +
+  geom_errorbar(aes(ymin = lcl, ymax = ucl, color = Sex), width = 0,
+                position = position_dodge(width = 0.6)) +
+  theme_classic() +
+  ylab("Estimated annual survival (95% CI)") + 
+  xlab("")
+phi_fig_ann 
 
 
 

@@ -5,7 +5,6 @@
 # 2022-02-28
 
 library(tidyverse)
-library(tidyr)
 library(lubridate)
 library(stringr)
 library(data.table) # Used to combine lists in a data frame
@@ -602,9 +601,9 @@ ML.cjs.results
 ML.models <- function()
 {
   Phi.dot <- list(formula = ~1)
-  Phi.Time <- list(formula = ~Time)
+  Phi.Time <- list(formula = ~Time) # trend 
   Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
+  Phi.time <- list(formula = ~time) # each year
   Phi.sexPlusTime <- list(formula = ~sex + Time)
   Phi.sexandTime <- list(formula = ~sex * Time)
   p.dot <- list(formula = ~1)
@@ -620,7 +619,6 @@ ML.models <- function()
 }
 
 # Store the results in a marklist.
-#
 ML.results <- ML.models()
 ML.results
 
@@ -640,7 +638,7 @@ ML.results
 
 # Here best model was 15 
 best <- ML.results[[15]]
-best
+str(best)
 
 # Look at beta-hats
 best$results$beta
@@ -650,15 +648,13 @@ best$results$beta
 # surveys weren't done)
 best$results$real
 
-library(tidyr)
-
 # Separate rownames into useful columns and do a little clean up
 reals <- best$results$real %>%
   rownames_to_column("rowname") %>%
   separate_wider_delim(rowname,  # takes a string column and splits it into multiple new columns
                        delim = " ",
                        names = c("param", "sex", NA, NA, "yr")) %>%
-  mutate(sex = str_sub(sex, 2, 2),
+  mutate(sex = str_sub(sex, 2, 2), # str_sub extracts or replaces the elements at a single position in each string
          yr = as.numeric(str_sub(yr, 2, 5))) %>%
   select(-c(fixed, note)) %>%
   data.frame()
@@ -669,6 +665,8 @@ reals
 # Plot estimates of recapture probability (just for years when surveys done)
 p_reals <- reals %>%
   filter(param == "p")
+p_reals
+
 p_fig <- ggplot(p_reals, aes(x = yr, y = estimate)) +
   geom_point(size = 1.5) +
   geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0) +
@@ -686,22 +684,26 @@ p_fig
 # real estimates.
 
 # Create values of Time to use for predicting Phi
-Time.values <- seq(0, max(ml_ddl$Phi$Time), by = 0.2)
+Time.values <- seq(0, max(ML.ddl$Phi$Time), by = 0.2)
+Time.values
+
 # Convert Time to year, for axis labels
 year.values <- Time.values + 2002 
+year.values
 
 # Create dataframe to store predictions for each combination of sex and Time
 # (Note that we're calculating values for a fraction of a year in order to 
 # generate smooth curves. Further below we'll just extract the years and 
 # plot each separately)
 pred_df <- data.frame(Intercept = 1,
-                      Time = rep(Time.values, 2),
+                      Time = rep(Time.values, 2), # rep, replicates the value in x, times 2
                       sexM = rep(c(0, 1), each = length(Time.values)))
+
 # Look at prediction dataframe
 head(pred_df); tail(pred_df)
 
 # Extract beta-hats with lower/upper CIs for Phi parameter
-betas <- best$results$beta$estimate[1:3]
+betas <- best$results$beta$estimate[1:3] # 1:3 = are betas for intercept, sexM and Time
 betas_lcl <- best$results$beta$lcl[1:3]
 betas_ucl <- best$results$beta$ucl[1:3]
 # Note: you could use the mean +/- SE instead if you'd like
@@ -728,7 +730,7 @@ head(pred_df); head(reals)
 # Plot smooth survival curves for males, females
 pred_df$Sex <- as.factor(ifelse(pred_df$sexM == 1, "Male", "Female"))
 phi_fig <- ggplot(pred_df, aes(x = yr, y = estimate, group = Sex)) +
-  geom_line(size = 1.5, aes(color = Sex)) +
+  geom_line(linewidth = 1.5, aes(color = Sex)) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl, fill = Sex), alpha = 0.2) +
   theme_classic() +
   ylab("Estimated annual survival (95% CI)") + 

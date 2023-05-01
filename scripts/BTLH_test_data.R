@@ -553,9 +553,10 @@ ML.effort <- ML.effort %>%
   as.data.frame
 
 # Add effort to the ddl 
-ML.ddl$p = merge_design.covariates(ML.ddl$p, ML.effort)
+ML.ddl$p <- merge_design.covariates(ML.ddl$p, ML.effort)
 summary(ML.ddl$p$effort)
 
+# Skip this part and use the function to run models #
 # Specify parameters for models
 
 # For survival probability
@@ -594,6 +595,7 @@ ML.cjs.results <- collect.models()
 ML.cjs.results
 
 # Run models using a function
+
 # The function defines and runs a set of models and returns a marklist with the 
 # results and a model.table. It uses the processed and designed data created
 # previously 
@@ -607,10 +609,12 @@ ML.models <- function()
   Phi.sexPlusTime <- list(formula = ~sex + Time)
   Phi.sexandTime <- list(formula = ~sex * Time)
   p.dot <- list(formula = ~1)
+  p.sex <- list(formula = ~sex)
   p.time <- list(formula = ~time)
   p.effort <- list(formula = ~effort)
-  p.timeandeffort <- list(formula = ~time + effort)
-  cml <- create.model.list("CJS") # Creates a dataframe of all combinations of parameter specifications for each parameter in a particular type of MARK model
+  p.timePluseffort <- list(formula = ~time + effort)
+  p.timePlusEffortPluslussex <- list(formula = ~time + sex)
+  cml <- create.model.list("CJS") # Creates a dataframe of all combinations of parameter specifications for each parameter 
   results <- mark.wrapper(cml, # Constructs and runs a set of MARK models from a dataframe (cml)
                           data = ML.process,
                           ddl = ML.ddl,
@@ -622,11 +626,11 @@ ML.models <- function()
 ML.results <- ML.models()
 ML.results
 
-# Two models with lowest DeltaAIC:
+# Two models with lowest DeltaAIC of 0. Is this right? 
 # Phi(~sex + Time)p(~time)
 # Phi(~sex + Time)p(~time + effort)
 
-# From Erin: 
+# From Erin to create graphics: 
 
 # As an example, visualize estimates from a Phi(Time + sex)p(time) model
 
@@ -637,8 +641,9 @@ ML.results
 # Phi(Time + sex)p(time) model was the 10th model in that set.)
 
 # Here best model was 15 
-best <- ML.results[[15]]
+best <- ML.results[[22]]
 str(best)
+best # opens results in notepad
 
 # Look at beta-hats
 best$results$beta

@@ -8,6 +8,9 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 library(data.table) # Used to combine lists in a data frame
+library(RMark) 
+library(ggpubr)
+library(showtext) # To add Google fonts to graphics 
 
 #------------------------- DATA WRANGLING ---------------------------------#
 
@@ -510,8 +513,6 @@ banding.days <- BTLH.thesis %>%
 
 # -------------------------- SURVIVAL ANALYSIS ------------------------------- #
 
-library(RMark)
-
 # ------------------------------ ML DATA ------------------------------------- #
 
 # Prepare data set for RMark 
@@ -608,12 +609,14 @@ ML.models <- function()
   Phi.time <- list(formula = ~time) # each year
   Phi.sexPlusTime <- list(formula = ~sex + Time)
   Phi.sexandTime <- list(formula = ~sex * Time)
+  
   p.dot <- list(formula = ~1)
   p.sex <- list(formula = ~sex)
   p.time <- list(formula = ~time)
   p.effort <- list(formula = ~effort)
   p.timePluseffort <- list(formula = ~time + effort)
   p.timePlusEffortPluslussex <- list(formula = ~time + sex)
+  
   cml <- create.model.list("CJS") # Creates a dataframe of all combinations of parameter specifications for each parameter 
   results <- mark.wrapper(cml, # Constructs and runs a set of MARK models from a dataframe (cml)
                           data = ML.process,
@@ -628,7 +631,10 @@ ML.results
 
 # Two models with lowest DeltaAIC of 0. Is this right? 
 # Phi(~sex + Time)p(~time)
-# Phi(~sex + Time)p(~time + effort)
+# Phi(~sex + Time)p(~time + effort) # 
+
+ML.results[[22]]$results$real 
+ML.results[[31]]$results$beta 
 
 # From Erin to create graphics: 
 
@@ -641,7 +647,7 @@ ML.results
 # Phi(Time + sex)p(time) model was the 10th model in that set.)
 
 # Here best model was 15 
-best <- ML.results[[22]]
+best <- ML.results[[22]] # My best model is 22
 str(best)
 best # opens results in notepad
 
@@ -668,18 +674,36 @@ reals
 # Visualize recapture probabilities -----------------------------------------#
 
 # Plot estimates of recapture probability (just for years when surveys done)
+
 p_reals <- reals %>%
   filter(param == "p")
 p_reals
+
+# To change font on plot, so it matches poster font
+
+
+# Find the font from Google Fonts
+font_add_google(name = 'Open Sans', 
+                family = 'open sans')
+
+# Add the font to R
+font_add(family = 'rage text', # This part worked, my name for the font
+         regular = 'RAGE.TTF') # Copied from the font in Windows (Properties)
 
 p_fig <- ggplot(p_reals, aes(x = yr, y = estimate)) +
   geom_point(size = 1.5) +
   geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0) +
   theme_classic() +
-  ylab("Estimated recapture probability (95% CI)") + 
-  xlab("")
+  ylab(expression(atop('Estimated recapture probability', paste('(95% CI)')))) + 
+  xlab("") +
+  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)) +
+  theme(text = element_text(size = 36, family = "open sans"))
 p_fig
 
+# Save image
+ggsave(filename = 'recapture.png',
+                    plot = p_fig,
+                    dpi = 300)
 
 # Visualize survival probabilities ------------------------------------------#
 # Here, I'm not using values from the dataframe with real estimates (reals) 
@@ -700,9 +724,9 @@ year.values
 # (Note that we're calculating values for a fraction of a year in order to 
 # generate smooth curves. Further below we'll just extract the years and 
 # plot each separately)
-pred_df <- data.frame(Intercept = 1,
-                      Time = rep(Time.values, 2), # rep, replicates the value in x, times 2
-                      sexM = rep(c(0, 1), each = length(Time.values)))
+pred_df <- data.frame(Intercept = 1, # To make the math work 
+                      sexM = rep(c(0, 1), each = length(Time.values)),
+                      Time = rep(Time.values, 2)) # rep, replicates the value in x, times 2
 
 # Look at prediction dataframe
 head(pred_df); tail(pred_df)
@@ -736,11 +760,24 @@ head(pred_df); head(reals)
 pred_df$Sex <- as.factor(ifelse(pred_df$sexM == 1, "Male", "Female"))
 phi_fig <- ggplot(pred_df, aes(x = yr, y = estimate, group = Sex)) +
   geom_line(linewidth = 1.5, aes(color = Sex)) +
-  geom_ribbon(aes(ymin = lcl, ymax = ucl, fill = Sex), alpha = 0.2) +
+  geom_ribbon(aes(ymin = lcl, ymax = ucl, fill = Sex), alpha = 0.1) +
+  scale_color_manual(values = c('#8E3E6E', '#4F7942')) +
+  scale_fill_manual (values = c('#8E3E6E', '#4F7942')) +
   theme_classic() +
-  ylab("Estimated annual survival (95% CI)") + 
-  xlab("")
+  theme(legend.position = c(.15, .8)) +
+  ylab(expression(atop('Estimated annual survival', paste('(95% CI)')))) + 
+  xlab("") +
+  theme(text = element_text(size = 36, family = "open sans"))
 phi_fig
+
+ggsave(filename = 'survival.png',
+                    plot = phi_fig,
+                    device = 'png',
+                    dpi = 300)
+
+# Two plots one figure. Didn't use it for theposter, but keep it here for the future
+# multi_fig <- ggarrange(p_fig, phi_fig, ncol = 1)
+# multi_fig
 
 # Plot annual values with error bars (= 95% CIs)
 phi_annual <- filter(pred_df, yr %in% min(yr):max(yr))
@@ -753,6 +790,36 @@ phi_fig_ann <- ggplot(phi_annual, aes(x = yr, y = estimate, group = Sex)) +
   ylab("Estimated annual survival (95% CI)") + 
   xlab("")
 phi_fig_ann 
+
+# Summary data for Results in poster from capture history at ML
+
+# Total number of individuals 
+length(unique(ch.ML.adults$Band.Number))
+# 2292 individuals
+
+# How many days we banded?
+sum(ML.effort$Banding.Days)
+# 105 days 
+
+# From Erin
+df <- ch.ML.adults %>%
+  mutate(n_caps = str_count(string = cap.his, pattern = "1"),
+         n_recaps = n_caps - 1)
+df
+
+# Summarize recapture data for each sex
+df_sex <- df %>%
+  group_by(Sex) %>%
+  summarize(n_marked = length(Sex),
+            n_recap = sum(n_recaps > 0),
+            percent_birds_recaptured = round(n_recap / n_marked * 100, 1),
+            mean_number_recaps = round(mean(n_recaps), 2),
+            max_number_recaps = max(n_recaps),
+            .groups = "keep") %>%
+  data.frame
+df_sex
+
+
 
 
 

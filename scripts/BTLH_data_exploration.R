@@ -23,7 +23,7 @@ band_data <- band_data %>%
  mutate(across(!Comment, str_trim, side = "both")) # To avoid error with comments column
 
 # Remove unnecessary columns
-band_data <- band_data %>% 
+band_data <- raw_data %>% 
   select(-Tarsus, -BS_Paper, -TBS_test, -TBS_Paper, -CMR, -latitude, -longitude,
          -elevation, -region, -session, -week, -dayofyear, -DayBlock, -T1, -t3, 
          -Diff_factor, -Diff_factorA, -TARSUS_UNIT, -BAND_UNIT, -Leg.Condition, 
@@ -378,6 +378,43 @@ map5 <- map1 + geom_point(data = BTLH_sites_in_range,
             size = 3)
   
 map5
+
+# Create map for WHP grant
+
+# Select thesis sites
+BTLH_sites_WHP <- BTLH_sites_data %>% 
+  filter(Location %in% c('ML','WCAT','DGS','PCBNM'))
+
+# Code to fix location of the label on map 
+BTLH_sites_WHP <- BTLH_sites_WHP %>%
+  mutate(nudge_lat = Latitude + 0.3,
+         nudge_log = Longitude + 0.3)  
+
+# Zooming into the four banding locations for proposal using map1 
+map6 <- map1 + geom_point(data = BTLH_sites_WHP,
+                          mapping = aes(x = Longitude, 
+                                        y = Latitude,
+                                        group = NULL,
+                                        fill = NULL),
+                          color = "black",
+                          size = 2,
+                          show.legend = FALSE) +
+  coord_map(xlim = c(-120, -100), ylim = c(30, 42)) + # Needed to install mapproj package
+  labs(title = 'Broad-tailed hummingbird breeding distribution range',
+       subtitle = 'with HMN banding sites') +
+  geom_text(data = BTLH_sites_WHP,
+            aes(x = nudge_log, 
+                y = nudge_lat, # Moves the label, so it is not on top of the point 
+                group = NULL,
+                fill = NULL,
+                label = Location),
+            color = "black",
+            size = 3) +
+  theme(plot.title = element_text(color = "black", size = 12, hjust = 0.5),
+    plot.subtitle = element_text(color = "black", size = 12, hjust = 0.5))
+
+map6 
+
 
 ##### BTLH BREEDING DATA #####
 

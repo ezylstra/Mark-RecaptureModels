@@ -205,7 +205,7 @@ filter(recaptured.dat, band_in_comment == 1, new == 1, rebanded == 1, former == 
 # New band E91152 applied on 7/30/2008, then I think removed when recaptured in 2010, former E11917 originally applied on 6/25/2006
 # New band in comments for these two records
 
-###### I stoped here........... 
+###### I stooped here........................................................... 
 
 
 # For now, will remove any questionable entries

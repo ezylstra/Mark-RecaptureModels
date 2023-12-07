@@ -36,11 +36,6 @@ recaptured.dat <- recaptured.dat %>%
   select(-original_date) %>% 
   rename(original_date = date)
 
-# Split column date by year, month, and day
-recaptured.dat <- mutate(recaptured.dat, year = year(original_date), 
-                     month = month(original_date),
-                     day = day(original_date))  
-
 # COLUMN ORIGINAL SITE
 count(recaptured.dat, original_site)
 

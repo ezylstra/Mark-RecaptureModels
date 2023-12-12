@@ -11,7 +11,7 @@ library(janitor)
 # Clear environment
 rm(list = ls())
 
-# Read all cvs files to merge
+# Read all csv files to merge
 
 # Create a list of all files to merge
 banded.files <- list.files(path = "data/RMNP-banded-by-year/", 
@@ -88,6 +88,7 @@ count(banded.dat, age)
 banded.dat$age[banded.dat$age == 'SY'] <- 'AHY'
 # AHY  9736
 #  HY  2227
+unique(banded.dat$age)
 
 # COLUMN BAND NUMBERS
 # From Erin's code:
@@ -151,50 +152,175 @@ count(banded.dat, band_asterisk, band_in_comment)
 # Separate those bands that have "former" from those that have "foreign"
 banded.dat <- banded.dat %>%
   mutate(foreign = 1 * str_detect(toupper(comments), "FOREIGN"),
-         former = 1 * str_detect(toupper(comments), "FORMER"))
+         former = 1 * str_detect(toupper(comments), "FORMER"),
+         removed = 1 * str_detect(toupper(comments), 'REMOVED'))
 
 # Create data frame with comment combos
 comment_combos_banded <- banded.dat %>% 
-  group_by(band_in_comment, former, foreign) %>%
+  group_by(band_in_comment, former, foreign, removed) %>%
   summarize(n = length(former)) %>%
   data.frame()
 
 # Looking at each of these indicator variable columns 
 comment_combos_banded
 
-filter(banded.dat, band_in_comment == 0, foreign == 1) 
+filter(banded.dat, band_in_comment == 0, former == 0, foreign == 0, removed == 1) 
+# n = 3:
+# All comments are about removing spines or pine sap. Keep all records
+
+filter(banded.dat, band_in_comment == 0, former == 0, foreign == 1, removed == 0) 
 # n = 4: 
 # 4000-88228 AZ band just captured once. Not relevant. Record in recaptured data as well
 # 4000-01786 just captured once. Not relevant. Record in recaptured data as well
 # 5000-02820 recaptured twice 2005 and 2007. Relevant? We don't have first capture. Record in recapture data as well
 # 4100-08433 just captured once. Not relevant. Record not in the recaptured data
+# Remove all records
 
-filter(banded.dat, band_in_comment == 0, former == 1) 
-# Letter N code is 5000
+filter(banded.dat, band_in_comment == 0, former == 1, foreign == 0, removed == 0) 
+# n = 1
+# Letter N code is 5000.
+# 5000-29395 is correct. Remove record with 5000-29253 in band number. Band is 
+# incorrect, corresponds to a RUHU
 
-# I stopped here..............................................................
+banded.dat %>% filter(band_in_comment == 1, former == 0, foreign == 0, removed == 0) %>% 
+  select(band_number, comments)
+# n = 53
+# All bands in comments are irrelevant. They are 'probably related to', 
+# 'captured with', 'similar to,' 'flew away with'. Keep all records
+# Can we removed the band numbers from these records?  
 
-# n = 1: band removed, but not rebanded
+filter(banded.dat, band_in_comment == 1, former == 0, foreign == 1, removed == 0) 
+# n = 3
+# Both records 5000-22231 and 9000-11887 are irrelevant. It is a foreign bird, captured just once. Record is also in recapture data
+# 9000-39100 new band applied to a foreign bird (band replaced) captured in 2007 and recaptured in 2008
+# 9000-39209 new band applied to a foreign bird (band replaced) captured in 2007 and recaptured in 2008
+# Remove all records
 
-filter(dat, band_in_comment == 1, new == 0, rebanded == 0, former == 0) 
-# n = 7: these are irrelevant ("captured with" or "captured w/")
-# n = 2: "possibly related to E12085" 
-# n = 1: "prob. C23826"
-dat %>% filter(band_in_comment == 1, new == 1, rebanded == 0, former == 0) %>%
-  select(band_number, original_date, recapture_year, recapture_1, comments)
-# n = 86: always has new band number in comments
-filter(dat, band_in_comment == 1, new == 0, rebanded == 1, former == 0) 
-# n = 1: rebanded as E39458 (so same info as those with "NEW")
-filter(dat, band_in_comment == 1, new == 0, rebanded == 0, former == 1) 
-# n = 11: All former band numbers (so band_number column is new band)
-filter(dat, band_in_comment == 1, new == 1, rebanded == 1, former == 0) 
-# n = 3: Need to check two of these that have a new band number but also say
-# that band was removed.
-filter(dat, band_in_comment == 1, new == 1, rebanded == 0, former == 1) 
-# n = 4: New band in band_number column; band in comments is former.
+banded.dat %>% filter(band_in_comment == 1, former == 1, foreign == 0, removed == 0) %>%
+  select(band_number, comments)
+# n = 56
+# All records with the word former in comments have the new band in the column
+# 'band_number'. For most of them, the record with the word former is actually 
+# a recapture, so we need to replace the original band number (first applied) 
+# with the one in the comments. 
+# Keep all records
+
+filter(banded.dat, band_in_comment == 1, former == 1, foreign == 0, removed == 1)
+# n = 4
+# 5000-96919 band removed. Recaptured once. Didn't find former band in banded or 
+# recaptured data, maybe it was a foreign capture. Remove this record
+# 5000-96944 band removed. Not recaptured. Didn't find former band in banded or 
+# recaptured data, maybe another foreign band? Remove this record.
+# 9000-39804 band removed. Not recaptured. Found former band 6000-23685 in banded 
+# data. Keep record, but make sure to replace former band number 
+# 9000-90668 band replaced, not removed. Keep this record but make sure to replace
+# former band number 
+
+filter(banded.dat, band_in_comment == 1, former == 1, foreign == 1, removed == 0)
+# n = 5
+# I think we should remove all of foreign bands as they are not so many, most have 
+# just one capture, and we don't have the information for the first capture. 
+# Bands are: 9000-90490, 4100-59350, 4100-59755, 9100-22998, 9100-57147
+
+filter(banded.dat, band_in_comment == 1, former == 1, foreign == 1, removed == 1)
+# n = 1
+# 5000-96877 remove this record
+
+# For now, will remove any questionable entries
+
+# Start with all the bands with the word foreign in comments. Removes 13 rows
+banded.dat <- banded.dat %>%
+  filter(!grepl('foreign', comments)) %>%
+  filter(!grepl('Foreign', comments)) %>%
+  filter(!grepl('FOREIGN', comments))
+# Band numbers removed: 4000-88228, 5000-96877, 4000-01786, 5000-02820, 5000-22231,
+# 9000-39100, 9000-39209, 9000-90490, 4100-08433, 4100-59350, 4100-59755, 
+# 9100-22998, 9100-57147
+
+# Remove one foreign record that doesn't have foreign in comments but it is a foreign band
+banded.dat <- banded.dat %>% 
+  filter(band_number != '9000-11887')
+
+# Remove one band that has no band number in comments but has the word former in comments. 
+# This band is not in the recaptured data. Also it is a record for RUHU, which doesn't affect our data.
+banded.dat <- banded.dat %>% 
+  filter(band_number != '5000-29253')
+
+# Remove two bands that were applied to a foreign capture but don't have the word
+# foreign in comments in this data set, but is foreign in recaptured data set.
+# I deleted them form recaptured data. 
+banded.dat <- banded.dat %>% 
+  filter(band_number != '3100-41468',
+         band_number != '4100-08428')
+
+# Remove two records that have 'removed band' and 'former' in comments, but former
+# band was not in data set.
+banded.dat <- banded.dat %>% 
+  filter(band_number != '5000-96919',
+         band_number != '5000-96944')
+
+# Lines 231 to 260 remove 19 records from data. 
+
+###### stopped here. I'm done with combos
+
+# Adding a column indicating when a band was removed but not replaced (will
+# ultimately put NAs in capture histories for all years after band removed)
+banded.dat <- banded.dat %>%
+  mutate(removed = ifelse(band_in_comment == 0 & rebanded == 1, 1, 0))
+
+# If the following conditions are met, the band_number column has an OLD
+# band number and the comments column has a NEW band number:
+# band_in_comment = 1, new = 1, rebanded = 0, former = 0,
+# band_in_comment = 1, new = 1, rebanded = 1, former = 0
+# band_in_comment = 1, new = 0, rebanded = 1, former = 0
+# If the following conditions are met, the band_number column has a NEW 
+# band number and the comments column has an OLD band number:
+# band_in_comment = 1, new = 1, rebanded = 0, former = 1
+# band_in_comment = 1, new = 0, rebanded = 0, former = 1
+dat <- dat %>%
+  mutate(band_number_is_old = ifelse (
+    (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 0) |
+      (band_in_comment == 1 & new == 1 & rebanded == 1 & former == 0) |
+      (band_in_comment == 1 & new == 0 & rebanded == 1 & former == 0), 1, 0)) %>%
+  mutate(band_number_is_new = ifelse (
+    (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 1) |
+      (band_in_comment == 1 & new == 0 & rebanded == 0 & former == 1), 1, 0))
+# Check:
+# count(dat, band_in_comment, new, rebanded, former, 
+#       band_number_is_new, band_number_is_old)
+
+# Create band_old and band_new column
+dat <- dat %>%
+  mutate(comment_band = str_extract(comments, "[A-Z][0-9]{5}|[0-9]{4}-[0-9]{5}"),
+         band_no_asterisk = ifelse(str_sub(band_number, -1, -1) == "*",
+                                   str_sub(band_number, 1, nchar(band_number) - 1),
+                                   band_number),
+         band_old = ifelse(band_number_is_new == 1, comment_band,
+                           ifelse(band_number_is_old, band_no_asterisk, NA)),
+         band_new = ifelse(band_number_is_old == 1, comment_band,
+                           ifelse(band_number_is_new, band_no_asterisk, NA)))
+# Check: 
+# head(filter(dat, !is.na(band_old)))
+
+# Now, create band_orig column and keep the band_new column, which will 
+# have a new band number only if the bird was rebanded (NA otherwise).
+# Will keep band_number column just in case we need the original
+dat <- dat %>%
+  mutate(band_orig = ifelse(!is.na(band_old), band_old, band_no_asterisk)) %>%
+  select(-c(band_asterisk, band_in_comment, new, rebanded, former, 
+            band_number_is_old, band_number_is_new, comment_band, 
+            band_no_asterisk, band_old))
+
+# NEXT STEPS:
+# CREATE FULL BAND NUMBERS (replace any letters in band_new and band_orig)
+# MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
+# EXTRACT RECAPTURE DATE FROM RECAPTURE COLUMNS (AND CHECK THERE'S NO BAND INFO IN THERE)
 
 
 
+
+
+####################
 
 # Summarize data for analysis 
 dat <- banded.dat %>% 
@@ -203,8 +329,8 @@ dat <- banded.dat %>%
   filter(species == 'BTLH')
 
 # Check for duplicated band numbers
-if(any(duplicated(dat$band_number))){ # Are there duplicate band numbers?
-  duplicates <- which(duplicated(dat$band_number))  # Which one is duplicated? 
+if(any(duplicated(banded.dat$band_number))){ # Are there duplicate band numbers?
+  duplicates <- which(duplicated(banded.dat$band_number))  # Which one is duplicated? 
   message(paste0("The following rows are duplicate band numbers: ",
                  paste0(duplicates, collapse = ",")))
 }

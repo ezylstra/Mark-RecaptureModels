@@ -149,7 +149,8 @@ count(banded.dat, band_asterisk, band_in_comment)
 # Some that don't have asterisk in band_number do have comments about bands
 # But ALL (8) with asterisks have comments about bands (which is good)
 
-# Separate those bands that have "former" from those that have "foreign"
+# Separate those bands that have "former" from those that have "foreign" and 
+# "removed"
 banded.dat <- banded.dat %>%
   mutate(foreign = 1 * str_detect(toupper(comments), "FOREIGN"),
          former = 1 * str_detect(toupper(comments), "FORMER"),
@@ -179,19 +180,20 @@ filter(banded.dat, band_in_comment == 0, former == 0, foreign == 1, removed == 0
 filter(banded.dat, band_in_comment == 0, former == 1, foreign == 0, removed == 0) 
 # n = 1
 # Letter N code is 5000.
-# 5000-29395 is correct. Remove record with 5000-29253 in band number. Band is 
-# incorrect, corresponds to a RUHU
+# 5000-29395 is correct, but I'm deleting it to avoid confusion with comment. 
+# Remove record with 5000-29253 in band number. Band is incorrect, corresponds 
+# to a RUHU. 
 
 banded.dat %>% filter(band_in_comment == 1, former == 0, foreign == 0, removed == 0) %>% 
   select(band_number, comments)
 # n = 53
 # All bands in comments are irrelevant. They are 'probably related to', 
 # 'captured with', 'similar to,' 'flew away with'. Keep all records
-# Can we removed the band numbers from these records?  
 
 filter(banded.dat, band_in_comment == 1, former == 0, foreign == 1, removed == 0) 
 # n = 3
-# Both records 5000-22231 and 9000-11887 are irrelevant. It is a foreign bird, captured just once. Record is also in recapture data
+# Both records 5000-22231 (band_number) and 9000-11887 (in comment) are irrelevant. 
+# It is a foreign bird, captured just once. Record is also in recapture data.
 # 9000-39100 new band applied to a foreign bird (band replaced) captured in 2007 and recaptured in 2008
 # 9000-39209 new band applied to a foreign bird (band replaced) captured in 2007 and recaptured in 2008
 # Remove all records
@@ -221,6 +223,7 @@ filter(banded.dat, band_in_comment == 1, former == 1, foreign == 1, removed == 0
 # I think we should remove all of foreign bands as they are not so many, most have 
 # just one capture, and we don't have the information for the first capture. 
 # Bands are: 9000-90490, 4100-59350, 4100-59755, 9100-22998, 9100-57147
+# Remove all records
 
 filter(banded.dat, band_in_comment == 1, former == 1, foreign == 1, removed == 1)
 # n = 1
@@ -237,14 +240,17 @@ banded.dat <- banded.dat %>%
 # 9000-39100, 9000-39209, 9000-90490, 4100-08433, 4100-59350, 4100-59755, 
 # 9100-22998, 9100-57147
 
-# Remove one foreign record that doesn't have foreign in comments but it is a foreign band
+# Remove one foreign record that doesn't have foreign in comments but it is a 
+# foreign band
 banded.dat <- banded.dat %>% 
   filter(band_number != '9000-11887')
 
 # Remove one band that has no band number in comments but has the word former in comments. 
 # This band is not in the recaptured data. Also it is a record for RUHU, which doesn't affect our data.
+# Second record deleted to avoid confusion with comment. Also deleted from recaptured data
 banded.dat <- banded.dat %>% 
-  filter(band_number != '5000-29253')
+  filter(band_number != '5000-29253',
+         band_number != '5000-29395') 
 
 # Remove two bands that were applied to a foreign capture but don't have the word
 # foreign in comments in this data set, but is foreign in recaptured data set.
@@ -259,35 +265,37 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
-# Lines 231 to 260 remove 19 records from data. 
+# Lines 232 to 266 remove 20 records from data. 
 
-###### stopped here. I'm done with combos
+# In this data set the band_number column has OLD records when a row has the 
+# word 'former' in comments. The records with the OLD band number does not have
+# a band in comments or any key word... example 53578
 
-# Adding a column indicating when a band was removed but not replaced (will
-# ultimately put NAs in capture histories for all years after band removed)
-banded.dat <- banded.dat %>%
-  mutate(removed = ifelse(band_in_comment == 0 & rebanded == 1, 1, 0))
+# Also notice that in tow years (2008 and 2010) the data has two extra columns
+# replaced_band_number (2008) and old_band_number (2010). The records with a 
+# band number in these columns not always have a band in  comments or a key 
+# word. Not sure how to work with this information. 
 
-# If the following conditions are met, the band_number column has an OLD
-# band number and the comments column has a NEW band number:
-# band_in_comment = 1, new = 1, rebanded = 0, former = 0,
-# band_in_comment = 1, new = 1, rebanded = 1, former = 0
-# band_in_comment = 1, new = 0, rebanded = 1, former = 0
-# If the following conditions are met, the band_number column has a NEW 
+# If the following condition is met, the band_number column has a NEW 
+# band number and the band number in comments is irrelevant:
+
+# band_in_comment = 1, former = 0, foreign = 0, removed = 0, correct
+# related to, flew with, similar to, etc
+
+# If the following condition is met, the band_number column has a NEW 
 # band number and the comments column has an OLD band number:
-# band_in_comment = 1, new = 1, rebanded = 0, former = 1
-# band_in_comment = 1, new = 0, rebanded = 0, former = 1
-dat <- dat %>%
-  mutate(band_number_is_old = ifelse (
-    (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 0) |
-      (band_in_comment == 1 & new == 1 & rebanded == 1 & former == 0) |
-      (band_in_comment == 1 & new == 0 & rebanded == 1 & former == 0), 1, 0)) %>%
-  mutate(band_number_is_new = ifelse (
-    (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 1) |
-      (band_in_comment == 1 & new == 0 & rebanded == 0 & former == 1), 1, 0))
+
+# band_in_comment = 1, former = 1, foreign = 0, removed = 0, correct
+
+banded.dat <- banded.dat %>%
+  mutate(band_is_new_in_band_number = ifelse ((
+    band_in_comment == 1 & former == 1 & foreign == 0 & removed == 0), 1, 0))
+
 # Check:
-# count(dat, band_in_comment, new, rebanded, former, 
-#       band_number_is_new, band_number_is_old)
+count(banded.dat, band_in_comment, former, foreign, removed,
+      band_is_new_in_band_number)
+
+###### Stopped here..... 
 
 # Create band_old and band_new column
 dat <- dat %>%
@@ -311,10 +319,6 @@ dat <- dat %>%
             band_number_is_old, band_number_is_new, comment_band, 
             band_no_asterisk, band_old))
 
-# NEXT STEPS:
-# CREATE FULL BAND NUMBERS (replace any letters in band_new and band_orig)
-# MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
-# EXTRACT RECAPTURE DATE FROM RECAPTURE COLUMNS (AND CHECK THERE'S NO BAND INFO IN THERE)
 
 
 

@@ -181,7 +181,7 @@ filter(recaptured.dat, band_in_comment == 0, rebanded == 1)
 # n = 7: all bands removed, but not rebanded
 # Bands: 6000-53987, 9000-12270, 9000-90137, 9000-90149, 9000-12271, 9000-91173, 
 # 3100-42324
-# Decided to keep these records.
+# Decided to keep these records
 
 filter(recaptured.dat, band_in_comment == 0, new == 1) 
 # n = 1: Not relevant comment, it is about p9. Keep this record
@@ -193,7 +193,7 @@ filter(recaptured.dat, band_in_comment == 1, new == 0, rebanded == 0, former == 
 # n = 1: "prob. C23826" band removed. Remove this record 6000-23826
 
 filter(recaptured.dat, band_in_comment == 1, new == 0, rebanded == 0, former == 1, foreign == 0) 
-# n = 7: All former band numbers (so band_number column is new band). 
+# n = 7: All former band numbers in comments (so band_number column is new band). 
 # Keep these records, but make sure to change the original band in banded data 
 # set (former in comments) to the new band.
 
@@ -225,9 +225,9 @@ filter(recaptured.dat, band_in_comment == 1, new == 1, rebanded == 0, former == 
 filter(recaptured.dat, band_in_comment == 1, new == 1, rebanded == 1, former == 0, foreign == 0) 
 # n = 3: Need to check two of these that have a new band number but also say
 # that band was removed. Letter E code is 9000
-# 4000-47796 is a former band, new band is 9000-90377. Keep this record
-# 9000-11917 is a former band, new band is 9000-91152. Keep this record
-# 3100-42864 is a former band, new band is 4100-08489. Keep this record  
+# 4000-47796 is a former band, new band is 9000-90377 in comments. Keep this record
+# 9000-11917 is a former band, new band is 9000-91152 in comments. Keep this record
+# 3100-42864 is a former band, new band is 4100-08489 in comments. Keep this record  
 
 # For now, will remove any questionable entries
 
@@ -283,59 +283,109 @@ recaptured.dat <- recaptured.dat %>%
 recaptured.dat <- recaptured.dat %>%
   mutate(removed = ifelse(str_detect(toupper(comments), "BAND REMOVED"), 1, 0))
 
-# Stopped here.................
-
 # If the following conditions are met, the band_number column has an OLD
 # band number and the comments column has a NEW band number:
 
-# band_in_comment = 1, new = 1, rebanded = 0, former = 0, foreign = 0, 
-# band_in_comment = 1, new = 1, rebanded = 1, former = 0
-# band_in_comment = 1, new = 0, rebanded = 1, former = 0
+# band_in_comment = 1, new = 1, rebanded = 0, former = 0, foreign = 0, correct
+# band_in_comment = 1, new = 1, rebanded = 1, former = 0, foreign = 0, correct
+# band_in_comment = 1, new = 0, rebanded = 1, former = 0, foreign = 0, correct 
 
 # If the following conditions are met, the band_number column has a NEW 
 # band number and the comments column has an OLD band number:
 
-# band_in_comment = 1, new = 1, rebanded = 0, former = 1
-# band_in_comment = 1, new = 0, rebanded = 0, former = 1
+# band_in_comment = 1, new = 1, rebanded = 0, former = 1, foreign = 0, correct
+# band_in_comment = 1, new = 0, rebanded = 0, former = 1, foreign = 0, correct
 
-# Create new columns that indicate if a band is old or new
-dat <- dat %>%
-  mutate(band_number_is_old = ifelse (
+# Create new columns that indicate if a band in column 'band_number' is old or new
+recaptured.dat <- recaptured.dat %>%
+  mutate(band_is_old_in_band_number = ifelse (
     (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 0) |
       (band_in_comment == 1 & new == 1 & rebanded == 1 & former == 0) |
       (band_in_comment == 1 & new == 0 & rebanded == 1 & former == 0), 1, 0)) %>%
-  mutate(band_number_is_new = ifelse (
+  mutate(band_is_new_in_band_number = ifelse (
     (band_in_comment == 1 & new == 1 & rebanded == 0 & former == 1) |
       (band_in_comment == 1 & new == 0 & rebanded == 0 & former == 1), 1, 0))
 
 # Check:
-# count(dat, band_in_comment, new, rebanded, former, 
-#       band_number_is_new, band_number_is_old)
+count(recaptured.dat, band_in_comment, new, rebanded, former, foreign, removed,
+       band_is_old_in_band_number, band_is_new_in_band_number)
 
-# Create band_old and band_new column
-dat <- dat %>%
-  mutate(comment_band = str_extract(comments, "[A-Z][0-9]{5}|[0-9]{4}-[0-9]{5}"),
-         band_no_asterisk = ifelse(str_sub(band_number, -1, -1) == "*",
+# Create new columns to:
+# 1) Extract band number from comments
+# 2) Remove * from band_number  
+# 3) Extract old band numbers 
+# 4) Extract new band numbers 
+recaptured.dat <- recaptured.dat %>%
+  mutate(band_in_comment = str_extract(comments, "[A-Z][0-9]{5}|[0-9]{4}-[0-9]{5}"),
+         band_number_withouth_asterisk = ifelse(str_sub(band_number, -1, -1) == "*",
                                    str_sub(band_number, 1, nchar(band_number) - 1),
                                    band_number),
-         band_old = ifelse(band_number_is_new == 1, comment_band,
-                           ifelse(band_number_is_old, band_no_asterisk, NA)),
-         band_new = ifelse(band_number_is_old == 1, comment_band,
-                           ifelse(band_number_is_new, band_no_asterisk, NA)))
-# Check: 
-# head(filter(dat, !is.na(band_old)))
+         old_band_number = ifelse(band_is_new_in_band_number == 1, band_in_comment,
+                           ifelse(band_is_old_in_band_number, band_number_withouth_asterisk, NA)),
+         new_band_number = ifelse(band_is_old_in_band_number == 1, band_in_comment,
+                           ifelse(band_is_new_in_band_number, band_number_withouth_asterisk, NA)))
 
-# Now, create band_orig column and keep the band_new column, which will 
+# Check: 
+head(filter(recaptured.dat, !is.na(old_band_number)))
+
+# Now, create band_original column and keep the new_band_number column, which will 
 # have a new band number only if the bird was rebanded (NA otherwise).
 # Will keep band_number column just in case we need the original
-dat <- dat %>%
-  mutate(band_orig = ifelse(!is.na(band_old), band_old, band_no_asterisk)) %>%
-  select(-c(band_asterisk, band_in_comment, new, rebanded, former, 
-            band_number_is_old, band_number_is_new, comment_band, 
-            band_no_asterisk, band_old))
+recaptured.dat <- recaptured.dat %>%
+  mutate(original_band = ifelse(!is.na(old_band_number), old_band_number, band_number_withouth_asterisk)) %>%
+  select(-c(band_asterisk, new, rebanded, former, foreign, band_is_old_in_band_number, 
+            band_is_new_in_band_number, band_in_comment, band_number_withouth_asterisk,
+            old_band_number, removed)) 
 
-# NEXT STEPS:
-# CREATE FULL BAND NUMBERS (replace any letters in band_new and band_orig)
+# Replace any letters in new_band_number and original_band
+
+# Bring in BBL letter codes 
+letter.codes <- read.csv("data/BBL_letter_codes.csv")
+
+# Extract bands with a letter in columns new_band_number and original_band
+recaptured.dat <- recaptured.dat %>% 
+  mutate(new_band_with_letter = str_extract(new_band_number, "[A-Z][0-9]{5}"),
+         original_band_with_letter = str_extract(original_band, "[A-Z][0-9]{5}"))
+
+# Work with new_band_with_letter column first
+
+# Separate letter from numbers 
+recaptured.dat$band_letter <-substr(recaptured.dat$new_band_with_letter,
+                               start = 1, 
+                               stop = 1)
+
+recaptured.dat$band_number_2 <- substr(recaptured.dat$new_band_with_letter,
+                                start = 2,
+                                stop = 6)
+
+# Combine BBL code with band_letter 
+recaptured.dat <- recaptured.dat %>%
+  left_join(letter.codes, by = c("band_letter" = "letter")) %>% 
+  unite('new_new_band_number', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
+  select(-c(band_letter, band_number_2, letter_number, new_band_with_letter))
+
+# Work with original_band_number_with_letter column second
+
+# Separate letter from numbers 
+recaptured.dat$band_letter <-substr(recaptured.dat$original_band_with_letter,
+                                    start = 1, 
+                                    stop = 1)
+
+recaptured.dat$band_number_2 <- substr(recaptured.dat$original_band_with_letter,
+                                       start = 2,
+                                       stop = 6)
+
+# Combine BBL code with band_letter 
+recaptured.dat <- recaptured.dat %>%
+  left_join(letter.codes, by = c("band_letter" = "letter")) %>% 
+  unite('new_original_band', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
+  select(-c(band_letter, band_number_2, letter_number, original_band_with_letter))
+
+# Now I need to move those band numbers without a letter from new_band_number
+# and original_band to the new columns new_new_band_number and new_original_band 
+# I need to come back to this part in the morning
+
+# TO DO
 # MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
 # EXTRACT RECAPTURE DATE FROM RECAPTURE COLUMNS (AND CHECK THERE'S NO BAND INFO IN THERE)
 

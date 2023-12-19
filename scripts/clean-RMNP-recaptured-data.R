@@ -410,6 +410,11 @@ recaptured.dat <- recaptured.dat %>%
 # 2) new_band_number: is a new band number only if the bird was rebanded, NA otherwise
 # 3) original_band: is the original or first band applied to an individual
 
+# Add a new column to indicate the 'band status' of all records
+recaptured.dat <- recaptured.dat %>% 
+  mutate(band_status = 'R') # R indicates all the band numbers in this data set
+                            # are recaptures.
+
 # TO DO
 
 # MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER

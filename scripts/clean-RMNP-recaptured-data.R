@@ -239,7 +239,8 @@ recaptured.dat <- recaptured.dat %>%
 # Band numbers removed: 5000-02840, 5000-22231, 9000-11887, 5000-02820, 5000-02973,
 # 6000-55560, 6000-82856, 9000-90490, 3100-17085, 4100-08428, 4100-59350, 3100-41468
   
-# Remove one row for a band number that is questionable
+# Remove one row for a record that is questionable, but doesn't delete the band 
+# number in the comment
 recaptured.dat <- recaptured.dat %>% 
   filter(!grepl("prob. C23826", comments))
 
@@ -250,7 +251,8 @@ recaptured.dat <- recaptured.dat %>%
          band_number != '9000-93692', # This record is not in banded data
          band_number != '9000-93695', # This record is not in banded data
          band_number != '9000-93749', # This record is not in banded data
-         band_number != '9000-93765') # This record is not in banded data
+         band_number != '9000-93765', # This record is not in banded data
+         band_number != '9100-93534') # This record is not in banded data
 
 # Remove these records because I removed them from banded data
 recaptured.dat <- recaptured.dat %>% 
@@ -262,7 +264,7 @@ recaptured.dat <- recaptured.dat %>%
          band_number != '9000-39209',
          band_number != '5000-96877')
 
-# Lines 232 to 263 remove 24 records from data.
+# Lines 232 to 265 remove 25 band numbers and 28 rows from data.
 
 # Erin's code
 # dat <- dat %>% 
@@ -334,9 +336,10 @@ recaptured.dat <- recaptured.dat %>%
 # Check: 
 head(filter(recaptured.dat, !is.na(old_band_number)))
 
-# Now, create band_original column and keep the new_band_number column, which will 
+# Now, create original_band column and keep the new_band_number column, which will 
 # have a new band number only if the bird was rebanded (NA otherwise).
 # Will keep band_number column just in case we need the original
+# Remove 'key word' columns 
 recaptured.dat <- recaptured.dat %>%
   mutate(original_band = ifelse(!is.na(old_band_number), old_band_number, band_number_withouth_asterisk)) %>%
   select(-c(band_asterisk, new, rebanded, former, foreign, band_is_old_in_band_number, 
@@ -353,7 +356,7 @@ recaptured.dat <- recaptured.dat %>%
   mutate(new_band_with_letter = str_extract(new_band_number, "[A-Z][0-9]{5}"),
          original_band_with_letter = str_extract(original_band, "[A-Z][0-9]{5}"))
 
-# Work with new_band_with_letter column first
+# First work with new_band_with_letter column
 
 # Separate letter from numbers 
 recaptured.dat$band_letter <-substr(recaptured.dat$new_band_with_letter,
@@ -364,13 +367,15 @@ recaptured.dat$band_number_2 <- substr(recaptured.dat$new_band_with_letter,
                                 start = 2,
                                 stop = 6)
 
-# Combine BBL code with band_letter 
+# Replace the letter in the band numbers with the codes from BBL, then combine
+# the BBL code with the band number without the letter, and delete unnecessary
+# columns
 recaptured.dat <- recaptured.dat %>%
   left_join(letter.codes, by = c("band_letter" = "letter")) %>% 
   unite('new_new_band_number', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
   select(-c(band_letter, band_number_2, letter_number, new_band_with_letter))
 
-# Work with original_band_number_with_letter column second
+# Second work with original_band_number_with_letter column 
 
 # Separate letter from numbers 
 recaptured.dat$band_letter <-substr(recaptured.dat$original_band_with_letter,
@@ -381,19 +386,44 @@ recaptured.dat$band_number_2 <- substr(recaptured.dat$original_band_with_letter,
                                        start = 2,
                                        stop = 6)
 
-# Combine BBL code with band_letter 
+# Replace the letter in the band numbers with the codes from BBL, then combine
+# the BBL code with the band number without the letter, and delete unnecessary
+# columns 
 recaptured.dat <- recaptured.dat %>%
   left_join(letter.codes, by = c("band_letter" = "letter")) %>% 
   unite('new_original_band', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
   select(-c(band_letter, band_number_2, letter_number, original_band_with_letter))
 
-# Now I need to move those band numbers without a letter from new_band_number
-# and original_band to the new columns new_new_band_number and new_original_band 
-# I need to come back to this part in the morning
+# Move those band numbers without a letter from new_band_number
+# and original_band to the new columns new_new_band_number and new_original_band,
+# remove unnecessary columns and rename the new columns created
+recaptured.dat <- recaptured.dat %>% 
+  mutate(new = ifelse(new_new_band_number == '', new_band_number, new_new_band_number),
+         original = ifelse(new_original_band == '', original_band, new_original_band)) %>% 
+  select(-c(new_band_number, new_new_band_number, original_band, new_original_band)) %>% 
+  rename(original_band = original,
+         new_band_number = new)
+                      
+# Data set now has three columns with band numbers:
+
+# 1) band_number: is the original entry from Fred, has * and a mix of new and old bands
+# 2) new_band_number: is a new band number only if the bird was rebanded, NA otherwise
+# 3) original_band: is the original or first band applied to an individual
 
 # TO DO
+
 # MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
-# EXTRACT RECAPTURE DATE FROM RECAPTURE COLUMNS (AND CHECK THERE'S NO BAND INFO IN THERE)
+
+# EXTRACT WORDS 'FEMALE' AND 'MALE' FROM RECAPTURE_1 TO 17 COLUMNS AND EDIT 
+# THE ORIGINAL SEX FOR THE INDIVIDUALS THAT HAVE THOSE WORDS IN RECAPTURES
+# SOME RECAPTURE COLUMNS HAVE 'F' AND 'M'
+
+# FOR AGE, I'LL USE THE YEAR OF THE RECAPTURES TO CHANGE THOSE BIRDS FROM HY TO 
+# AH
+
+# DO WE NEED TO EXTRACT THE LOCATION WHEN A BIRD WAS RECAPTURED AT A 
+# DIFFERENT SITE? MAYBE NOT NOW, BUT ONCE WE DECIDE WHAT SITES WE ARE KEEPING, 
+# WE MIGHT HAVE TO DO THIS
 
 
 

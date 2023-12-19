@@ -255,9 +255,14 @@ recaptured.dat <- recaptured.dat %>%
 # Remove these records because I removed them from banded data
 recaptured.dat <- recaptured.dat %>% 
   filter(band_number != '5000-96919',
-         band_number != '5000-29395')
+         band_number != '5000-29395',
+         band_number != '4000-01786',
+         band_number != '5000-02820',
+         band_number != '9000-39100',
+         band_number != '9000-39209',
+         band_number != '5000-96877')
 
-# Lines 234 to 257 remove 19 records from data.
+# Lines 232 to 263 remove 24 records from data.
 
 # Erin's code
 # dat <- dat %>% 

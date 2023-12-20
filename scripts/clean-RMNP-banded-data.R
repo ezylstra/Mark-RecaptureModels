@@ -34,11 +34,6 @@ class(banded.dat$date)
 banded.dat <- banded.dat %>% 
   mutate(date = mdy(date))
 
-# Split column date by year, month, and day
-banded.dat <- mutate(banded.dat, year = year(date), 
-                    month = month(date),
-                    day = day(date))  
-
 # COLUMN SITE
 count(banded.dat, site)
 
@@ -278,7 +273,7 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
-# Lines 232 to 266 remove 20 band numbers from data equivalent to 20 rows as well 
+# Lines 245 to 279 remove 20 band numbers from data equivalent to 20 rows as well 
 
 # If the following condition is met, the band_number column has a NEW 
 # band number and the band number in comments is irrelevant:
@@ -293,6 +288,7 @@ banded.dat <- banded.dat %>%
 # No need to do anything to the band numbers in column band_number, they are new
 
 # But we need to extract the former bands from the comments:
+
 # Create a new column to extract all the bands from comments that have the word
 # former. There are 57 records with former in comments 
 banded.dat <- banded.dat %>% 
@@ -329,24 +325,55 @@ banded.dat <- banded.dat %>%
 # Remove the asterisk from six bands in column band_number
 banded.dat$band_number <- gsub('\\*', '', banded.dat$band_number)
 
+# Exploring former/replaced bands 
+
+# After exploring manually each band (82 total) in columns: replaced_band (26) 
+# and former_band (56) I found that: 
+
+# Four bands have just one record in column band_number. It is for the new band. 
+# The bands reported as former/replaced are not in data base. These bands are: 
+
+# 1) 6000-82608 not found in banded or recaptured data sets. New band doesn't 
+# show in recaptures either. I'm deleting this record
+# 2) 4100-13936 not found in banded or recaptured data sets. New band doesn't 
+# show in recaptures either. I'm deleting this record
+banded.dat <- banded.dat %>% 
+  filter(replaced_band != '6000-82608',
+         former_band != '4100-13936')
+
+# 3) 6000-52528 not found in banded or recaptured data sets. But when looking 
+# for the new band I found that the band replaced was 6000-53528, therefore the 
+# band reported as replaced in banded.dat is wrong, it should be 6000-53528. One
+# number is off. 
+
+# Fix band number here
+banded.dat$former_band[banded.dat$former_band == '6000-52528'] <- '6000-53528'
+
+# 4) 4100-42864 not found in banded or recaptured data sets. But when looking
+# for the new band I found that the band replaced was 3100-42864, therefore the
+# band reported as replaced in banded.dat is wrong, it should be 3100-42864. One 
+# number is off. 
+
+# Fix band number here
+banded.dat$former_band[banded.dat$former_band == '4100-42864'] <- '3100-42864'
+
+# Most bands (78) have two records in column band_number: one for the new band
+# and one for the former/replaced band. Therefore for these bands the old record 
+# should be band status 1 (new) and the newer record should be band status R 
+# (recapture). 
+
+# But first: since the columns replaced_band and former_band have the same info,
+# merge them in one column
+
+# stopped here......... 
 
 
+# Create new column for band status 
+banded.dat <- banded.dat %>% 
+  mutate(band_status = ifelse())
 
-####################
+ 
 
-# Summarize data for analysis 
-dat <- banded.dat %>% 
-  select(band_number, date, site, species, sex, age, year, day, month) %>%
-  mutate(band_status = 1) %>% # 1 for all new bands applied
-  filter(species == 'BTLH')
 
-# Check for duplicated band numbers
-if(any(duplicated(banded.dat$band_number))){ # Are there duplicate band numbers?
-  duplicates <- which(duplicated(banded.dat$band_number))  # Which one is duplicated? 
-  message(paste0("The following rows are duplicate band numbers: ",
-                 paste0(duplicates, collapse = ",")))
-}
-
-# 
 
 

@@ -90,6 +90,19 @@ banded.dat$age[banded.dat$age == 'SY'] <- 'AHY'
 #  HY  2227
 unique(banded.dat$age)
 
+# COLUMNS REPLACED BAND NUMBER AND OLD BAND NUMBER
+
+# In two years (2008 and 2010) the data has two extra columns
+# replaced_band_number (2008) and old_band_number (2010). The records with a 
+# band number in these columns not always have a band in comments or a key 
+# word to indicate the band have been replaced or removed
+
+# Merge these two columns in a new column as they hold the same information and 
+# delete them
+banded.dat <- banded.dat %>% 
+  unite(replaced_band, replaced_band_number:old_band_number, remove = F, na.rm = T) %>% 
+  select(-c(replaced_band_number, old_band_number))
+
 # COLUMN BAND NUMBERS
 # From Erin's code:
 
@@ -265,61 +278,56 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
-# Lines 232 to 266 remove 20 records from data. 
-
-# In this data set the band_number column has OLD records when a row has the 
-# word 'former' in comments. The records with the OLD band number does not have
-# a band in comments or any key word... example 53578
-
-# Also notice that in tow years (2008 and 2010) the data has two extra columns
-# replaced_band_number (2008) and old_band_number (2010). The records with a 
-# band number in these columns not always have a band in  comments or a key 
-# word. Not sure how to work with this information. 
+# Lines 232 to 266 remove 20 band numbers from data equivalent to 20 rows as well 
 
 # If the following condition is met, the band_number column has a NEW 
 # band number and the band number in comments is irrelevant:
-
-# band_in_comment = 1, former = 0, foreign = 0, removed = 0, correct
-# related to, flew with, similar to, etc
+# band_in_comment = 1, former = 0, foreign = 0, removed = 0
+# Comments are: related to, flew with, similar to, etc
+# No need to do anything to these band numbers, they are fine. Just don't pay
+# attention to the comments 
 
 # If the following condition is met, the band_number column has a NEW 
 # band number and the comments column has an OLD band number:
+# band_in_comment = 1, former = 1, foreign = 0, removed = 0
+# No need to do anything to the band numbers in column band_number, they are new
 
-# band_in_comment = 1, former = 1, foreign = 0, removed = 0, correct
+# But we need to extract the former bands from the comments:
+# Create a new column to extract all the bands from comments that have the word
+# former. There are 57 records with former in comments 
+banded.dat <- banded.dat %>% 
+  mutate(band_comment = str_extract(comments, "[A-Z][0-9]{5}"),
+         former_comment = ifelse(former == 1, band_comment, NA)) %>% 
+  select(-band_comment)
 
+# Replace any letters in former_comment column and rename the column
+
+# Bring in BBL letter codes 
+letter.codes <- read.csv("data/BBL_letter_codes.csv")
+
+# Separate letter from numbers 
+banded.dat$band_letter <-substr(banded.dat$former_comment,
+                                    start = 1, 
+                                    stop = 1)
+
+banded.dat$band_number_2 <- substr(banded.dat$former_comment,
+                                       start = 2,
+                                       stop = 6)
+
+# Replace the letter in the band numbers with the codes from BBL, then combine
+# the BBL code with the band number without the letter, and delete unnecessary
+# columns
 banded.dat <- banded.dat %>%
-  mutate(band_is_new_in_band_number = ifelse ((
-    band_in_comment == 1 & former == 1 & foreign == 0 & removed == 0), 1, 0))
+  left_join(letter.codes, by = c("band_letter" = "letter")) %>% 
+  unite('former_band', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
+  select(-c(band_letter, band_number_2, letter_number, former_comment))
 
-# Check:
-count(banded.dat, band_in_comment, former, foreign, removed,
-      band_is_new_in_band_number)
+# Remove columns with indicator variables, we don't need them anymore
+banded.dat <- banded.dat %>% 
+  select(-c(band_asterisk, band_in_comment, foreign, former, removed))
 
-###### Stopped here..... 
-
-# Create band_old and band_new column
-dat <- dat %>%
-  mutate(comment_band = str_extract(comments, "[A-Z][0-9]{5}|[0-9]{4}-[0-9]{5}"),
-         band_no_asterisk = ifelse(str_sub(band_number, -1, -1) == "*",
-                                   str_sub(band_number, 1, nchar(band_number) - 1),
-                                   band_number),
-         band_old = ifelse(band_number_is_new == 1, comment_band,
-                           ifelse(band_number_is_old, band_no_asterisk, NA)),
-         band_new = ifelse(band_number_is_old == 1, comment_band,
-                           ifelse(band_number_is_new, band_no_asterisk, NA)))
-# Check: 
-# head(filter(dat, !is.na(band_old)))
-
-# Now, create band_orig column and keep the band_new column, which will 
-# have a new band number only if the bird was rebanded (NA otherwise).
-# Will keep band_number column just in case we need the original
-dat <- dat %>%
-  mutate(band_orig = ifelse(!is.na(band_old), band_old, band_no_asterisk)) %>%
-  select(-c(band_asterisk, band_in_comment, new, rebanded, former, 
-            band_number_is_old, band_number_is_new, comment_band, 
-            band_no_asterisk, band_old))
-
-
+# Remove the asterisk from six bands in column band_number
+banded.dat$band_number <- gsub('\\*', '', banded.dat$band_number)
 
 
 

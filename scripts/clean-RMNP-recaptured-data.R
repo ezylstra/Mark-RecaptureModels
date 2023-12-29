@@ -543,8 +543,12 @@ recaptured.dat <- recaptured.dat %>%
   select(-c(female_1, male_1, f_1, m_1)) %>% 
   unite(fixed_sex, new_sex:new_sex_M, sep = "", remove = T, na.rm = T)
 
+# Fill in the empty rows in column 'fixed_sex' with original sex
+recaptured.dat <- recaptured.dat %>% 
+  mutate(fixed_sex = ifelse(str_detect(fixed_sex, '[A-Z]{1}'), fixed_sex, original_sex))
 
-
+# Use fixed_sex column for analysis. Now I need to update the sex of the 15 
+# records I changed here in the banded.dat data set. 
 
 
 # TO DO

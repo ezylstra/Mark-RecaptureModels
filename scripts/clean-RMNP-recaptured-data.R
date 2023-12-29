@@ -413,18 +413,149 @@ recaptured.dat <- recaptured.dat %>%
 # Add a new column to indicate the 'band status' of all records
 recaptured.dat <- recaptured.dat %>% 
   mutate(band_status = 'R') # R indicates all the band numbers in this data set
-                            # are recaptures.
+                            # are recaptures
+
+# Fix misidentified sex 
+
+# When the bird's sex was misidentified at first capture, the correct sex was
+# added as part of the comments in the columns recapture_n. We need to identify 
+# the words 'FEMALE' and 'MALE' and letters 'F' or 'M' from these columns, so we 
+# can fix the sex of those misidentified birds in both data sets 'banded data' 
+# and 'recaptured data'
+
+# I checked columns recapture_3:17 using unique(recaptured.dat$column)and there 
+# were no FEMALE or MALE words or F and M letters that indicated a different sex
+# that the one marked in column original_sex. Most of this information should be 
+# in column recapture_1 or 2
+
+# Check column recapture_2 
+
+# Create a variable to indicate when the updated sex was identified in recapture, 
+# column 'recapture_2' 
+recaptured.dat <- recaptured.dat %>%
+  mutate(female_2 = 1 * str_detect(toupper(recapture_2), "FEMALE"),
+         male_2 = 1 * str_detect(toupper(recapture_2), "MALE"), 
+         f_2 = 1 * str_detect(toupper(recapture_2), "F"),
+         m_2 = 1 * str_detect(toupper(recapture_2), "M"))
+
+# Create data frame with recapture_2 sex combos
+sex_combos_recaptured_2 <- recaptured.dat %>% 
+  group_by(female_2, male_2, f_2, m_2) %>%
+  summarize(n = length(female_2)) %>% 
+  data.frame()
+
+# Looking at each of these indicator variable columns
+sex_combos_recaptured_2
+
+filter(recaptured.dat, m_2 == 1) %>% 
+  select(band_number, original_sex, recapture_2)
+# n = 38
+# One record needs to be changed: 6000-53867 from F to M
+# The other 37 records are in this combo because the letter M in in a site code 
+# or M represents moderate in MTW (moderate tail wear) 
+
+# Create new column to fix the sex in this record and remove columns with indicator 
+# variables for sex combos for column recapture_2
+recaptured.dat <- recaptured.dat %>% 
+  mutate(new_sex = ifelse (
+    (str_detect(recapture_2, 'AHY M')), 'M', NA)) %>% 
+  select(-c(female_2, male_2, f_2, m_2))
+  
+# Check column recapture_1 
+
+# Create a variable to indicate when the updated sex was identified in recapture, 
+# column 'recapture_1' 
+recaptured.dat <- recaptured.dat %>%
+  mutate(female_1 = 1 * str_detect(toupper(recapture_1), "FEMALE"),
+         male_1 = 1 * str_detect(toupper(recapture_1), "MALE"), 
+         f_1 = 1 * str_detect(toupper(recapture_1), "F"),
+         m_1 = 1 * str_detect(toupper(recapture_1), "M"))
+
+# Create data frame with recapture_1 sex combos
+sex_combos_recaptured_1 <- recaptured.dat %>% 
+  group_by(female_1, male_1, f_1, m_1) %>%
+  summarize(n = length(female_1)) %>% 
+  data.frame()
+
+# Looking at each of these indicator variable columns
+sex_combos_recaptured_1
+
+filter(recaptured.dat, female_1 == 0, male_1 == 0, f_1 == 0, m_1 == 1) %>% 
+  select(band_number, original_sex, recapture_1)
+# n = 206
+# All records are in this combo because the letter M is in a site code,
+# M represents moderate in MTW (moderate tail wear), m represent millimeter
+# One record could be confusing, 5000-96986. Comment says 
+# '8/14, n.w. mtw w/E91096 HY M'.
+# I think it means: female 5000-96986 was captured with hatch year male E91096 
+# No need to change anything 
+
+filter(recaptured.dat, female_1 == 0, male_1 == 0, f_1 == 1, m_1 == 0) %>% 
+  select(band_number, original_sex, recapture_1)
+# n = 14
+# Three records need to be changed: 6000-53878, 6000-53918, 6000-53949 from M to F
+# These three records are for AHY F
+# Other 11 records refer to feathers, flight, fat, and other codes
+
+filter(recaptured.dat, female_1 == 0, male_1 == 1, f_1 == 0, m_1 == 1) %>% 
+  select(band_number, original_sex, recapture_1)
+# n = 7
+# All seven records need to be changed from F to M
+# Bands are: 9000-12279, 9000-12283, 9000-12490, 9000-12279, 9000-91371, 9000-40183
+
+filter(recaptured.dat, female_1 == 1, male_1 == 1, f_1 == 1, m_1 == 1) %>% 
+  select(band_number, original_sex, recapture_1)
+# n = 9
+# All nine records need to be changed from M to F
+# Bands are: 6000-53751, 6000-53749, 6000-53918, 9000-90030, 9000-90683, 9000-91173
+
+# If the following conditions are met, the sex in column 'original_sex' needs to 
+# change from M to F
+# female_1 == 1, male_1 == 1, f_1 == 1, m_1 == 1
+# female_1 == 0, male_1 == 0, f_1 == 1, m_1 == 0 and 'AHY F' in column recapture_1
+
+# If the following condition is met, the sex in column 'original_sex' needs to 
+# change from F to M
+# female_1 == 0, male_1 == 1, f_1 == 0, m_1 == 1
+
+# Create new columns that hold the fixed sex code
+recaptured.dat <- recaptured.dat %>%
+  mutate(new_sex_F = ifelse (
+    (female_1 == 1 & male_1 == 1 & f_1 == 1 & m_1 == 1) |
+      (str_detect(recapture_1, 'AHY F')) |
+      str_detect(recapture_1, 'AHY  F'), 'F', NA)) %>% 
+  mutate(new_sex_M = ifelse(
+    (female_1 == 0 & male_1 == 1 & f_1 == 0 & m_1 == 1), 'M', NA))
+    
+# Check:
+filter(recaptured.dat, female_1 == 1, male_1 == 1, f_1 == 1, m_1 == 1) %>% 
+         select(band_number, original_sex, recapture_1, new_sex_F)
+
+filter(recaptured.dat, female_1 == 0, male_1 == 0, f_1 == 1, m_1 == 0) %>% 
+  select(band_number, original_sex, recapture_1, new_sex_F)
+
+filter(recaptured.dat, female_1 == 0, male_1 == 1, f_1 == 0, m_1 == 1) %>% 
+  select(band_number, original_sex, recapture_1, new_sex_M)
+
+# Remove columns with indicator variables for sex combos for column recapture_1
+# and merge three new columns with fixed sex code 
+recaptured.dat <- recaptured.dat %>% 
+  select(-c(female_1, male_1, f_1, m_1)) %>% 
+  unite(fixed_sex, new_sex:new_sex_M, sep = "", remove = T, na.rm = T)
+
+
+
+
 
 # TO DO
 
+
 # MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
 
-# EXTRACT WORDS 'FEMALE' AND 'MALE' FROM RECAPTURE_1 TO 17 COLUMNS AND EDIT 
-# THE ORIGINAL SEX FOR THE INDIVIDUALS THAT HAVE THOSE WORDS IN RECAPTURES.
-# SOME RECAPTURE COLUMNS HAVE 'F' AND 'M'
+
 
 # FOR AGE, I'LL USE THE YEAR OF THE RECAPTURES TO CHANGE THOSE BIRDS FROM HY TO 
-# AH
+# AHY
 
 # DO WE NEED TO EXTRACT THE LOCATION WHEN A BIRD WAS RECAPTURED AT A 
 # DIFFERENT SITE? MAYBE NOT NOW, BUT ONCE WE DECIDE WHAT SITES WE ARE KEEPING, 

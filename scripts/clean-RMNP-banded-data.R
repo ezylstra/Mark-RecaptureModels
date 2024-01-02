@@ -34,6 +34,9 @@ class(banded.dat$date)
 banded.dat <- banded.dat %>% 
   mutate(date = mdy(date))
 
+# Separate year in a different column
+banded.dat <- mutate(banded.dat, year = year(date))
+
 # COLUMN SITE
 count(banded.dat, site)
 
@@ -374,51 +377,84 @@ banded.dat <- banded.dat %>%
 banded.dat <- banded.dat %>% 
   mutate(band_status = ifelse(str_detect(former_band, '[0-9]{4}-[0-9]{5}'), 'R', 1))
 
-### I can't do this....... need help 
-
 # Create a new column for the new band number, so records with band status 1 and 
-# R have the same band number. Use a for loop to go through all the records in
-# band_number and match to the former_band number
+# R have the same band number. 
 
-for (BN in banded.dat$band_number) {
-  banded.dat <- banded.dat %>% 
-    mutate(new_band = ifelse(BN == former_band, 1, NA))
-}
+# From Erin:
 
-for (BN in banded.dat$former_band) {
-  banded.dat <- banded.dat %>% 
-    mutate(new_band = ifelse(match(BN, band_number), band_number, NA))
-}
+# Create a data frame that just contains new/old band numbers when a band was 
+# replaced
+bands_match <- banded.dat %>%
+  filter(band_status == "R") %>%
+  select(band_number, former_band) %>%
+  # rename columns so we can match with banded.dat
+  rename(new_band = band_number) %>%
+  rename(band_number = former_band)
 
+# Join the two dataframes. "new_band" column will be NA whenever bands didn't 
+# change
+banded.dat <- left_join(banded.dat, bands_match, by = "band_number")
 
-for (BN in banded.dat$former_band) {
-  banded.dat <- banded.dat %>% 
-    mutate(new_band = case_when(
-      if_any(contains(BN), ~ band_number)))
-}
+# Using these bands as a check:
+filter(banded.dat, band_number %in% c("9000-11915", "6000-53578"))
+# Perfect! Thanks Erin! 
 
-# Try if_any but not in a for loop..... 
+# Remove the asterisk from bands in column new_band
+banded.dat$new_band <- gsub('\\*', '', banded.dat$new_band)
+
+# Create a new column I'll use as the 'unique bird identifier'
+banded.dat <- banded.dat %>% 
+  mutate(UBI_band = ifelse(is.na(new_band), band_number, new_band))
+
+# Remove the asterisk from bands in column UBI_band
+banded.dat$UBI_band <- gsub('\\*', '', banded.dat$UBI_band)
+
+# Data set now has four columns with band numbers:
+
+# 1) band_number: is the original entry from Fred, has * and a mix of new and old bands
+# 2) new_band: is a new band number only if the bird was rebanded, NA otherwise
+# 3) former_band: is the replaced band number when a bird was rebanded, blank otherwise
+# 4) UBI_band: is the fixed band number when a band was replaced. Use this column for 
+# analysis
+
+# Fix misidentified sex
 
 # Update sex for those birds that were misidentified at first capture. Information
-# gathered from the recapture data set. There are 15 records we need to update:
+# gathered from the recapture data set. There are 14 records we need to update:
 
 # Change sex from F to M:
 # 6000-53867, 9000-12279, 9000-12283, 9000-12490, 9000-91371, 9000-40183
 
 # Change sex from M to F:
-# 6000-53878, 6000-53918, 6000-53949, 6000-53751, 6000-53749, 6000-53918, 
-# 9000-90030, 9000-90683, 9000-91173
+# 6000-53878, 6000-53918, 6000-53949, 6000-53751, 6000-53749, 9000-90030, 
+# 9000-90683, 9000-91173
 
+# Create a data frame that contains the bands that need to be updated and the 
+# fixed sex
+band_number <- c('6000-53867', '9000-12279', '9000-12283', '9000-12490', '9000-91371', 
+           '9000-40183', '6000-53878', '6000-53918', '6000-53949', '6000-53751', 
+           '6000-53749', '9000-90030', '9000-90683', '9000-91173')
+new_sex <- c('M','M','M','M','M','M','F','F','F','F','F','F','F','F')
+bands.sex <- data.frame(band_number, new_sex)
+  
+# Join the two dataframes. "new_sex" column will be NA whenever sex didn't 
+# change
+banded.dat <- left_join(banded.dat, bands.sex, by = "band_number")
 
+# Using these bands as a check:
+filter(banded.dat, band_number %in% c("6000-53867", "9000-90683"))
 
-
-
-
-# Remove columns with indicator variables, we don't need them anymore
+# Create a new column for to hold the fixed sex when it needed to change and the
+# original sex when it didn't need to change
 banded.dat <- banded.dat %>% 
-  select(-c(band_asterisk, band_in_comment, foreign, former, removed))
+  mutate(fixed_sex = ifelse(is.na(new_sex), sex, new_sex))
 
-# Remove the asterisk from six bands in column band_number
-banded.dat$band_number <- gsub('\\*', '', banded.dat$band_number)
+# Prepare new data frame to merge with recaptured data
 
+# Create a new data frame with selected columns we'll need for analysis
+banded <- banded.dat %>% 
+  select(UBI_band, band_status, year, species, age, fixed_sex, site) %>% 
+  filter(species == 'BTLH')
 
+# Export csv of new data frame
+write.csv(banded, 'output/cleaned-banded-data-RMNP.csv')

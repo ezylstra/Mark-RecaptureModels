@@ -373,23 +373,46 @@ banded.dat <- banded.dat %>%
 # should be band status R and rows with no data in this column should be 1
 banded.dat <- banded.dat %>% 
   mutate(band_status = ifelse(str_detect(former_band, '[0-9]{4}-[0-9]{5}'), 'R', 1))
-         
+
+### I can't do this....... need help 
+
 # Create a new column for the new band number, so records with band status 1 and 
-# R have the same band number
+# R have the same band number. Use a for loop to go through all the records in
+# band_number and match to the former_band number
 
-banded.dat <- banded.dat %>% 
-  mutate(new_band = )
-  
+for (BN in banded.dat$band_number) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = ifelse(BN == former_band, 1, NA))
+}
+
+for (BN in banded.dat$former_band) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = ifelse(match(BN, band_number), band_number, NA))
+}
 
 
-# stopped here......... 
+for (BN in banded.dat$former_band) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = case_when(
+      if_any(contains(BN), ~ band_number)))
+}
+
+# Try if_any but not in a for loop..... 
+
+# Update sex for those birds that were misidentified at first capture. Information
+# gathered from the recapture data set. There are 15 records we need to update:
+
+# Change sex from F to M:
+# 6000-53867, 9000-12279, 9000-12283, 9000-12490, 9000-91371, 9000-40183
+
+# Change sex from M to F:
+# 6000-53878, 6000-53918, 6000-53949, 6000-53751, 6000-53749, 6000-53918, 
+# 9000-90030, 9000-90683, 9000-91173
 
 
-# Create new column for band status 
-banded.dat <- banded.dat %>% 
-  mutate(band_status = ifelse())
 
- 
+
+
 
 # Remove columns with indicator variables, we don't need them anymore
 banded.dat <- banded.dat %>% 

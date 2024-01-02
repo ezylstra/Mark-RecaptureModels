@@ -90,7 +90,7 @@ unique(banded.dat$age)
 # In two years (2008 and 2010) the data has two extra columns
 # replaced_band_number (2008) and old_band_number (2010). The records with a 
 # band number in these columns not always have a band in comments or a key 
-# word to indicate the band have been replaced or removed
+# word to indicate the bands have been replaced or removed
 
 # Merge these two columns in a new column as they hold the same information and 
 # delete them
@@ -273,7 +273,7 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
-# Lines 245 to 279 remove 20 band numbers from data equivalent to 20 rows as well 
+# Lines 240 to 274 remove 20 band numbers from data equivalent to 20 rows as well 
 
 # If the following condition is met, the band_number column has a NEW 
 # band number and the band number in comments is irrelevant:
@@ -318,20 +318,16 @@ banded.dat <- banded.dat %>%
   unite('former_band', c('letter_number','band_number_2'), sep = "-", remove = F, na.rm = T) %>% 
   select(-c(band_letter, band_number_2, letter_number, former_comment))
 
-# Remove columns with indicator variables, we don't need them anymore
-banded.dat <- banded.dat %>% 
-  select(-c(band_asterisk, band_in_comment, foreign, former, removed))
+# Exploring former and replaced bands 
 
-# Remove the asterisk from six bands in column band_number
-banded.dat$band_number <- gsub('\\*', '', banded.dat$band_number)
+# After exploring manually each band (83 total) in columns: replaced_band (26) 
+# and former_band (57) I found that: 
 
-# Exploring former/replaced bands 
+# Four bands have just one record in column band_number. They are the new band. 
+# The bands reported as former/replaced are not in data base. Maybe these were 
+# foreign bands?
 
-# After exploring manually each band (82 total) in columns: replaced_band (26) 
-# and former_band (56) I found that: 
-
-# Four bands have just one record in column band_number. It is for the new band. 
-# The bands reported as former/replaced are not in data base. These bands are: 
+# These bands are: 
 
 # 1) 6000-82608 not found in banded or recaptured data sets. New band doesn't 
 # show in recaptures either. I'm deleting this record
@@ -357,23 +353,72 @@ banded.dat$former_band[banded.dat$former_band == '6000-52528'] <- '6000-53528'
 # Fix band number here
 banded.dat$former_band[banded.dat$former_band == '4100-42864'] <- '3100-42864'
 
-# Most bands (78) have two records in column band_number: one for the new band
-# and one for the former/replaced band. Therefore for these bands the old record 
-# should be band status 1 (new) and the newer record should be band status R 
-# (recapture). 
-
-# But first: since the columns replaced_band and former_band have the same info,
+# Since the columns replaced_band and former_band have the same info,
 # merge them in one column
-
-# stopped here......... 
-
-
-# Create new column for band status 
 banded.dat <- banded.dat %>% 
-  mutate(band_status = ifelse())
+  unite(former_bn, c('replaced_band','former_band'), sep = ',', remove = T)
+  
+# Remove coma in column former_bn
+banded.dat$former_bn <- gsub('\\,', '', banded.dat$former_bn)
 
- 
+# Create new column with the former band number and delete the merged column 
+banded.dat <- banded.dat %>% 
+  mutate(former_band = substr(former_bn, start = 1, stop = 10)) %>% 
+  select(-former_bn)
+  
+# All these bands (70) have two records in column band_number: one for the new 
+# band and one for the former band. Therefore for these bands the old record 
+# should be band status 1 (new) and the newer record should be band status R 
+# (recapture). In other words, the rows with a band in column former_band 
+# should be band status R and rows with no data in this column should be 1
+banded.dat <- banded.dat %>% 
+  mutate(band_status = ifelse(str_detect(former_band, '[0-9]{4}-[0-9]{5}'), 'R', 1))
+
+### I can't do this....... need help 
+
+# Create a new column for the new band number, so records with band status 1 and 
+# R have the same band number. Use a for loop to go through all the records in
+# band_number and match to the former_band number
+
+for (BN in banded.dat$band_number) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = ifelse(BN == former_band, 1, NA))
+}
+
+for (BN in banded.dat$former_band) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = ifelse(match(BN, band_number), band_number, NA))
+}
 
 
+for (BN in banded.dat$former_band) {
+  banded.dat <- banded.dat %>% 
+    mutate(new_band = case_when(
+      if_any(contains(BN), ~ band_number)))
+}
+
+# Try if_any but not in a for loop..... 
+
+# Update sex for those birds that were misidentified at first capture. Information
+# gathered from the recapture data set. There are 15 records we need to update:
+
+# Change sex from F to M:
+# 6000-53867, 9000-12279, 9000-12283, 9000-12490, 9000-91371, 9000-40183
+
+# Change sex from M to F:
+# 6000-53878, 6000-53918, 6000-53949, 6000-53751, 6000-53749, 6000-53918, 
+# 9000-90030, 9000-90683, 9000-91173
+
+
+
+
+
+
+# Remove columns with indicator variables, we don't need them anymore
+banded.dat <- banded.dat %>% 
+  select(-c(band_asterisk, band_in_comment, foreign, former, removed))
+
+# Remove the asterisk from six bands in column band_number
+banded.dat$band_number <- gsub('\\*', '', banded.dat$band_number)
 
 

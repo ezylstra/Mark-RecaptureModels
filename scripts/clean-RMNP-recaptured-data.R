@@ -339,7 +339,7 @@ head(filter(recaptured.dat, !is.na(old_band_number)))
 # Now, create original_band column and keep the new_band_number column, which will 
 # have a new band number only if the bird was rebanded (NA otherwise).
 # Will keep band_number column just in case we need the original
-# Remove 'key word' columns 
+# Remove indicator variable columns 
 recaptured.dat <- recaptured.dat %>%
   mutate(original_band = ifelse(!is.na(old_band_number), old_band_number, band_number_withouth_asterisk)) %>%
   select(-c(band_asterisk, new, rebanded, former, foreign, band_is_old_in_band_number, 
@@ -403,12 +403,19 @@ recaptured.dat <- recaptured.dat %>%
   select(-c(new_band_number, new_new_band_number, original_band, new_original_band)) %>% 
   rename(original_band = original,
          new_band_number = new)
+
+# Create a new column I'll use as the 'unique bird identifier'
+recaptured.dat <- recaptured.dat %>% 
+  mutate(UBI_band = ifelse(is.na(new_band_number), original_band, new_band_number))
+
                       
 # Data set now has three columns with band numbers:
 
 # 1) band_number: is the original entry from Fred, has * and a mix of new and old bands
 # 2) new_band_number: is a new band number only if the bird was rebanded, NA otherwise
 # 3) original_band: is the original or first band applied to an individual
+# 4) UBI_band: is the fixed band number when a band was replaced. Use this column for 
+# analysis
 
 # Add a new column to indicate the 'band status' of all records
 recaptured.dat <- recaptured.dat %>% 
@@ -547,16 +554,18 @@ recaptured.dat <- recaptured.dat %>%
 recaptured.dat <- recaptured.dat %>% 
   mutate(fixed_sex = ifelse(str_detect(fixed_sex, '[A-Z]{1}'), fixed_sex, original_sex))
 
-# Use fixed_sex column for analysis. Now I need to update the sex of the 15 
-# records I changed here in the banded.dat data set. 
+# Prepare new data frame to merge with banded data
 
+# Create a new data frame with selected columns we'll need for analysis
+recaptured <- recaptured.dat %>% 
+  select(UBI_band, band_status, recapture_year, species, fixed_sex) %>% 
+  filter(species == 'BTLH') %>% 
+  rename(year = recapture_year)
+
+# Export csv of new data frame
+write.csv(recaptured, 'output/cleaned-recaptured-data-RMNP.csv') 
 
 # TO DO
-
-
-# MATCH UP BAND NUMBERS IN THESE COLUMNS WITH INFO IN THE BANDED DATA FOLDER
-
-
 
 # FOR AGE, I'LL USE THE YEAR OF THE RECAPTURES TO CHANGE THOSE BIRDS FROM HY TO 
 # AHY

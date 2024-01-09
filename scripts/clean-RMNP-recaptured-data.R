@@ -409,7 +409,7 @@ recaptured.dat <- recaptured.dat %>%
   mutate(UBI_band = ifelse(is.na(new_band_number), original_band, new_band_number))
 
                       
-# Data set now has three columns with band numbers:
+# Data set now has four columns with band numbers:
 
 # 1) band_number: is the original entry from Fred, has * and a mix of new and old bands
 # 2) new_band_number: is a new band number only if the bird was rebanded, NA otherwise

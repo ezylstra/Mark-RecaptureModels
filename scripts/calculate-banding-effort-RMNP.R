@@ -27,6 +27,9 @@ effort.dat <- rbindlist(effort.dat, fill = TRUE)
 effort.dat <- effort.dat %>% 
   clean_names()
 
+# Fix site's name
+effort.dat$site[effort.dat$site == 'GNMNT'] <- 'GNMTN'
+
 # Format column trap_hour to calculate effort
 
 # 1) Separate hours from minutes when format is hh:mm
@@ -64,6 +67,12 @@ effort <- effort.dat %>%
 # Once we decide what sites we are using for the analysis, we can filter them. 
 # For now, totals and averages have been calculated
 
+for.table <- effort %>% 
+  group_by(site) %>% 
+  summarize(total_banding_days_year = sum(total_banding_days),
+            average_banding_days_year = mean(total_banding_days),
+            total_trap_hours_year = sum(total_trap_hours),
+            average_trap_hours_year = mean(total_trap_hours))
   
 
 

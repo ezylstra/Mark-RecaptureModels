@@ -43,6 +43,13 @@ sites <- sort(unique(sites_df$site))
 # Load letter codes for reference
 letters <- read.csv("data/BBL_letter_codes.csv")
 
+
+# PICK UP HERE: need to use code form merge-cleaned-....R so that all the 
+# band numbers match up in both datasets....
+
+
+
+
 # Is there an entry in the first recapture column for every bird/yr?  
 sum(is.na(recap$r1)) # No, 7 NAs
 filter(recap, is.na(r1))
@@ -59,21 +66,42 @@ recap$r1[is.na(recap$r1)] <- "7/15"
 
 # Move information about rebanding events from banded to recap ----------------#
 
-banded$band_status == "R" # n = 70
+band_first <- banded %>%
+  filter(band_status == "1") %>%
+  select(-band_status) %>%
+  rename(band_yr = year,
+         band_age = age, 
+         band_sex = sex,
+         band_site = site)
 
+rebands <- banded %>%
+  filter(band_status == "R") %>%
+  rename(reband_yr = year,
+         reband_sex = sex,
+         reband_age = age,
+         reband_site = site) %>%
+  left_join(band_first, by = "band")
+
+filter(rebands, reband_yr == band_yr) # 5 rebands in same year, always at same site
+# Delete these from rebands dataset
+rebands <- rebands %>%
+  filter(reband_yr != band_yr)
+
+rebands_to_recap <- rebands %>%
+  select(-c(reband_age, band_yr, band_age, band_sex)) %>%
+  rename(recap_yr = reband_yr,
+         sex = reband_sex,  # checked that sex is always same (orig, reband)
+         r1 = reband_site,
+         site_orig = band_site) %>%
+  relocate(site_orig, .before = r1) %>%
+  mutate(r2 = NA, r3 = NA, r4 = NA, r5 = NA, r6 = NA, r7 = NA, r8 = NA, r9 = NA,
+         r10 = NA, r11 = NA, r12 = NA, r13 = NA, r14 = NA, r15 = NA, r16 = NA,
+         r17 = NA, comments = NA)
+
+recap <- rbind(recap, rebands_to_recap)
 
 # Convert to long form --------------------------------------------------------#
 
-# First, are there duplicates (band * recap_yr)?
-repeats <- recap %>%
-  group_by(band, recap_yr) %>%
-  summarize(nrows = length(band)) %>%
-  data.frame() %>%
-  filter(nrows > 1) # Yup, 5 of them
-
-for (i in 1:nrow(repeats)) {
-  print(filter(recap, band == repeats$band[i], recap_yr == repeats$recap_yr[i]))
-}
 
 recapl <- recap %>%
   pivot_longer(cols = r1:r17, 
@@ -84,14 +112,19 @@ recapl <- recap %>%
   distinct()
 
 # Merge this info with that in banded dataset (just original banding events)
-
-banded <- banded %>%
-  rename(band_yr = year,
-         band_age = age, 
-         band_site = site)
-recapl <- left_join(recapl, banded, by = "band")
+recapl <- left_join(recapl, band_first, by = "band")
 
 # Check that band_site (banded) == site_orig (recapl)
+filter(recapl, site_orig != band_site) 
+# Not always the same, so replace site_orig with band_site
+recapl <- recapl %>%
+  select(-site_orig)
+
+# Check that sex == band_sex
+filter(recapl, sex != band_sex)
+# Not always the same (and surprisingly, not only when first captured as HY)
+# Will likely want to rely sex assigned at least capture, but can deal with this
+# later
 
 # Sites -----------------------------------------------------------------------#
 
@@ -113,15 +146,22 @@ recapl <- recapl %>%
   filter(!str_detect(entry, "Peaceful Valley|ARIZONA")) %>%
   mutate(site = toupper(str_extract(entry, pattern = sites_search))) %>%
   select(-at) %>%
-  mutate(recap_site = if_else(is.na(site), site_orig, site))
+  mutate(recap_site = if_else(is.na(site), band_site, site)) %>%
+  mutate(first_yr = if_else(recap_yr == band_yr, 1, 0)) 
+
+
+
+# See how often these movements occurred within/between seasons
+recapl <- recapl %>%
+  
+
 
 # Look at individuals that moved between sites
 moved <- recapl %>%
-  filter(site_orig != recap_site)
+  filter(band_site != recap_site)
 
-length(unique(moved$band)) # 347 birds 
+length(unique(moved$band)) # 343 birds 
 
-# See how often these movements occurred within/between seasons
 
 # Create dataframe with site pairs
   # Number of "movements"

@@ -430,7 +430,7 @@ recaptured.dat <- recaptured.dat %>%
 # can fix the sex of those misidentified birds in both data sets 'banded data' 
 # and 'recaptured data'
 
-# I checked columns recapture_3:17 using unique(recaptured.dat$column)and there 
+# I checked columns recapture_3:17 using unique(recaptured.dat$column) and there 
 # were no FEMALE or MALE words or F and M letters that indicated a different sex
 # that the one marked in column original_sex. Most of this information should be 
 # in column recapture_1 or 2
@@ -569,19 +569,4 @@ recaptured <- recaptured.dat %>%
 
 # Export csv of new data frame
 write.csv(recaptured, 'output/cleaned-recaptured-data-RMNP.csv') 
-
-
-
-
-
-
-
-# TO DO
-
-# FOR AGE, I'LL USE THE YEAR OF THE RECAPTURES TO CHANGE THOSE BIRDS FROM HY TO 
-# AHY
-
-
-
-
 

@@ -57,13 +57,13 @@ dat$UBI_band[dat$UBI_band == '3100-42456'] <- '9100-22920'
 
 #2 Band 3100-42457 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 6/18/2010 @ KV1, then recaptured
-# in 2011. Keep it or not? I think we should delete it.
+# in 2011. Delete record.
 dat <- dat %>% 
   filter(UBI_band != '3100-42457')
 
 #3 Band 3100-42458 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 6/19/2010 @ MP1, then recaptured
-# in 2011. Keep it or not? I think we should delete it.
+# in 2011. Delete record.
 dat <- dat %>% 
   filter(UBI_band != '3100-42458')
 
@@ -131,7 +131,7 @@ dat$UBI_band[dat$UBI_band == '5000-96838'] <- '4100-58824'
 
 #24 Band 5000-96917 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/20/2004 @ MP1, then recaptured
-# in 2005. Keep it or not? I think we should delete it.
+# in 2005. Delete record
 dat <- dat %>% 
   filter(UBI_band != '5000-96917')
 
@@ -191,13 +191,13 @@ dat$UBI_band[dat$UBI_band == '9000-12462'] <- '3100-42019'
 
 #43 Band 9000-29930 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 7/31/2007 @ MP1, then recaptured
-# in 2008. Keep it or not? I think we should delete it.
+# in 2008. Delete record.
 dat <- dat %>% 
   filter(UBI_band != '9000-29930')
 
 #44 Band 9000-39004 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 9/13/2006 @ NCOS, then recaptured
-# in 2007 @ MCGC. Keep it or not? I think we should delete it.
+# in 2007 @ MCGC. Delete record.
 dat <- dat %>% 
   filter(UBI_band != '9000-39004')
 
@@ -227,19 +227,19 @@ dat$UBI_band[dat$UBI_band == '9000-39959'] <- '3100-42079'
 
 #53 Band 9000-41405 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
-# in 2009. Keep it or not? I think we should delete it.
+# in 2009. Delete record. 
 dat <- dat %>% 
   filter(UBI_band != '9000-41405')
 
 #54 Band 9000-41411 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
-# in 2010. Keep it or not? I think we should delete it.
+# in 2010. Delet record.
 dat <- dat %>% 
   filter(UBI_band != '9000-41411')
 
 #55 Band 9000-41412 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
-# in 2011. Keep it or not? I think we should delete it.
+# in 2011. Delete record.
 dat <- dat %>% 
   filter(UBI_band != '9000-41412')
 
@@ -289,131 +289,9 @@ unique(age.check$age)
 # There are no NA values for age, therefore all first captures have the age in 
 # the data
 
-# Define Sites..........
-# Stopped here
+# Edit column names
+dat <- dat %>% 
+  rename(sex = fixed_sex)
 
-# Code from HMN's data to adapt to RMNP data: 
-
-
-# -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
-
-# -------------- Capture histories without age at first capture -------------- #
-# --------------------- including juveniles and adults ----------------------- #
-
-# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
-# and sites for thesis 
-BTLH.thesis <- new.data %>% 
-  filter(Species == "BTLH", 
-         Protocol == "HMN",
-         Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
-         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
-         !is.na(Band.Number), # Removes NAs from Band.Number
-         Band.Number != '810051818') # Removes individual without age, captured once in 2022 
-
-# There are a total of 11,506 records for BTLH in ML, WCAT, PCBNM and DGS
-# Including ages 1 and 2, and sex F and M
-
-# Create capture history for all Mount Lemmon data, for all years without age
-# ch is for capture history
-ch.ML <- BTLH.thesis %>% 
-  arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex) %>% 
-  filter(Location == "ML",
-         Year %in% 2002:2022, 
-         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
-  group_by(Band.Number, Year, Sex) %>%  
-  summarize(N.observation = length(Year))%>%
-  mutate(Observed = 1) %>% 
-  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
-              values_fill = 0) %>% 
-  mutate('2020' = ".", '2004' = ".") %>%  # Create column for missing years and fill it with a dot
-  relocate(Band.Number, '2002','2003','2004','2005','2006','2007','2008','2009',
-           '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
-           '2020','2021','2022', Sex) %>% 
-  unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
-                   '2011','2012','2013','2014','2015','2016','2017','2018','2019',
-                   '2020','2021','2022'), sep = '') %>% 
-  as.data.frame
-
-
-# ------------------ Capture Histories with age at first capture ------------- #
-# ----------------------- including juveniles and adults --------------------- #
-
-# Create data frame to add age at first capture for all individuals 
-BTLH.with.first.age <- BTLH.thesis %>%
-  select(Band.Number, Location, Date, Year, Month, 
-         Day, Best.Band.Status, Sex, Age) %>%
-  arrange(Band.Number, Date) %>%
-  group_by(Band.Number) %>%
-  mutate(Age.FC = Age[1]) %>% # [1] automatically takes the first capture
-  ungroup() %>%
-  data.frame()
-
-# Checks:
-bandcheck <- unique(BTLH.with.first.age$Band.Number[BTLH.with.first.age$Age.FC == 2 & 
-                                                      BTLH.with.first.age$Best.Band.Status == "R"])
-# 201 individuals captured multiple times, first as juveniles
-BTLH.with.first.age[BTLH.with.first.age$Band.Number == bandcheck[1],]
-BTLH.with.first.age[BTLH.with.first.age$Band.Number == bandcheck[200],]
-
-# Create capture history for all Mount Lemmon Data, for all years
-# ch is for capture history
-ch.ML.age <- BTLH.with.first.age %>% 
-  arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex, Age.FC) %>% 
-  filter(Location == "ML",
-         Year %in% 2002:2022, 
-         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
-  group_by(Band.Number, Year, Sex, Age.FC) %>%  
-  summarize(N.observation = length(Year))%>%
-  mutate(Observed = 1) %>% 
-  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex, Age.FC), 
-              values_fill = 0) %>% 
-  mutate('2020' = ".", '2004' = ".") %>%  # Create column for missing years and fill it with a dot
-  relocate(Band.Number, '2002','2003','2004','2005','2006','2007','2008','2009',
-           '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
-           '2020','2021','2022', Sex, Age.FC) %>% 
-  unite(cap.his, c('2002','2003','2004','2005','2006','2007','2008','2009','2010',
-                   '2011','2012','2013','2014','2015','2016','2017','2018','2019',
-                   '2020','2021','2022'), sep = '') %>% 
-  as.data.frame
-
-
-# -------------- Capture histories without age at first capture -------------- #
-# ----------------------- and just adult individuals ------------------------- #
-
-# Select BTLH data for sites that follow HMN's protocol, sex are male and female,
-# sites for thesis, and are adults 
-BTLH.adults <- new.data %>% 
-  filter(Species == "BTLH", 
-         Protocol == "HMN",
-         Sex != "U", # Removes 4 individuals with unknown sex. These haven't been recaptured
-         Age == 1, 
-         Location %in% c('ML', 'WCAT', 'PCBNM', 'DGS'),
-         !is.na(Band.Number), # Removes NAs from Band.Number
-         Band.Number != '810051818') # Removes individual without age, captured once in 2022 
-
-# There are a total of 10,204 records for BTLH in ML, WCAT, PCBNM and DGS 
-# Age 1, and sex F and M
-
-# Create capture history for all Mount Lemmon data, for all years without age and just adults
-# Without . for missing years 2004 and 2020
-# ch is for capture history
-ch.ML.adults <- BTLH.adults %>% 
-  arrange(Band.Number) %>% 
-  select(Location, Month, Band.Number, Year, Sex) %>% 
-  filter(Location == "ML",
-         Year %in% 2002:2022, 
-         Month %in% 5:7) %>%  # I need to think this better, ideally I'll use dates starting mid-May 
-  group_by(Band.Number, Year, Sex) %>%  
-  summarize(N.observation = length(Year))%>%
-  mutate(Observed = 1) %>% 
-  pivot_wider(names_from = Year, values_from = Observed, id_cols = c(Band.Number, Sex), 
-              values_fill = 0) %>% 
-  relocate(Band.Number, '2002','2003','2005','2006','2007','2008','2009',
-           '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
-           '2021','2022', Sex) %>% 
-  unite(cap.his, c('2002','2003','2005','2006','2007','2008','2009','2010',
-                   '2011','2012','2013','2014','2015','2016','2017','2018','2019',
-                   '2021','2022'), sep = '') %>% 
-  as.data.frame
+#Export csv of final data frame ready for survival analysis 
+write.csv(dat, 'output/cleaned-capture-data-RMNP.csv')

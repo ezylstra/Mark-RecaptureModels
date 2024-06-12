@@ -23,12 +23,21 @@ effort.dat <- lapply(effort.files, fread, sep = ",")
 # Combine all csv files in a data frame
 effort.dat <- rbindlist(effort.dat, fill = TRUE)
 
-# Replace space in column names with '_'
+# Replace space in column names with '_' and sort column site
 effort.dat <- effort.dat %>% 
-  clean_names()
+  clean_names() %>% 
+  arrange(site)
+
+# Explore data
+unique(effort.dat$year)
+unique(effort.dat$month)
+unique(effort.dat$site)
+unique(effort.dat$active_days)
+unique(effort.dat$trap_hours)
 
 # Fix site's name
 effort.dat$site[effort.dat$site == 'GNMNT'] <- 'GNMTN'
+effort.dat$site[effort.dat$site == 'NFCP'] <- 'NFPC'
 
 # Format column trap_hour to calculate effort
 
@@ -43,7 +52,7 @@ effort.dat <- separate(effort.dat,
 effort.dat$minutes <- as.numeric(effort.dat$minutes)
 effort.dat$hours <- as.numeric(effort.dat$hours)
 
-# 3) Calculate effort 
+# 3) Change trap_hours from format hh:mm to h.m 
 effort.dat <- effort.dat %>%
   mutate(minutes_dec = minutes/60) %>% 
   mutate(across('minutes_dec', round, 1)) %>% 
@@ -66,14 +75,14 @@ effort <- effort.dat %>%
 
 # Once we decide what sites we are using for the analysis, we can filter them. 
 # For now, totals and averages have been calculated
-
-for.table <- effort %>% 
+effort_covariate <- effort %>% 
   group_by(site) %>% 
-  summarize(total_banding_days_year = sum(total_banding_days),
+  summarize(total_years = length(unique((year))),
+            total_banding_days_year = sum(total_banding_days),
             average_banding_days_year = mean(total_banding_days),
             total_trap_hours_year = sum(total_trap_hours),
-            average_trap_hours_year = mean(total_trap_hours))
-  
+            average_trap_hours_year = mean(total_trap_hours)) %>% 
+  mutate(across(c('average_banding_days_year','average_trap_hours_year'), round, 1))
 
-
-
+# Export csv of data frame with effort
+write.csv(effort_covariate, 'output/banding-effort-all-sites-RMNP.csv')

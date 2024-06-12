@@ -38,6 +38,9 @@ unique(effort.dat$trap_hours)
 # Fix site's name
 effort.dat$site[effort.dat$site == 'GNMNT'] <- 'GNMTN'
 effort.dat$site[effort.dat$site == 'NFCP'] <- 'NFPC'
+effort.dat$site[effort.dat$site == 'BIGM'] <- 'BGMD'
+effort.dat$site[effort.dat$site == 'HPK3'] <- 'HPK2'
+# According to Fred's reports HPK2 and HPK3 have the same coordinates 
 
 # Format column trap_hour to calculate effort
 

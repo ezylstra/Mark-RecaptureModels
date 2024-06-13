@@ -293,5 +293,10 @@ unique(age.check$age)
 dat <- dat %>% 
   rename(sex = fixed_sex)
 
+# Add the location in the park (east or west) to all the sites
+dat$location <- ifelse(dat$site %in% c('CC3', 'CC2', 'GC1', 'HPE', 'HPK1', 'HPK2',
+                                       'MCGC', 'MP1', 'NFPC', 'WB1', 'WB2', 'WC1',
+                                       'WPK1'), 'east', 'west')
+
 #Export csv of final data frame ready for survival analysis 
 write.csv(dat, 'output/cleaned-capture-data-RMNP.csv')

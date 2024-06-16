@@ -97,7 +97,8 @@ summary(dists)
 dists$location_from <- sites$location[match(dists$from, sites$site_num)]
 dists$location_to <- sites$location[match(dists$to, sites$site_num)]
 
-# Explore distances at each side of the park: east and west sites
+# Explore distances at each side of the park: east and west to the Continental
+# Divide
 
 # East sites
 east_sites <- sites %>% 
@@ -117,15 +118,18 @@ dists_east <- as.data.frame(dists_east)
 dists_east$from_name <- east_sites$site[match(dists_east$from, east_sites$site_num)]
 dists_east$to_name <- east_sites$site[match(dists_east$to, east_sites$site_num)]
 
-# Explore distance data
+# Explore distance data (very basic)
 summary(dists_east)
 
 # Max distance between points on the east part of the park is 31.7 km and minimum 
 # is 0.1 km, the average distance between these sites is 14.6 km 
 
-# From the cluster of points in the map:
+# From the cluster of points in the east site:
 # Sites WB1 and WB2 are 0.1 km apart, basically they are at the same location
-# Sites HPK1 and HPK2 are 
+# Sites HPK1 and HPK2 are 1.4 km apart, and these sites to site MP1 are 1.5 and 
+# 2 km apart respectably.   
+# Sites CC2 and MCGC are 1.3 km apart, and these sites to site to WC1 are 2.4 and
+# 2.2 km apart respectably.
 
 # West sites
 west_sites <- sites %>% 
@@ -145,15 +149,15 @@ dists_west <- as.data.frame(dists_west)
 dists_west$from_name <- west_sites$site[match(dists_west$from, west_sites$site_num)]
 dists_west$to_name <- west_sites$site[match(dists_west$to, west_sites$site_num)]
 
-# Explore distance data
+# Explore distance data (very basic)
 summary(dists_west)
 
 # Max distance between points on the west part of the park is 25.4 km and minimum 
 # is 4.4 km, the average distance between these sites is 12.6 km 
 # In general these sites are farther apart from each other than some of the east
 # sites, but still they are pretty close together. 
+# These sites are not clustered as some of the east sites.
 
-# Select sites 
-
-
+# For now we are going to include all data from all sites in the survival analysis 
+# ignoring their location in the park and effort at each site 
 

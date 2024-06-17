@@ -298,5 +298,41 @@ dat$location <- ifelse(dat$site %in% c('CC3', 'CC2', 'GC1', 'HPE', 'HPK1', 'HPK2
                                        'MCGC', 'MP1', 'NFPC', 'WB1', 'WB2', 'WC1',
                                        'WPK1'), 'east', 'west')
 
+# Check that each band number is associated with a single sex
+sex.check <- dat %>%
+  group_by(UBI_band) %>%
+  summarize(n_sex = length(unique(sex)))
+
+# Extract band numbers associated with multiple sexes 
+(error.sex <- sex.check$UBI_band[sex.check$n_sex > 1])
+
+# There are 8 band numbers associated to two different sexes:
+# 3100-41634 first capture AHY in 2009 M and 2010 F
+# 3100-42083 first capture AHY in 2009 F and 2010 M
+# 4000-47657 first capture HY in 2003 M and 2004 F
+# 4000-47693 first capture HY in 2003 M and 2005 F
+# 5000-29371 first capture HY in 2003 F and 2005 M
+# 5000-96694 first capture HY in 2004 M and 2005 F
+# 6000-81183 first capture AHY in 2006 M and 2009 F
+# 9000-40183 first capture HY in 2007 M, then 2009 F, and 2010 M
+
+# After checking these bands in the original Excel files provided by Fred, just 
+# one record had enough information to fix the misidentified sex (9000-40183).
+
+# Change sex from F to M for record 9000-40183
+band <- dat %>% 
+  filter(UBI_band == '9000-40183') %>% 
+  mutate(new_sex = 'M') %>% 
+  select(-sex) %>% 
+  rename(sex = new_sex) %>% 
+  select(UBI_band, band_status, year, species, age, sex, site, location)
+
+# Remove problematic bands
+dat <- dat %>% 
+  filter(!UBI_band %in% c(error.sex))
+
+# Add fixed band number to main data set
+dat.final <- full_join(dat, band)
+
 #Export csv of final data frame ready for survival analysis 
-write.csv(dat, 'output/cleaned-capture-data-RMNP.csv')
+write.csv(dat.final, 'output/cleaned-capture-data-RMNP.csv')

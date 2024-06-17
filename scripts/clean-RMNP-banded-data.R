@@ -444,7 +444,7 @@ banded.dat <- left_join(banded.dat, bands.sex, by = "band_number")
 # Using these bands as a check:
 filter(banded.dat, band_number %in% c("6000-53867", "9000-90683"))
 
-# Create a new column for to hold the fixed sex when it needed to change and the
+# Create a new column to hold the fixed sex when it needed to change and the
 # original sex when it didn't need to change
 banded.dat <- banded.dat %>% 
   mutate(fixed_sex = ifelse(is.na(new_sex), sex, new_sex))

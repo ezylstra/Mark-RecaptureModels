@@ -17,14 +17,18 @@ dat <- read.csv('output/cleaned-capture-data-RMNP.csv')
 # we still don't have the recapture data for this year. I asked Fred for it
 dat1 <- dat %>% 
   select(-X) %>% 
-  filter(year != 2012)
+  filter(year != 2012) 
+
+# Remove - from UBI_band and change column class to numeric
+dat1$UBI_band <- gsub('-', '', dat1$UBI_band)
+dat1$UBI_band <- as.numeric(as.character((dat1$UBI_band)))
 
 # Our data has a bunch of NA values in column age because most of the recapture
-# data did not include the age of an individual at a recapture event. 
+# data did not include the age of individuals at recapture events. 
 # The relevant information regarding age is 'age at first capture' for all 
 # individuals, so we need to add this column to the data set
 
-# Create data frame to add age at first capture for all captures 
+# Create a data frame to add age at first capture for all captures 
 dat1 <- dat1 %>%
   arrange(UBI_band, year) %>%
   group_by(UBI_band) %>%
@@ -35,7 +39,7 @@ dat1 <- dat1 %>%
 # Checks:
 bandcheck <- unique(dat1$UBI_band[dat1$age_fc == 'HY' & 
                                    dat1$band_status == "R"])
-# 295 individuals captured multiple times, first as juveniles
+# 291 individuals captured multiple times, first as juveniles
 dat1[dat1$UBI_band == bandcheck[5],]
 dat1[dat1$UBI_band == bandcheck[200],]
 

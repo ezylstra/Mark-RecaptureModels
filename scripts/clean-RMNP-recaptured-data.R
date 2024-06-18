@@ -554,10 +554,6 @@ recaptured.dat <- recaptured.dat %>%
 recaptured.dat <- recaptured.dat %>% 
   mutate(fixed_sex = ifelse(str_detect(fixed_sex, '[A-Z]{1}'), fixed_sex, original_sex))
 
-# DO WE NEED TO EXTRACT THE LOCATION WHEN A BIRD WAS RECAPTURED AT A 
-# DIFFERENT SITE? MAYBE NOT NOW, BUT ONCE WE DECIDE WHAT SITES WE ARE KEEPING, 
-# WE MIGHT HAVE TO DO THIS
-
 # Prepare new data frame to merge with banded data
 
 # Create a new data frame with selected columns we'll need for analysis
@@ -570,3 +566,19 @@ recaptured <- recaptured.dat %>%
 # Export csv of new data frame
 write.csv(recaptured, 'output/cleaned-recaptured-data-RMNP.csv') 
 
+# Prepare new data frame to explore recaptures at multiple sites
+
+# Create new data frame 
+recap <- recaptured.dat %>% 
+     filter(species == 'BTLH') %>%   
+     select(UBI_band, band_status, recapture_year, fixed_sex, original_site, 
+            paste0('recapture_', 1:17), comments) %>%
+     rename(band = UBI_band, 
+            recap_yr = recapture_year,
+            site_orig = original_site,
+            sex = fixed_sex)
+colnames(recap)[6:22] <- paste0('r', 1:17)
+   
+# Export csv of new data frame
+write.csv(recap, 'output/cleaned-recaptured-data-RMNP-full.csv',
+          row.names = FALSE) 

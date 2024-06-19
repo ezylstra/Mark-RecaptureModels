@@ -125,11 +125,14 @@ summary(dists_east)
 # is 0.1 km, the average distance between these sites is 14.6 km 
 
 # From the cluster of points in the east site:
+
 # Sites WB1 and WB2 are 0.1 km apart, basically they are at the same location
 # Sites HPK1 and HPK2 are 1.4 km apart, and these sites to site MP1 are 1.5 and 
 # 2 km apart respectably.   
 # Sites CC2 and MCGC are 1.3 km apart, and these sites to site to WC1 are 2.4 and
 # 2.2 km apart respectably.
+# Sites CC2 and CC3 are 0.3 km apart, very close.
+# Site CC3 and MCGC ara 1.6 km apart. 
 
 # West sites
 west_sites <- sites %>% 

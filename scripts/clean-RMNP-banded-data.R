@@ -454,7 +454,8 @@ banded.dat <- banded.dat %>%
 # Create a new data frame with selected columns we'll need for analysis
 banded <- banded.dat %>% 
   select(UBI_band, band_status, year, species, age, fixed_sex, site) %>% 
-  filter(species == 'BTLH')
+  filter(species == 'BTLH') %>% 
+  select(-species)
 
 # Export csv of new data frame
 write.csv(banded, 'output/cleaned-banded-data-RMNP.csv')

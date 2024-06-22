@@ -561,7 +561,8 @@ recaptured <- recaptured.dat %>%
   select(UBI_band, band_status, recapture_year, species, fixed_sex, original_site) %>% 
   filter(species == 'BTLH') %>% 
   rename(year = recapture_year,
-         site = original_site)
+         site = original_site) %>% 
+  select(-species)
 
 # Export csv of new data frame
 write.csv(recaptured, 'output/cleaned-recaptured-data-RMNP.csv') 

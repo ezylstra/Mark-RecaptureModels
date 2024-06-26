@@ -67,7 +67,7 @@ effort.dat <- effort.dat %>%
 # 4) Change column trap_hours from character to numeric
 effort.dat$trap_hours <- as.numeric(effort.dat$trap_hours)
 
-# Summarize effort data for analysis 
+# Summarize effort data per site
 effort <- effort.dat %>% 
   group_by(site, year) %>% 
   summarize(total_banding_days = sum(active_days),
@@ -75,6 +75,15 @@ effort <- effort.dat %>%
             total_trap_hours = sum(trap_hours),
             average_trap_hours = mean(trap_hours)) %>% 
   mutate(across(c('average_trap_hours','average_banding_days'), round, 1)) 
+
+# Summarize effort data per year
+effort.year <- effort.dat %>% 
+  filter(!site %in% c('CLP', 'BGMD')) %>%  # Sites not included in capture data for analysis
+  group_by(year) %>% 
+  summarize(total_days = sum(active_days))
+
+# Export csv of data frame with effort by year
+write.csv(effort.year, 'output/banding-effort-all-sites-RMNP-year.csv')
 
 # Once we decide what sites we are using for the analysis, we can filter them. 
 # For now, totals and averages have been calculated

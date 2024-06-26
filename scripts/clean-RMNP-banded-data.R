@@ -276,6 +276,10 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
+# Removed misread band
+banded.dat <- banded.dat %>% 
+  filter(band_number != '5000-11763')
+
 # Lines 240 to 274 remove 20 band numbers from data equivalent to 20 rows as well 
 
 # If the following condition is met, the band_number column has a NEW 

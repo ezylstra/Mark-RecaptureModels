@@ -13,50 +13,49 @@ library(lubridate)
 rm(list = ls())
 
 # Read all csv files to merge
-
 # Create a list of all files to merge
-effort.files <- list.files(path = "data/RMNP-trap-effort//", 
+effort_files <- list.files(path = "data/RMNP-trap-effort//", 
                            pattern = "*.csv", 
                            full.names = TRUE)
-effort.dat <- lapply(effort.files, fread, sep = ",")  
+effort_dat <- lapply(effort_files, fread, sep = ",")  
 
 # Combine all csv files in a data frame
-effort.dat <- rbindlist(effort.dat, fill = TRUE)
+effort_dat <- rbindlist(effort_dat, fill = TRUE)
 
 # Replace space in column names with '_' and sort column site
-effort.dat <- effort.dat %>% 
+effort_dat <- effort_dat %>% 
   clean_names() %>% 
   arrange(site)
 
 # Explore data
-unique(effort.dat$year)
-unique(effort.dat$month)
-unique(effort.dat$site)
-unique(effort.dat$active_days)
-unique(effort.dat$trap_hours)
+unique(effort_dat$year)
+unique(effort_dat$month)
+unique(effort_dat$site)
+unique(effort_dat$active_days)
+unique(effort_dat$trap_hours)
 
 # Fix site's name
-effort.dat$site[effort.dat$site == 'GNMNT'] <- 'GNMTN'
-effort.dat$site[effort.dat$site == 'NFCP'] <- 'NFPC'
-effort.dat$site[effort.dat$site == 'BIGM'] <- 'BGMD'
-effort.dat$site[effort.dat$site == 'HPK3'] <- 'HPK2'
+effort_dat$site[effort_dat$site == 'GNMNT'] <- 'GNMTN'
+effort_dat$site[effort_dat$site == 'NFCP'] <- 'NFPC'
+effort_dat$site[effort_dat$site == 'BIGM'] <- 'BGMD'
+effort_dat$site[effort_dat$site == 'HPK3'] <- 'HPK2'
 # According to Fred's reports HPK2 and HPK3 have the same coordinates 
 
 # Format column trap_hour to calculate effort
 
 # 1) Separate hours from minutes when format is hh:mm
-effort.dat <- separate(effort.dat,
+effort_dat <- separate(effort_dat,
          col = trap_hours, 
          into = c('hours', 'minutes'), 
          sep = ':',
          remove = FALSE)
 
 # 2) Change columns minutes and hours from character to numeric
-effort.dat$minutes <- as.numeric(effort.dat$minutes)
-effort.dat$hours <- as.numeric(effort.dat$hours)
+effort_dat$minutes <- as.numeric(effort_dat$minutes)
+effort_dat$hours <- as.numeric(effort_dat$hours)
 
 # 3) Change trap_hours from format hh:mm to h.m 
-effort.dat <- effort.dat %>%
+effort_dat <- effort_dat %>%
   mutate(minutes_dec = minutes/60) %>% 
   mutate(across('minutes_dec', round, 1)) %>% 
   mutate(effort = hours + minutes_dec) %>% 
@@ -65,10 +64,10 @@ effort.dat <- effort.dat %>%
   rename(trap_hours = effort_final)
 
 # 4) Change column trap_hours from character to numeric
-effort.dat$trap_hours <- as.numeric(effort.dat$trap_hours)
+effort_dat$trap_hours <- as.numeric(effort_dat$trap_hours)
 
 # Summarize effort data per site
-effort <- effort.dat %>% 
+effort <- effort_dat %>% 
   group_by(site, year) %>% 
   summarize(total_banding_days = sum(active_days),
             average_banding_days = mean(active_days),
@@ -76,25 +75,5 @@ effort <- effort.dat %>%
             average_trap_hours = mean(trap_hours)) %>% 
   mutate(across(c('average_trap_hours','average_banding_days'), round, 1)) 
 
-# Summarize effort data per year
-effort.year <- effort.dat %>% 
-  filter(!site %in% c('CLP', 'BGMD')) %>%  # Sites not included in capture data for analysis
-  group_by(year) %>% 
-  summarize(total_days = sum(active_days))
-
 # Export csv of data frame with effort by year
-write.csv(effort.year, 'output/banding-effort-all-sites-RMNP-year.csv')
-
-# Once we decide what sites we are using for the analysis, we can filter them. 
-# For now, totals and averages have been calculated
-effort_covariate <- effort %>% 
-  group_by(site) %>% 
-  summarize(total_years = length(unique((year))),
-            total_banding_days_year = sum(total_banding_days),
-            average_banding_days_year = mean(total_banding_days),
-            total_trap_hours_year = sum(total_trap_hours),
-            average_trap_hours_year = mean(total_trap_hours)) %>% 
-  mutate(across(c('average_banding_days_year','average_trap_hours_year'), round, 1))
-
-# Export csv of data frame with effort
-write.csv(effort_covariate, 'output/banding-effort-all-sites-RMNP.csv')
+write.csv(effort, 'output/banding-effort-all-sites-RMNP.csv')

@@ -573,6 +573,4 @@ dat$location <- ifelse(dat$site %in% c('CC3', 'CC2', 'GC1', 'HPE', 'HPK1', 'HPK2
                                         'WPK1'), 'east', 'west')
 
 #Export csv of final data frame ready for survival analysis 
-write.csv(dat, 'output/cleaned-capture-data-RMNP.csv')
-
-
+write.csv(dat, 'output/cleaned-capture-data-RMNP.csv') 

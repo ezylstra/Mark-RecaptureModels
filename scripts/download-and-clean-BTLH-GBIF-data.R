@@ -152,4 +152,8 @@ ggplot() +
   theme(plot.title = element_text(color = "black", size = 12, hjust = 0.5),
         plot.subtitle = element_text(color = "black", size = 12, hjust = 0.5))
 
+# Export data points
+points <- dat2 %>% 
+  select(locality, latitude, longitude, elevation_geonames)
 
+write.csv(points, 'output/BTLH-locations-MX.csv')

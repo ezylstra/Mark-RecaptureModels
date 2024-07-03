@@ -276,6 +276,10 @@ banded.dat <- banded.dat %>%
   filter(band_number != '5000-96919',
          band_number != '5000-96944')
 
+# Removed misread band
+banded.dat <- banded.dat %>% 
+  filter(band_number != '5000-11763')
+
 # Lines 240 to 274 remove 20 band numbers from data equivalent to 20 rows as well 
 
 # If the following condition is met, the band_number column has a NEW 
@@ -454,7 +458,8 @@ banded.dat <- banded.dat %>%
 # Create a new data frame with selected columns we'll need for analysis
 banded <- banded.dat %>% 
   select(UBI_band, band_status, year, species, age, fixed_sex, site) %>% 
-  filter(species == 'BTLH')
+  filter(species == 'BTLH') %>% 
+  select(-species)
 
 # Export csv of new data frame
 write.csv(banded, 'output/cleaned-banded-data-RMNP.csv')

@@ -56,12 +56,12 @@ dat<- BTLH.download %>%
   occ_download_import()
 
 # Export csv with downloaded data
-write.csv(dat, 'output/BTLH-occurrence-Mexico-from-GBIF.csv')
+write.csv(dat, 'output/GBIF-BTLH-all-sightings-Mexico-raw-data.csv')
 
 #------------------------------------------------------------------------------#
 
 # Load downloaded data from output folder
-dat <- read.csv('output/BTLH-occurrence-Mexico-from-GBIF.csv')
+dat <- read.csv('output/GBIF-BTLH-all-sightings-Mexico-raw-data.csv')
 
 # Filter data set using recommended filters in:
 # https://data-blog.gbif.org/post/gbif-filtering-guide/
@@ -111,6 +111,9 @@ dat2 <- dat_model_1 %>%
         
 count(dat2, year)
 
+# Export the full data frame including elevation for all points
+write.csv(dat2, 'output/GBIF-BTLH-winter-sightings-Mexico-with-elevation.csv')
+
 # Plot GBIF points in BTLH wintering grounds in Mexico
 
 # Load packages
@@ -152,7 +155,7 @@ ggplot() +
   theme(plot.title = element_text(color = "black", size = 12, hjust = 0.5),
         plot.subtitle = element_text(color = "black", size = 12, hjust = 0.5))
 
-# Export data points
+# Export data points to use to download weather variables
 points <- dat2 %>% 
   select(locality, latitude, longitude, elevation_geonames)
 

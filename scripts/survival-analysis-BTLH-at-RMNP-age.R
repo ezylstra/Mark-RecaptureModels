@@ -37,7 +37,8 @@ effort1 <- effort %>%
          effort = total_days) %>% 
   mutate_if(is.character, as.numeric) %>% 
   as.data.frame
-# Usually a good idea to standardize covariates (to avoid estimation problems
+
+# It's usually a good idea to standardize covariates (to avoid estimation problems
 # and to help with interpretation). If effort is standardized to a mean of 0 and
 # SD = 1, then the intercept will represent recapture probability at the mean
 # effort level and the coefficient represents the expected change in recapture 
@@ -89,7 +90,7 @@ age_ddl <- add.design.data(data = age_process,
                            type = "age",
                            bins = c(0, 1, 9), 
                            name = "ageclass", 
-                           right = FALSE) # Right truncation on bins
+                           right = FALSE) # Determines how bins are truncated
 # At this point, not planning on including age or age classes in recapture model, 
 # since all individuals are at least 1 year old (adults) when recaptured.
 
@@ -97,10 +98,12 @@ age_ddl <- add.design.data(data = age_process,
 age_ddl$p <- merge_design.covariates(age_ddl$p, effort1)
 
 # Create a couple other variables to help with model construction
-  # Creating 3 groups: Juveniles (0; both sexes combined); AdultF (1); AdultM (2)
+  
+# Creating 3 groups: Juveniles (0; both sexes combined); AdultF (1); AdultM (2)
   age_ddl$Phi$sexadult <- ifelse(age_ddl$Phi$ageclass == "[0,1)", 0,
                                  ifelse(age_ddl$Phi$sex == "F", 1, 2))
   age_ddl$Phi$sexadult <- factor(age_ddl$Phi$sexadult)
+  
   # Indicator for adults
   age_ddl$Phi$adult <- ifelse(age_ddl$Phi$ageclass == "[0,1)", 0, 1)
 

@@ -71,9 +71,13 @@ daymet_dat <- lapply(1:nrow(sites), get_daymet) %>%
 # that my connection is not great. I used the UA VPN, but it didn't help. 
 # You might be able to download the data at your end, my internet is not good
 
+# Update: This morning I was able to download the data very fast and without
+# any errors. I still hink that I should go to campus to use a better internet 
+# coneccion. 
+
 # Clean data set
 daymet_clean <- daymet_dat %>% 
-  select(-yday) %>% 
+  dplyr::select(-yday) %>% 
   mutate(month = as.numeric(str_sub(date, 6, 7)),
          day = as.numeric(str_sub(date, 9, 10))) %>% 
   rename( dayl = dayl..s., # day length s/day
@@ -85,13 +89,27 @@ daymet_clean <- daymet_dat %>%
           vp = vp..Pa.) %>%  # water vapor pressure Pa 
   relocate(site, date, year, month, day)
 
-# Once the data is downloaded, here I'll calculate the annual values for the 
-# model covariates 
+# Calculate the annual values for the model covariates 
+climate_cov <- daymet_clean %>% 
+  filter(between(date, 
+                 as.Date('2001-11-01'), # November
+                 as.Date('2002-03-31'))) %>% # March
+  group_by(year) %>% 
+  summarise(an_mean_prcp = mean(prcp),
+            an_mean_tmin = mean(tmin),
+            an_mean_tmax = mean(tmax),
+            an_min_temp = min(tmin),
+            ann_max_tem = max(tmax))
 
-# xxxxx
-
-# Export data
-write.csv(xxxx, 'output/cleaned-daymet-data-BTLH-sightings-Mexico.csv')
+# This is my first exploration of the climate data, therefore these covariates
+# are not the final ones. I need to think better how to group the data, because 
+# the winter months overlap two years (November 2001 to March 2002) so grouping
+# by year won't work. I should filter by date first (between dates) and then assign
+# a new name to those filtered rows. Something like 'winter period' '2001-2002'
+# For now I'm going to leave this script like this.
+  
+# For now, I exported the clean data 
+write.csv(daymet_clean, 'output/cleaned-daymet-data-BTLH-sightings-Mexico.csv')
 
 # ---------------------------------------------------------------------------- #
 

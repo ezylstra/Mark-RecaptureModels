@@ -1,7 +1,7 @@
-# Clean RMNP recaptured data
+# Clean RMNP 2012 recaptured data
 # Gaby Samaniego
 # gabysamaniego@arizona.edu
-# 2023-11-20
+# 2024-09-02
 
 # Load packages
 library(tidyverse)

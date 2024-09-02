@@ -14,7 +14,7 @@ rm(list = ls())
 # Read all csv files to merge
 
 # Create a list of all files to merge
-recaptured.files <- list.files(path = "data/RMNP-recaptured-by-year/", 
+recaptured.files <- list.files(path = "data/RMNP-recaptured-by-year/2003-2011/", 
                            pattern = "*.csv", 
                            full.names = TRUE)
 recaptured.dat <- lapply(recaptured.files, fread, sep = ",")  

@@ -149,16 +149,12 @@ dat.12 <- dat.12 %>%
 
 # Lines 132 to 145 remove 16 band numbers and 33 rows from data
 
-# Remove all identicator variable columns
+# Remove all identification variable columns, change column names and add band_status
+# column
 dat.12 <- dat.12 %>% 
-  select(-c(new, removed, former, foreign, rebanded, band_in_comment))
-
-# Change band_number column name to 'unique bird identifier'
-dat.12 <- dat.12 %>% 
-  rename(UBI_band = band_number)
-
-# Add a new column to indicate the 'band status' of all records
-dat.12 <- dat.12 %>% 
+  select(-c(new, removed, former, foreign, rebanded, band_in_comment)) %>% 
+  rename(band = band_number,
+         recap_yr = recapture_year) %>% 
   mutate(band_status = 'R') # R indicates all the band numbers in this data set
                             # are recaptures
 
@@ -167,14 +163,14 @@ dat.12 <- dat.12 %>%
 dat.12 <- dat.12 %>% 
   unite(mon_day, month:day, sep = '/') %>% 
   unite(recapture_info, c(mon_day, recapture_1), sep = ', ') %>% 
-  rename(recapture_1 = recapture_info)
+  rename(r1 = recapture_info)
 
 # Prepare new data frame to merge with other recapture data sets
 recaptured_12 <- dat.12 %>%
-  select(UBI_band, band_status, recapture_year, species, recaptured_sex, recapture_age,recapture_site) %>% 
+  select(band, band_status, recap_yr, species, recaptured_sex, 
+         recapture_age,recapture_site, r1, comments) %>% 
   filter(species == 'BTLH') %>% 
-  rename(year = recapture_year,
-         site = recapture_site) %>% 
+  rename(site_recap = recapture_site) %>% 
   select(-species)
 
 # Export csv of new data frame

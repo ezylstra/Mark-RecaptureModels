@@ -13,6 +13,7 @@ rm(list = ls())
 banded <- read.csv('output/cleaned-banded-data-RMNP.csv')
 recap <- read.csv('output/cleaned-recaptured-data-RMNP-full.csv',
                        na.strings = c(NA, ""))
+recap.12 <- read.csv('output/cleaned-recaptured-data-2012-RMNP.csv')
 
 # Clean data sets
 banded <- banded %>% 
@@ -23,9 +24,22 @@ banded <- banded %>%
 recap <- recap %>% 
   rename(recap_year = recap_yr)
 
+recap.12 <- recap.12 %>% 
+  select(-X) %>% 
+  rename(recap_year = recap_yr,
+         sex = recaptured_sex,
+         site_orig = site_recap) %>% 
+  select(-recapture_age)
+
 # Rename recapture columns
 colnames(recap)[colnames(recap) %in% paste0("r", 1:17)] <- 
   paste0("r", str_pad(1:17, width = 2, pad = "0"))
+
+colnames(recap.12)[colnames(recap.12) %in% paste0("r", 1)] <- 
+  paste0("r", str_pad(1, width = 2, pad = "0"))
+
+# Merge recapture data sets
+recap <- full_join(recap, recap.12)
 
 # Move information about rebanding events from banded to recap ----------------#
 
@@ -191,35 +205,50 @@ recaplong <- recaplong %>%
 # Check that sex == band_sex
 filter(recaplong, sex != band_sex)
 
-# There are 8 band numbers associated to two different sexes:
-# 3100-41634 first capture AHY in 2009 M and 2010 F
-# 3100-42083 first capture AHY in 2009 F and 2010 M
-# 4000-47657 first capture HY in 2003 M and 2004 F
-# 4000-47693 first capture HY in 2003 M and 2005 F
-# 5000-29371 first capture HY in 2003 F and 2005 M
-# 5000-96694 first capture HY in 2004 M and 2005 F
-# 6000-81183 first capture AHY in 2006 M and 2009 F
-# 9000-40183 first capture HY in 2007 M, then 2009 F, and 2010 M
+# There are xx band numbers associated to two different sexes:
+# 4000-47657 first capture HY in 2003 as M then as F in 2004: change sex to F
+# 5000-29371 first capture HY in 2003 as F then as M in 2005: delete
+# 4000-47693 first capture HY in 2003 as M then as F in 2005: change sex to F
+# 5000-96694 first capture HY in 2004 as M then as F in 2005: delete
+# 6000-81183 first capture AHY in 2006 as M then as F in 2009: delete
+# 9000-40183 first capture HY in 2007 as M, then 2009 as F, then 2010 as M: change to M
+# 3100-41634 first capture AHY in 2009 as M then as F in 2010: delete
+# 3100-42083 first capture AHY in 2009 as F then as M in 2010: delete
+# 4100-59872 first capture HY in 2011 as F then as AHY M in 2012: change to M
+# 4100-08734 first capture AHY in 2010 as M then as AHY F in 2012: delete
+# 4100-59950 first capture HY in 2011 as M then as AHY F in 2012: change to F
+# 4100-59879 first capture HY in 2011 as M then as AHY F in 2012: delete
 
-# After checking these bands in the original Excel files provided by Fred, just 
-# one record had enough information to fix the misidentified sex (9000-40183)
+# After checking these bands in the original Excel files provided by Fred, some 
+# have enough information to fix the misidentified sex and some need to be deleted
 
-# Change sex from F to M for record 9000-40183
-band <- recaplong %>% 
-  filter(band == '9000-40183') %>% 
+# Change sex from F to M for two records
+bands.M <- recaplong %>% 
+  filter(band %in% c('9000-40183','4100-59872')) %>% 
   mutate(new_sex = 'M') %>% 
   select(-sex) %>% 
   rename(sex = new_sex) %>% 
   relocate(sex, .after = recap_year)
 
 # Add fixed band number to recaplong
-recaplong <- bind_rows(recaplong, band)
+recaplong <- bind_rows(recaplong, bands.M)
+
+# Change sex from M to F for three records
+bands.F <- recaplong %>% 
+  filter(band %in% c('4000-47657','4000-47693', '4100-59950')) %>% 
+  mutate(new_sex = 'F') %>% 
+  select(-sex) %>% 
+  rename(sex = new_sex) %>% 
+  relocate(sex, .after = recap_year)
+
+# Add fixed band number to recaplong
+recaplong <- bind_rows(recaplong, bands.F)
 
 # Remove bands with two sexes that can't be fixed
 recaplong <- recaplong %>% 
-  filter(!band %in% c('3100-41634', '3100-42083', '4000-47657', '4000-47693',
-                      '5000-29371', '5000-96694', '6000-81183'))
-
+  filter(!band %in% c('5000-29371', '5000-96694', '6000-81183', '3100-41634',
+                      '3100-42083', '4100-08734', '4100-59879'))
+                      
 # Create data sets to indicate the number of capture for each band, year, site,
 # and band status for band_first and recaplong 
 band_site <- band_first %>%
@@ -262,7 +291,7 @@ dat <- cap_sites %>%
 # Verify that first use of a band number corresponds to band status 1 (new),
 # and following captures correspond to band status R (recapture) 
 
-# Extract unique band numbers. Length 10192
+# Extract unique band numbers. Length 10213
 unique.bands <- unique(dat$band)
 
 # Create new "best_band_status"
@@ -274,7 +303,7 @@ dat$cap_number <- sequence(from = 1, rle(dat$band)$lengths)
 # Fill in best_band_status with 1 and R  
 dat$best_band_status <- ifelse(dat$cap_number == 1, "1", "R")
 count(dat, band_status, best_band_status)
-# Looks like there are 60 instances with wrong status
+# Looks like there are 84 instances with wrong status
 
 # Identify the errors
 dat$check <- ifelse(dat$best_band_status != dat$band_status, '1', '0')
@@ -282,7 +311,7 @@ filter(dat, check == 1)
 
 # Errors and fixes: 
 
-# I searched each band (60) individually in the clean-RMNP-banded-data.R and 
+# I searched each band (84) individually in the clean-RMNP-banded-data.R and 
 # clean-RMNP-recaptured-data.R scripts, and in the banded and recaptured data
 # sets to identify the problems with the bands. Most of them needed to be updated
 # to the replaced band number. 
@@ -320,178 +349,271 @@ dat$band[dat$band == '4100-08231'] <- '4100-58648'
 #9 Band 4100-08319 is former, need to change to the new one 4100-59347
 dat$band[dat$band == '4100-08319'] <- '4100-59347'
 
-#10 Band 4100-58654 has just one recapture record because first capture was
+#10 Band 4100-13781 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '4100-13781')
+
+#11 Band 4100-14147 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '4100-14147')
+
+#12 Band 4100-23221 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '4100-23221')
+
+#13 Band 4100-42504 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '4100-42504')
+
+#14 Band 4100-57631 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '4100-57631')
+
+#15 Band 4100-58654 has just one recapture record because first capture was
 # identified as RUHU. Delete this record
 dat <- dat %>% 
   filter(band != '4100-58654')
 
-#11 Band 4100-58885 is former, need to change to the new one 9100-22970
+#16 Band 4100-58885 is former, need to change to the new one 9100-22970
 dat$band[dat$band == '4100-58885'] <- '9100-22970'
 
-#12 Band 4100-58937 is former, need to change to the new one 9100-23557
+#17 Band 4100-58937 is former, need to change to the new one 9100-23557
 dat$band[dat$band == '4100-58937'] <- '9100-23557'
 
-#13 Band 4100-59259 is former, need to change to the new one 9100-22805
+#18 Band 4100-59259 is former, need to change to the new one 9100-22805
 dat$band[dat$band == '4100-59259'] <- '9100-22805'
 
-#14 Band 4100-59326 is former, need to change to the new one 9100-23579
+#19 Band 4100-59326 is former, need to change to the new one 9100-23579
 dat$band[dat$band == '4100-59326'] <- '9100-23579'
 
-#15 Band 5000-11757 is former, need to change to the new one 4100-08484
+#20 Band 4100-59797 is a RUHU hummingbird. Delete record
+dat <- dat %>% 
+  filter(band != '4100-59797')
+
+#21 Band 5000-11757 is former, need to change to the new one 4100-08484
 dat$band[dat$band == '5000-11757'] <- '4100-08484'
 
-#16 Band 5000-11768 is former, need to change to the new one 9000-12256
+#22 Band 5000-11768 is former, need to change to the new one 9000-12256
 dat$band[dat$band == '5000-11768'] <- '9000-12256'
 
-#17 Band 5000-29452 is former, need to change to the new one 3100-42459
+#23 Band 5000-29452 is former, need to change to the new one 3100-42459
 dat$band[dat$band == '5000-29452'] <- '3100-42459'
 
-#18 Band 5000-29478 is former, need to change to the new one 9000-90216
+#24 Band 5000-29478 is former, need to change to the new one 9000-90216
 dat$band[dat$band == '5000-29478'] <- '9000-90216' 
 
-#19 Band 5000-29486 is former, need to change to the new one 3100-42126
+#25 Band 5000-29486 is former, need to change to the new one 3100-42126
 dat$band[dat$band == '5000-29486'] <- '3100-42126' 
 
-#20 Band 5000-29552 is former, need to change to the new one 9000-39955
+#26 Band 5000-29552 is former, need to change to the new one 9000-39955
 dat$band[dat$band == '5000-29552'] <- '9000-39955' 
 
-#21 Band 5000-29595 is former, need to change to the new one 9000-90883
+#27 Band 5000-29595 is former, need to change to the new one 9000-90883
 dat$band[dat$band == '5000-29595'] <- '9000-90883'
 
-#22 Band 5000-96732 is former, need to change to the new one 3100-41814
+#28 Band 5000-96732 is former, need to change to the new one 3100-41814
 dat$band[dat$band == '5000-96732'] <- '3100-41814'
 
-#23 Band 5000-96838 is former, need to change to the new one 4100-58824
+#29 Band 5000-96838 is former, need to change to the new one 4100-58824
 dat$band[dat$band == '5000-96838'] <- '4100-58824'
 
-#24 Band 5000-96917 not found in banded.dat, but the recaptured information in 
+#30 Band 5000-96917 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/20/2004 @ MP1, then recaptured
 # in 2005. Delete record
 dat <- dat %>% 
   filter(band != '5000-96917')
 
-#25 Band 6000-23412 is former, need to change to the new one 3100-41738
+#31 Band 6000-23412 is former, need to change to the new one 3100-41738
 dat$band[dat$band == '6000-23412'] <- '3100-41738'
 
-#26 Band 6000-23503 is former, need to change to the new one 3100-41595
+#32 Band 6000-23503 is former, need to change to the new one 3100-41595
 dat$band[dat$band == '6000-23503'] <- '3100-41595'
 
-#27 Band 6000-23694 is former, need to change to the new one 9000-90908
+#33 Band 6000-23694 is former, need to change to the new one 9000-90908
 dat$band[dat$band == '6000-23694'] <- '9000-90908'
 
-#28 Band 6000-23745 is former, need to change to the new one 9000-90414
+#34 Band 6000-23745 is former, need to change to the new one 9000-90414
 dat$band[dat$band == '6000-23745'] <- '9000-90414'
 
-#29 Band 6000-23805 is former, need to change to the new one 9000-91047
+#35 Band 6000-23805 is former, need to change to the new one 9000-91047
 dat$band[dat$band == '6000-23805'] <- '9000-91047'
 
-#30 Band 6000-53578 is former, need to change to the new one 9000-11915
+#36 Band 6000-53578 is former, need to change to the new one 9000-11915
 dat$band[dat$band == '6000-53578'] <- '9000-11915'
 
-#31 Band 6000-53587 is former, need to change to the new one 9000-39914
+#37 Band 6000-53587 is former, need to change to the new one 9000-39914
 dat$band[dat$band == '6000-53587'] <- '9000-39914'
 
-#32 Band 6000-53656 is former, need to change to the new one 4100-08685
+#38 Band 6000-53656 is former, need to change to the new one 4100-08685
 dat$band[dat$band == '6000-53656'] <- '4100-08685'
 
-#33 Band 6000-53668 is former, need to change to the new one 3100-41591
+#39 Band 6000-53668 is former, need to change to the new one 3100-41591
 dat$band[dat$band == '6000-53668'] <- '3100-41591'
 
-#34 Band 6000-80944 is former, need to change to the new one 4100-08367
+#40 Band 6000-80944 is former, need to change to the new one 4100-08367
 dat$band[dat$band == '6000-80944'] <- '4100-08367'
 
-#35 Band 6000-80978 is former, need to change to the new one 9000-90273
+#41 Band 6000-80978 is former, need to change to the new one 9000-90273
 dat$band[dat$band == '6000-80978'] <- '9000-90273'
 
-#36 Band 9000-11812 is former, need to change to the new one 3100-41563
+#42 Band 9000-11812 is former, need to change to the new one 3100-41563
 dat$band[dat$band == '9000-11812'] <- '3100-41563'
 
-#73 Band 9000-11917 is former, need to change to the new one 9000-91152
+#43 Band 9000-11917 is former, need to change to the new one 9000-91152
 dat$band[dat$band == '9000-11917'] <- '9000-91152'
 
-#38 Band 9000-11985 is former, need to change to the new one 3100-41493
+#44 Band 9000-11985 is former, need to change to the new one 3100-41493
 dat$band[dat$band == '9000-11985'] <- '3100-41493'
 
-#39 Band 9000-11994 is former, need to change to the new one 9000-90668
+#45 Band 9000-11994 is former, need to change to the new one 9000-90668
 dat$band[dat$band == '9000-11994'] <- '9000-90668'
 
-#40 Band 9000-12042 is former, need to change to the new one 3100-41757
+#46 Band 9000-12042 is former, need to change to the new one 3100-41757
 dat$band[dat$band == '9000-12042'] <- '3100-41757'
 
-#41 Band 9000-12081 is former, need to change to the new one 9000-39458
+#47 Band 9000-12081 is former, need to change to the new one 9000-39458
 dat$band[dat$band == '9000-12081'] <- '9000-39458'
 
-#42 Band 9000-12462 is former, need to change to the new one 3100-42019
+#48 Band 9000-12462 is former, need to change to the new one 3100-42019
 dat$band[dat$band == '9000-12462'] <- '3100-42019'
 
-#43 Band 9000-29930 not found in banded.dat, but the recaptured information in 
+#49 Band 9000-23006 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9000-23006')
+
+#50 Band 9000-29930 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 7/31/2007 @ MP1, then recaptured
 # in 2008. Delete record.
 dat <- dat %>% 
   filter(band != '9000-29930')
 
-#44 Band 9000-39004 not found in banded.dat, but the recaptured information in 
+#51 Band 9000-39004 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 9/13/2006 @ NCOS, then recaptured
 # in 2007 @ MCGC. Delete record.
 dat <- dat %>% 
   filter(band != '9000-39004')
 
-#45 Band 9000-39250 is former, need to change to the new one 9000-90316
+#52 Band 9000-39250 is former, need to change to the new one 9000-90316
 dat$band[dat$band == '9000-39250'] <- '9000-90316'
 
-#46 Band 9000-39397 is former, need to change to the new one 4100-08644
+#53 Band 9000-39397 is former, need to change to the new one 4100-08644
 dat$band[dat$band == '9000-39397'] <- '4100-08644'
 
-#47 Band 9000-39491 is former, need to change to the new one 9000-40106
+#54 Band 9000-39491 is former, need to change to the new one 9000-40106
 dat$band[dat$band == '9000-39491'] <- '9000-40106'
 
-#48 Band 9000-39509 is former, need to change to the new one 3100-42251
+#55 Band 9000-39509 is former, need to change to the new one 3100-42251
 dat$band[dat$band == '9000-39509'] <- '3100-42251'
 
-#49 Band 9000-39562 is former, need to change to the new one 3100-41632
+#56 Band 9000-39562 is former, need to change to the new one 3100-41632
 dat$band[dat$band == '9000-39562'] <- '3100-41632'
 
-#50 Band 9000-39584 is former, need to change to the new one 3100-41887
+#57 Band 9000-39584 is former, need to change to the new one 3100-41887
 dat$band[dat$band == '9000-39584'] <- '3100-41887'
 
-#51 Band 9000-39900 is former, need to change to the new one 4100-08151
+#58 Band 9000-39900 is former, need to change to the new one 4100-08151
 dat$band[dat$band == '9000-39900'] <- '4100-08151'
 
-#52 Band 9000-39959 is former, need to change to the new one 3100-42079
+#59 Band 9000-39959 is former, need to change to the new one 3100-42079
 dat$band[dat$band == '9000-39959'] <- '3100-42079'
 
-#53 Band 9000-41405 not found in banded.dat, but the recaptured information in 
+#60 Band 9000-41405 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
 # in 2009. Delete record. 
 dat <- dat %>% 
   filter(band != '9000-41405')
 
-#54 Band 9000-41411 not found in banded.dat, but the recaptured information in 
+#61 Band 9000-41411 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
 # in 2010. Delet record.
 dat <- dat %>% 
   filter(band != '9000-41411')
 
-#55 Band 9000-41412 not found in banded.dat, but the recaptured information in 
+#62 Band 9000-41412 not found in banded.dat, but the recaptured information in 
 # Excel file says it was originally banded on 8/26/2008 @ MP1, then recaptured
 # in 2011. Delete record.
 dat <- dat %>% 
   filter(band != '9000-41412')
 
-#56 Band 9000-90129 is former, need to change to the new one 9100-24000
+#63 Band 9000-58723 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9000-58723')
+
+#64 Band 9000-90129 is former, need to change to the new one 9100-24000
 dat$band[dat$band == '9000-90129'] <- '9100-24000'
 
-#57 Band 9000-90282 is former, need to change to the new one 3100-42160
+#65 Band 9000-90282 is former, need to change to the new one 3100-42160
 dat$band[dat$band == '9000-90282'] <- '3100-42160'
 
-#58 Band 9000-90309 is former, need to change to the new one 3100-41731
+#66 Band 9000-90309 is former, need to change to the new one 3100-41731
 dat$band[dat$band == '9000-90309'] <- '3100-41731'
 
-#59 Band 9000-90323 is former, need to change to the new one 4100-59034
+#67 Band 9000-90323 is former, need to change to the new one 4100-59034
 dat$band[dat$band == '9000-90323'] <- '4100-59034'
 
-#60 Band 9000-90910 is former, need to change to the new one 4100-59344
+#68 Band 9000-90910 is former, need to change to the new one 4100-59344
 dat$band[dat$band == '9000-90910'] <- '4100-59344'
+
+#69 Band 9000-91361 is former, need to change to the new one 9100-23297
+dat$band[dat$band == '9000-91361'] <- '9100-23297'
+
+#70 Band 9000-91954 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9000-91954')
+
+#71 Band 9000-93691 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9000-93691')
+
+#72 Band 9000-93765 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9000-93765')
+
+#73 Band 9100-08236 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-08236')
+
+#74 Band 9100-23136 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-23136')
+
+#75 Band 9100-23336 is a RUHU hummingbird. Delete record
+dat <- dat %>% 
+  filter(band != '9100-23336')
+
+#76 Band 9100-23337 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-23337')
+
+#77 Band 9100-24072 is a RUHU hummingbird. Delete record
+dat <- dat %>% 
+  filter(band != '9100-24072')
+
+#78 Band 9100-24760 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-24760')
+
+#79 Band 9100-28850 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-28850')
+
+#80 Band 9100-59238 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-59238')
+
+#81 Band 9100-59270 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-59270')
+  
+#82 Band 9100-90940 couldn't find in banded data. Delete record
+dat <- dat %>% 
+  filter(band != '9100-90940')
+
+#83 Band 9111-12257 misread, need to change to 9000-12257
+dat$band[dat$band == '9111-12257'] <- '9000-12257'
+
+#84 Band 9199-22916 misread, need to change to 9100-22916
+dat$band[dat$band == '9199-22916'] <- '9100-22916'
 
 # Arrange the band numbers after fixing the errors
 dat <- dat %>% 
@@ -517,7 +639,7 @@ dat <- dat %>%
   select(-c(best_band_status, cap_number, check))
 
 # Fill in NA values created in columns age_fc, sex, site_fc and site_recap when 
-# changed band numbers to the 51 bands between code lines 256 and 460 
+# changed band numbers to the 54 bands between code lines 256 and 616 
 dat <- dat %>%
   arrange(band, year, band_status) %>%
   group_by(band) %>%
@@ -550,7 +672,7 @@ age_check <- dat %>%
 bandcheck <- unique(dat$band[dat$age == 'HY' &
                                dat$band_status == "R"])
 
-# 150 individuals captured multiple times, first as juveniles
+# 170 individuals captured multiple times, first as juveniles
 dat[dat$band == bandcheck[5],]
 dat[dat$band == bandcheck[100],]
 

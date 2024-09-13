@@ -184,16 +184,17 @@ write.csv(recaptured_12, 'output/cleaned-recaptured-data-2012-RMNP.csv')
 # Prepare new data frame to explore recaptures at multiple sites
 
 # Create new data frame 
-recap <- dat.12 %>% 
-  filter(species == 'BTLH') %>%   
-  select(UBI_band, band_status, recapture_year, fixed_sex, recapture_site, 
-         paste0('recapture_', 1:17), comments) %>%
-  rename(band = UBI_band, 
-         recap_yr = recapture_year,
-         site_orig = recapture_site,
-         sex = fixed_sex)
-colnames(recap)[6:22] <- paste0('r', 1:17)
+recap_12 <- recaptured_12 %>%   
+  mutate(r02 = '', r03 = '',r04 = '', r05 = '', r06 = '', r07 = '', r08 = '',
+         r09 = '', r10 = '', r11 = '', r12 = '', r13 = '', r14 = '', r15 = '',
+         r16 = '', r17 = '',) %>% 
+  rename(r01 = r1) %>% 
+  select(band, band_status, recap_yr, recaptured_sex, site_recap, 
+        r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15,
+        r16, r17, comments) %>%
+  rename(site_orig = site_recap,
+         sex = recaptured_sex)
 
 # Export csv of new data frame
-write.csv(recap, 'output/cleaned-recaptured-data-RMNP-full.csv',
+write.csv(recap_12, 'output/cleaned-recaptured-data-RMNP-2012-full.csv',
           row.names = FALSE) 

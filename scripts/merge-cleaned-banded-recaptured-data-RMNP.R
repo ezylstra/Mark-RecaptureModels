@@ -849,6 +849,9 @@ dat <- allcaps %>%
   distinct()
 
 #Export csv of final data frame ready for survival analysis 
-write.csv(dat, 'output/cleaned-capture-data-RMNP.csv',
+write.csv(dat, 'output/cleaned-capture-data-RMNP-for-CJS.csv',
           row.names = F) 
 
+# Export full data set
+write.csv(allcaps, 'output/full-capture-data-RMNP.csv',
+          row.names = F)

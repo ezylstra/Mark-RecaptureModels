@@ -178,16 +178,13 @@ write.csv(recaptured_12, 'output/cleaned-recaptured-data-2012-RMNP.csv')
 
 # ---------------------------------------------------------------------------- #
 
-# Don't need this next step because there were no sites in column recapture_1
-# Left this code here, just in case 
-
-# Prepare new data frame to explore recaptures at multiple sites
+# Prepare new data frame to include recapture columns 2 to 17
 
 # Create new data frame 
 recap_12 <- recaptured_12 %>%   
-  mutate(r02 = '', r03 = '',r04 = '', r05 = '', r06 = '', r07 = '', r08 = '',
-         r09 = '', r10 = '', r11 = '', r12 = '', r13 = '', r14 = '', r15 = '',
-         r16 = '', r17 = '',) %>% 
+  mutate(r02 = NA, r03 = NA,r04 = NA, r05 = NA, r06 = NA, r07 = NA, r08 = NA,
+         r09 = NA, r10 = NA, r11 = NA, r12 = NA, r13 = NA, r14 = NA, r15 = NA,
+         r16 = NA, r17 = NA,) %>% 
   rename(r01 = r1) %>% 
   select(band, band_status, recap_yr, recaptured_sex, site_recap, 
         r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15,

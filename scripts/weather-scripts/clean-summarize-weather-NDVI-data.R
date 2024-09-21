@@ -10,7 +10,7 @@ library(tidyverse)
 rm(list = ls())
 
 # Load data 
-daymet <- read.csv('output/cleaned-daymet-data-all-sites.csv')
+daymet <- read.csv('output/weather-data/cleaned-daymet-data-all-sites.csv')
 
 # Remove X column created in data set 
 daymet <- daymet %>% 

@@ -1,4 +1,4 @@
-# Plot RMNP banding sites
+# Plot RMNP banding sites and calculate pairwise distances between points 
 # Gaby Samaniego
 # gabysamaniego@arizona.edu
 # 2024-01-04
@@ -14,7 +14,7 @@ library(sf)
 rm(list = ls())
 
 # Import breeding range of Broad-tailed Hummingbird from eBird
-range <- vect("data/BTLH-range-map/brthum_range_2021.gpkg")
+range <- vect("data/sites-BTLH-range-map-dem/brthum_range_2021.gpkg")
 data.frame(range)
 breeding <- subset(range, range$season == 'breeding')
 
@@ -22,7 +22,7 @@ breeding <- subset(range, range$season == 'breeding')
 plot(breeding, col = 'gray')
 
 # Import all sampling locations
-sites <- read.csv('data/RMNP-sites-data.csv')
+sites <- read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv')
 
 # Code to fix location of the label on map, from Erin on a different script 
 sites <- sites %>%

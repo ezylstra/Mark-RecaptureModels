@@ -76,4 +76,5 @@ effort <- effort_dat %>%
   mutate(across(c('average_trap_hours','average_banding_days'), round, 1)) 
 
 # Export csv of data frame with effort by year
-write.csv(effort, 'output/banding-effort-all-sites-RMNP.csv')
+write.csv(effort, 'output/banding-effort-data/banding-effort-all-sites-RMNP.csv',
+          row.names = FALSE)

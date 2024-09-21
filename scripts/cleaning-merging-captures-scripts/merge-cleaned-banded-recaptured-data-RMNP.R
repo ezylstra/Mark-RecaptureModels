@@ -11,11 +11,11 @@ library(terra)
 rm(list = ls())
 
 # Read csv files to merge
-banded <- read.csv('output/cleaned-banded-data-RMNP-date.csv',
+banded <- read.csv('output/capture-data/cleaned-banded-data-RMNP-full.csv',
                    na.strings = c(NA, ''))
-recap <- read.csv('output/cleaned-recaptured-data-RMNP-full.csv',
+recap <- read.csv('output/capture-data/cleaned-recaptured-data-RMNP-full.csv',
                        na.strings = c(NA, ''))
-recap.12 <- read.csv('output/cleaned-recaptured-data-RMNP-2012-full.csv',
+recap.12 <- read.csv('output/capture-data/cleaned-recaptured-data-RMNP-2012-full.csv',
                      na.strings = c(NA, ''))
 
 # Clean data sets
@@ -36,11 +36,12 @@ colnames(recap)[colnames(recap) %in% paste0("r", 1:17)] <-
 # Merge recapture data sets
 recap <- full_join(recap, recap.12)
 
-# ---------- Move information about rebanding events from banded to recap ---- #
+# --------- Move information about rebanding events from banded to recap ----- #
 
 # When a bird was rebanded, the new band number was entered in the banded data set,
 # but this is a recapture event, so here we are moving the recapture events to the 
-# recap data set. Change the column names to differentiate them in the new data sets
+# recap data set. 
+# Change the column names to differentiate them in the new data sets
 
 # Select all bands with status 1 = first time applied
 band_first <- banded %>%
@@ -73,6 +74,7 @@ rebanded <- rebanded %>%
 # Create new data frame with all rebands that need to be added to the recapture
 # data set. Change column names and format to match recap data set.
 # Add r01 column and fill it by extracting month, day and site when/where rebanded
+# and merge comment columns
 rebands_to_recap <- rebanded %>%
   select(-c(reband_age, band_year, band_date, band_age, band_sex)) %>% 
   mutate(r01 = paste0(month(reband_date), "/", day(reband_date), ", ", 
@@ -116,7 +118,7 @@ recap$r01[is.na(recap$r01)] <- "7/15"
 band_first <- band_first %>% 
   mutate(band_status = '1')
 
-# Merge banded and recaptured data sets to 
+# Merge banded and recaptured data sets 
 dat <- full_join(band_first, recap) %>% 
   arrange(band, band_status)
 
@@ -461,9 +463,11 @@ dat$cap_number <- sequence(from = 1, rle(dat$band)$lengths)
 # Fill in best_band_status with 1 and R  
 dat$best_band_status <- ifelse(dat$cap_number == 1, "1", "R")
 count(dat, band_status, best_band_status)
-# No more errors!
+# Good! No more errors!
 
-# Split data sets again
+# ---------------------------------------------------------------------------- #
+# Now that we deleted and edited some bands we need to split data sets again
+
 band_first <- dat %>% 
   filter(band_status == '1') %>% 
   select(band, band_year, band_date, band_age, band_sex, band_site, comments)
@@ -472,8 +476,11 @@ recap <- dat %>%
   filter(band_status == 'R') %>% 
   select(band, band_status, recap_year, sex, site_orig, r01, r02, r03, r04, r05,
          r06, r07, r08, r09, r10, r11, r12, r13, r14, r15, r16, r17, comments)
+# ---------------------------------------------------------------------------- #
 
-# Extract breeding information from comments in band_first
+#----------- Extract breeding information from comments in band_first -------- #
+
+# Create breeding column and fill it with data
 band_first <- band_first %>% 
   mutate(comment_no_band = str_remove(comments, "[E][0-9]{5}"),
          breeding = str_extract(comment_no_band, 
@@ -487,7 +494,8 @@ band_first$breeding[band_first$breeding == 'e9'] <- 'E9'
 band_first$breeding[band_first$breeding == 'Egg-8'] <- 'E8'
 band_first$breeding[band_first$breeding == 'Egg-7'] <- 'E7'
 
-# Filter band that needs editing
+# I identified a band in comments that starts with E9, this E9 is not for breeding
+# information, so filter the band and change E9 to NA
 bands <- band_first %>% 
   filter(band == '9000-91191') %>% 
   mutate(breeding = NA)
@@ -498,12 +506,12 @@ band_first <- band_first %>%
   rbind(bands) %>% 
   select(-comment_no_band, -comments)
   
-# -------------------------- Convert recapture data to long form ------------- #
+# ----------------------- Convert recapture data to long form ---------------- #
 
 # Extract information from each recapture event to obtain:
-# 1) site when different than original band site
-# 2) recapture date
-# 3) breeding condition in females
+# 1) Recapture site when different than original band site
+# 2) Recapture date
+# 3) Breeding condition in females
 
 # First convert to long form. Create new columns to store information, remove
 # entries with NA values, and remove duplicates
@@ -518,7 +526,7 @@ recaplong <- recap %>%
 # Merge this info with that in banded data set (just original banding events)
 recaplong <- left_join(recaplong, band_first, by = 'band')
 
-# 1) Sites
+# 1) Recapture sites
 
 # Check that band_site (banded) == site_orig (recaplong)
 # They should be the same
@@ -529,11 +537,11 @@ recaplong <- recaplong %>%
   select(-site_orig)
 
 # Load information about sites
-sites_df <- read.csv("data/RMNP-sites-data.csv")
+sites_df <- read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv')
 sites <- sort(unique(sites_df$site))
 
 # Load DEM
-dem <- rast("data/dem.tif")
+dem <- rast('data/sites-BTLH-range-map-dem/dem.tif')
 
 # Plot sites and DEM
 plot(dem)
@@ -599,7 +607,7 @@ recaplong <- recaplong %>%
   mutate(first_year = if_else(recap_year == band_year, 1, 0)) %>%
   select(-c(at, site))
 
-# 2) Extract dates from recapture information 
+# 2) Dates 
 
 # Looks like many dates have m/dd format or dd-MON format
 # (plus a few June/July/August dates entered as 6.X or 7.X)
@@ -670,7 +678,7 @@ count(recaplong, recap_month, recap_day, recap_date_uf)
 recaplong <- recaplong %>%
   select(-c(recap_date_uf, recap_date_uf2, recap_month, recap_day))
 
-# 3) Extract breeding condition from comments
+# 3) Breeding condition
 
 # Create new columns to extract breeding condition and indicator column
 recaplong <- recaplong %>% 
@@ -681,9 +689,9 @@ recaplong <- recaplong %>%
 # Check column breeding
 unique(recaplong$recap_breeding)
 
-# ------------------------ Checks continue ----------------
+# -------------------------------- Checks continue --------------------------- #
 
-# 3) Check that sex == band_sex
+# 2) Check that sex == band_sex
 filter(recaplong, sex != band_sex)
 
 # There are 12 band numbers associated to two different sexes:
@@ -738,8 +746,9 @@ recaplong <- recaplong %>%
                
 # Check that now all sex == band_sex
 filter(recaplong, sex != band_sex)
+# Good!
 
-# 4) Are there multiple entries in recaplong with the same band, date, location?
+# 3) Are there multiple entries in recaplong with the same band, date, location?
 recap_ck <- recaplong %>%
   group_by(band, recap_date) %>%
   summarize(n_recaps = n(),
@@ -761,14 +770,19 @@ for (i in 1:nrow(recap_ck2)) {
 
 # Add an indicator to show if bird moved sites in the same day (that will be the 
 # one we keep), then remove duplicate band-dates
-recaplong <- recaplong %>%
-  mutate(same_sites = ifelse(band_site == recap_site, 1, 0))
-
+# recaplong <- recaplong %>%
+#   mutate(same_sites = ifelse(band_site == recap_site, 1, 0))
 #recaplong <- recaplong %>%
   #arrange(band, recap_date, same_sites) %>% 
-  #distinct(band, recap_date, .keep_all = TRUE) ### Don't want to do this because I'll loose breeding data
+  #distinct(band, recap_date, .keep_all = TRUE) 
 
-# ------------------ Merge banded and recapture data 
+### I think I should not do this (lines 771-777) because, now that I have breeding 
+### info I'll loose that data if I keep just one site. Is this right? or, am I not 
+### understanding exactly what this part of the code does. I think that having
+### multiple entries the same year or day won't be a problem for the survivor
+### analysis, because I'll take the first record in a year for each band. Right?
+
+# ----------------------- Merge banded and recapture data -------------------- # 
 
 # Now grab recap columns and re-merge with band_first
 recaplong <- recaplong %>%
@@ -788,12 +802,11 @@ recaplong <- recaplong %>%
                               band_date + days(1),
                               recap_date))
 
-# Create final data set
+# ------------------------ Create final data set ----------------------------- #
 
 # Combine recapture data with banding data, so there's one row for every 
 # capture/recapture 
 
-# Edit recap data
 recaplong <- recaplong %>%
   rename(year = recap_year, 
          obsdate = recap_date,
@@ -837,21 +850,17 @@ allcaps <- rbind(band_first, recaplong) %>%
 allcaps <- filter(allcaps, month %in% 5:9)
 
 # Add the location in the park (east or west) to all the sites
-allcaps$location <- ifelse(allcaps$band_site %in% c('CC3', 'CC2', 'GC1', 'HPE', 'HPK1', 'HPK2',
-                                       'MCGC', 'MP1', 'NFPC', 'WB1', 'WB2', 'WC1',
-                                        'WPK1'), 'east', 'west')
+allcaps$location <- ifelse(allcaps$band_site %in% c('CC3', 'CC2', 'GC1', 'HPE', 
+                                                    'HPK1', 'HPK2', 'MCGC', 'MP1', 
+                                                    'NFPC', 'WB1', 'WB2', 'WC1',
+                                                    'WPK1'), 'east', 'west')
 
-# Prepare data set for survival analysis 
-dat <- allcaps %>%
-  select(-c(recap_num, band_year, obsdate, breeding, month, day)) %>% 
-  rename(age = band_age,
-         recap_site = site) %>% 
-  distinct()
-
-#Export csv of final data frame ready for survival analysis 
-write.csv(dat, 'output/cleaned-capture-data-RMNP-for-CJS.csv',
-          row.names = F) 
+# Organize columns
+allcaps <- allcaps %>% 
+  select(band, band_status, site, location, obsdate, year, month, day, 
+         sex, band_age, band_site,breeding) %>% 
+  rename(obssite = site)
 
 # Export full data set
-write.csv(allcaps, 'output/full-capture-data-RMNP.csv',
+write.csv(allcaps, 'output/capture-data/cleanded-capture-data-RMNP-full.csv',
           row.names = F)

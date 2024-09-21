@@ -11,7 +11,7 @@ library(RMark)
 rm(list = ls()) 
 
 # Load data
-dat <- read.csv('output/cleaned-capture-data-RMNP-for-CJS.csv')
+dat <- read.csv('output/capture-data/cleaned-capture-data-RMNP-for-CJS.csv')
 
 # Sort data
 dat1 <- dat %>% 
@@ -79,7 +79,7 @@ str(ch_age)
 # -------------------- Prepare effort to add it as a covariate --------------- #
 
 # Load data
-effort <- read.csv('output/banding-effort-all-sites-RMNP.csv')
+effort <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
 # Total banding days per year
 
 # Prepare effort data to add to ddl

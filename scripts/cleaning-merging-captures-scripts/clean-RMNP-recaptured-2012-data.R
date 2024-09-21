@@ -166,32 +166,19 @@ dat.12 <- dat.12 %>%
   rename(r1 = recapture_info)
 
 # Prepare new data frame to merge with other recapture data sets
-recaptured_12 <- dat.12 %>%
-  select(band, band_status, recap_yr, species, recaptured_sex, 
-         recapture_age,recapture_site, r1, comments) %>% 
-  filter(species == 'BTLH') %>% 
-  rename(site_recap = recapture_site) %>% 
-  select(-species)
-
-# Export csv of new data frame
-write.csv(recaptured_12, 'output/cleaned-recaptured-data-2012-RMNP.csv') 
-
-# ---------------------------------------------------------------------------- #
-
-# Prepare new data frame to include recapture columns 2 to 17
-
-# Create new data frame 
-recap_12 <- recaptured_12 %>%   
+recap_12 <- dat.12 %>%   
   mutate(r02 = NA, r03 = NA,r04 = NA, r05 = NA, r06 = NA, r07 = NA, r08 = NA,
          r09 = NA, r10 = NA, r11 = NA, r12 = NA, r13 = NA, r14 = NA, r15 = NA,
          r16 = NA, r17 = NA,) %>% 
   rename(r01 = r1) %>% 
-  select(band, band_status, recap_yr, recaptured_sex, site_recap, 
-        r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15,
-        r16, r17, comments) %>%
-  rename(site_orig = site_recap,
-         sex = recaptured_sex)
+  select(species,band, band_status, recap_yr, recaptured_sex, recapture_site, 
+         r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15,
+         r16, r17, comments) %>%
+  rename(site_orig = recapture_site,
+         sex = recaptured_sex) %>% 
+  filter(species == 'BTLH') %>% 
+  select(-species)
 
 # Export csv of new data frame
-write.csv(recap_12, 'output/cleaned-recaptured-data-RMNP-2012-full.csv',
+write.csv(recap_12, 'output/capture-data/cleaned-recaptured-data-RMNP-2012-full.csv',
           row.names = FALSE) 

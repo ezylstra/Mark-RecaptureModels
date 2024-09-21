@@ -457,21 +457,10 @@ banded.dat <- banded.dat %>%
 
 # Create a new data frame with selected columns we'll need for analysis
 banded <- banded.dat %>% 
-  select(UBI_band, band_status, year, species, age, fixed_sex, site) %>% 
-  filter(species == 'BTLH') %>% 
-  select(-species)
-
-# Export csv of new data frame
-write.csv(banded, 'output/cleaned-banded-data-RMNP.csv')
-
-# Then save a banded data set that includes date (and not just year)
-
-# Create a new data frame with selected columns we'll need for analysis
-banded.date <- banded.dat %>% 
   select(UBI_band, band_status, year, date, species, age, fixed_sex, site, comments) %>% 
   filter(species == 'BTLH') %>% 
   select(-species)
 
 # Export csv of new data frame
-write.csv(banded.date, 'output/cleaned-banded-data-RMNP-date.csv',
+write.csv(banded, 'output/capture-data/cleaned-banded-data-RMNP-full.csv',
           row.names = FALSE)

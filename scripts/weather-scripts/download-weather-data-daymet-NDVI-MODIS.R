@@ -14,8 +14,8 @@ library(MODISTools)
 rm(list = ls())
 
 # Load points data 
-sites_winter <- read.csv('output/GBIF-BTLH-winter-sightings-Mexico-with-elevation.csv')
-sites_summer <-read.csv('data/RMNP-sites-data.csv')
+sites_winter <- read.csv('output/GBIF-Mexico-data/GBIF-BTLH-winter-sightings-Mexico-with-elevation.csv')
+sites_summer <-read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv')
 
 # Clean up data sets
 sites_winter <- sites_winter %>% 
@@ -91,7 +91,8 @@ daymet_clean <- daymet_dat %>%
   relocate(site, date, year, month, day)
 
 # Create csv with downloaded data 
-write.csv(daymet_clean, 'output/cleaned-daymet-data-all-sites.csv')
+write.csv(daymet_clean, 'output/weather-data/cleaned-daymet-data-all-sites.csv',
+          row.names = FALSE)
 
 # --------------------------------- MODIS data ------------------------------- #
 
@@ -152,5 +153,6 @@ all_ndvi <- ndvi_list %>%
 rownames(all_ndvi) <- NULL
 
 # Create csv with downloaded data
-write.csv(all_ndvi, 'output/ndvi-data-50.2-sites.csv')
+write.csv(all_ndvi, 'output/weather-data/ndvi-data-50.2-sites.csv',
+          row.names = FALSE)
 

@@ -494,6 +494,14 @@ band_first$breeding[band_first$breeding == 'e9'] <- 'E9'
 band_first$breeding[band_first$breeding == 'Egg-8'] <- 'E8'
 band_first$breeding[band_first$breeding == 'Egg-7'] <- 'E7'
 
+# Make sure breeding information corresponds to females
+filter(band_first, breeding %in% c('E6','E7','E8','E9') & band_sex == 'M')
+
+# One individual marked in 2003 as M but with possible breeding conditions. 
+# Delete doubtful record. This birds was not recaptured after 2003.
+band_first <- band_first %>% 
+  filter(band != '5000-11588')
+
 # I identified a band in comments that starts with E9, this E9 is not for breeding
 # information, so filter the band and change E9 to NA
 bands <- band_first %>% 
@@ -689,6 +697,18 @@ recaplong <- recaplong %>%
 # Check column breeding
 unique(recaplong$recap_breeding)
 
+# Make sure breeding information corresponds to females
+filter(recaplong, recap_breeding %in% c('E6','E7','E8','E9') & sex == 'M')
+
+# Two inconsistencies:
+# 6000-81133 marked in 2006 as AHY M with breeding conditions. 
+# 9100-22706 marked in 2011 as HY M but recaptured as M with breeding conditions
+# in 2012. 
+# Delete doubtful records. First bird was not recaptured after 2006 and second 
+# bird was just recaptured once 
+recaplong <- recaplong %>% 
+  filter(!band %in% c('6000-81133', '9100-22706'))
+
 # -------------------------------- Checks continue --------------------------- #
 
 # 2) Check that sex == band_sex
@@ -801,6 +821,15 @@ recaplong <- recaplong %>%
   mutate(recap_date = if_else(band_date > recap_date, 
                               band_date + days(1),
                               recap_date))
+
+# Delete bands that were removed due to doubtful breeding conditions (males, with
+# egg development) in band_first and recaplong
+band_first <- band_first %>% 
+  filter(band != '6000-81133',
+         band != '9100-22706')
+
+recaplong <- recaplong %>% 
+  filter(band != '5000-11588')
 
 # ------------------------ Create final data set ----------------------------- #
 

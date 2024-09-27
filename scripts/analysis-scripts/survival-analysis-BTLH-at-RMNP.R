@@ -11,11 +11,17 @@ library(RMark)
 rm(list = ls()) 
 
 # Load data
-dat <- read.csv('output/capture-data/cleaned-capture-data-RMNP-for-CJS.csv')
+dat <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
+
+# Prepare data set for survival analysis 
+dat1 <- dat %>%
+  select(band, band_status, year, sex, obssite, band_age, band_site, location) %>% 
+  rename(age = band_age) %>% 
+  distinct()
 
 # Sort data
-dat1 <- dat %>% 
-  arrange(band, year)
+dat1 <- dat1 %>% 
+  arrange(band, band_status, year)
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
 

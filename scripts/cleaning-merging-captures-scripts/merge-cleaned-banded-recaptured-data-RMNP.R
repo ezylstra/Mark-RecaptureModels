@@ -887,7 +887,7 @@ allcaps$location <- ifelse(allcaps$band_site %in% c('CC3', 'CC2', 'GC1', 'HPE',
 # Organize columns
 allcaps <- allcaps %>% 
   select(band, band_status, site, location, obsdate, year, month, day, 
-         sex, band_age, band_site,breeding) %>% 
+         sex, band_age,band_year, band_site, breeding) %>% 
   rename(obssite = site)
 
 # Export full data set

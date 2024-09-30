@@ -1,4 +1,4 @@
-# Exploring at potential transient birds
+# Exploring potential transient birds
 # Are individuals captured late in the season part of the breeding population or 
 # are they individuals moving through?
 

@@ -796,9 +796,9 @@ for (i in 1:nrow(recap_ck2)) {
   #arrange(band, recap_date, same_sites) %>% 
   #distinct(band, recap_date, .keep_all = TRUE) 
 
-### I think I should not do this (lines 771-777) because, now that I have breeding 
+### I think I should not do this (lines 791-797) because, now that I have breeding 
 ### info I'll loose that data if I keep just one site. Is this right? or, am I not 
-### understanding exactly what this part of the code does. I think that having
+### understanding exactly what this part of the code does? I think that having
 ### multiple entries the same year or day won't be a problem for the survivor
 ### analysis, because I'll take the first record in a year for each band. Right?
 

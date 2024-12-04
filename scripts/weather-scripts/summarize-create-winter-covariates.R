@@ -493,10 +493,9 @@ pivot.min.temp <- pivot_wider(min.temp,
 # Average across sites to get an annual value
 min.temp.aver <- min.temp %>% 
   group_by(winter_period) %>% 
-  summarise(ave_min_temp = mean(min_temp)) %>%  
-  mutate(ave_min_temp = round(ave_min_temp, 2))
+  summarise(ave_min_temp = round(mean(min_temp), 2)) 
 
-# Exploring monthly min temperature
+# 2) Monthly min temperature
 
 # Extract monthly minimum temperature over each site and winter period
 monthly.min.temp <- daymet.dat %>% 
@@ -542,17 +541,15 @@ ggplot(subset.points.monthly.min.temp,
 # Average across sites to get an annual value
 monthly.min.temp.aver <- monthly.min.temp %>% 
   group_by(winter_period) %>% 
-  summarise(ave_monthly_min_temp = mean(min_temp)) %>%  
-  mutate(ave_monthly_min_temp = round(ave_monthly_min_temp, 2))
+  summarise(ave_monthly_min_temp = round(mean(min_temp), 2)) 
 
-# 2) Daily minimum temperature
+# 3) Daily minimum temperature
 
 # Average daily minimum temperature over each site and winter period
 aver.daily.min.temp <- daymet.dat %>% 
   select(site, tmin, winter_period) %>% 
   group_by(site, winter_period) %>% 
-  summarise(aver_min_temp = mean(tmin)) %>% 
-  mutate(aver_min_temp = round(aver_min_temp, 2))
+  summarise(aver_min_temp = round(mean(tmin),2))
 
 # Explore average daily minimum temperature data per sites
 aver.daily.min.temp.summary <- aver.daily.min.temp %>% 
@@ -592,16 +589,70 @@ pivot.aver.min.temp <- pivot_wider(aver.daily.min.temp,
 # Average across sites to get an annual value
 aver.min.temp.aver <- aver.daily.min.temp %>% 
   group_by(winter_period) %>% 
-  summarise(aver_daily_min_temp = mean(aver_min_temp)) %>%  
-  mutate(aver_daily_min_temp = round(aver_daily_min_temp, 2))
+  summarise(aver_daily_min_temp = round(mean(aver_min_temp), 2)) 
+
+# 4) Daily mean temperature 
+
+# Calculate daily mean temperature 
+mean.daily.temp <- daymet.dat %>% 
+  mutate(tmean = round((tmax + tmin) / 2,2))  #Daily mean temperature)
+
+# Average daily mean temperature over each site and winter period
+aver.daily.mean.temp <- mean.daily.temp %>% 
+  select(site, tmean, winter_period) %>% 
+  group_by(site, winter_period) %>% 
+  summarise(aver_daily_mean_temp = round(mean(tmean), 2))
+
+# Explore average daily mean temperature data per sites
+aver.daily.mean.temp.summary <- aver.daily.mean.temp %>% 
+  group_by(site) %>% 
+  summarize(min = min(aver_daily_mean_temp),
+            mean = mean(aver_daily_mean_temp),
+            max = max(aver_daily_mean_temp))
+summary(aver.daily.mean.temp.summary)
+
+# Plot 10 random sites
+
+# Subset sites
+sample.sites.aver.daily.mean.temp <- sample(unique(aver.daily.mean.temp$site), 10)
+
+# Create data frame with information for subset sites
+subset.points.aver.daily.mean.temp <- aver.daily.mean.temp[aver.daily.mean.temp$site %in% 
+                                                     sample.sites.aver.daily.mean.temp, ]
+
+# Plot them
+ggplot(subset.points.aver.daily.mean.temp, aes(x = winter_period,
+                                               y = aver_daily_mean_temp, 
+                                               group = site, 
+                                               color = site)) +
+  geom_line(alpha = 0.7, size = 1) +
+  labs(title = 'Variation of Average Daily Mean Temperature Over Time (Sampled Sites)',
+       x = 'Winter Period',
+       y = 'Average Daily Mean Temperature (°C)',
+       color = 'Site') +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Explore the data per winter period and site
+pivot.aver.daily.mean.temp <- pivot_wider(aver.daily.mean.temp,
+                                   names_from = site,
+                                   values_from = aver_daily_mean_temp)
+
+# Average across sites to get an annual value
+aver.daily.mean.temp.aver <- aver.daily.mean.temp %>% 
+  group_by(winter_period) %>% 
+  summarise(aver_daily_mean_temp = round(mean(aver_daily_mean_temp), 2)) 
+
+# Results from summarizing temperature data 
 
 # Create data set with min temp, monthly aver min temp, and aver min temp per 
 # winter period to compare
-min.temp.full <- min.temp.aver %>% 
+temp.full <- min.temp.aver %>% 
+  left_join(monthly.min.temp.aver, by = 'winter_period') %>% 
   left_join(aver.min.temp.aver, by = 'winter_period') %>% 
-  left_join(monthly.min.temp.aver, by = 'winter_period')
+  left_join(aver.daily.mean.temp.aver, by = 'winter_period')
 
-# 3) Defining cold days
+# 4) Defining cold days
 
 # Some papers I read about winter conditions affecting survival of other
 # bird species used a measure of 'extreme weather event (ewe).' In some cases, these
@@ -616,40 +667,92 @@ min.temp.full <- min.temp.aver %>%
 # other hummingbird species.For now I'm going to use the 10th percentile of the min
 # temperature as the threshold and see what I get.
 
-# The question here is, what data should I use to calculate 10th percentile?
-# 
+# The question here is, what data should I use to calculate the 10th percentile?
 
-# Define cold threshold  
-(threshold.1 <- quantile(min.temp$min_temp,
+# trying everything...
+
+# Define cold threshold using the overall minimum temperature
+(threshold.1 <- round(quantile(min.temp$min_temp,
                                 probs = 0.1, 
-                                na.rm = TRUE))
-# -7.608
+                                na.rm = TRUE), 2))
+# -7.61
+# This value is the 10th percentile of the minimum temperature of all sites 
+# (119) for all winter periods (2002-2003 to 2011-2012). In data set used to 
+# calculate this threshold: one value per site and winter period
 
-(threshold.2 <- quantile(monthly.min.temp$min_temp,
+# Define cold threshold using the monthly minimum temperature 
+(threshold.2 <- round(quantile(monthly.min.temp$min_temp,
                          probs = 0.1, 
-                         na.rm = TRUE))
+                         na.rm = TRUE), 2))
 # -5.38
+# This value is the 10th percentile of the monthly minimum temperature of all 
+# sites (119) for all winter periods (2002-2003 to 2011-2012). In data set used to 
+# calculate this threshold: one value per month and site for all winter periods
 
-(threshold.3 <- quantile(aver.daily.min.temp$aver_min_temp,
+# Define cold threshold using the average daily minimum temperature 
+(threshold.3 <- round(quantile(aver.daily.min.temp$aver_min_temp,
                          probs = 0.1, 
-                         na.rm = TRUE))
+                         na.rm = TRUE), 2))
 
-# 0.155
+# 0.16
+# This value is the 10th percentile of the average daily minimum temperature of 
+# all sites (119) for all winter periods (2002-2003 to 2011-2012). In data set 
+# used to calculate this threshold: one value per site and winter periods
 
+# Define cold threshold using the average daily mean temperature
+(threshold.4 <- round(quantile(aver.daily.mean.temp$aver_daily_mean_temp,
+                         probs = 0.1, 
+                         na.rm = TRUE), 2))
 
-# Count cold days per site and date first
-cold.days.per.site <- min.temp %>%
-  select(site, date, tmin, winter_period) %>% 
-  mutate(is_cold = if_else(tmin <= cold.threshold, 1, 0)) %>%
-  group_by(winter_period, date) %>% 
-  summarize(num_cold_days = sum(is_cold))
-  
-  
-# Calculate number of cold days
-num.cold.days <- daymet.dat %>%
+# 8.37
+# This value is the 10th percentile of the average mean daily temperature of all 
+# sites (119) for all winter periods (2002-2003 to 2011-2012). In data set used to 
+# calculate this threshold: one value per site and winter periods
+
+# Count the number of cold days 
+
+# Prepare data set
+for.cold.days <- mean.daily.temp %>%
+  select(site,date, tmin, tmean, winter_period) 
+
+# Count number of cold days using threshold.1 and average per winter period
+cold.days.t1 <- for.cold.days %>% 
+  mutate(cold_day = if_else(tmin <= threshold.1, 1, 0)) %>%  
+  group_by(site, winter_period) %>%
+  summarize(num_cold_days = sum(cold_day)) %>% 
   group_by(winter_period) %>%
-  summarize(num_cold_days = sum(tmin <= cold.threshold, na.rm = TRUE))
+  summarize(mean_cold_days_t1 = round(mean(num_cold_days), 2))
 
+# Count number of cold days using threshold.2 and average per winter period
+cold.days.t2 <- for.cold.days %>% 
+  mutate(cold_day = if_else(tmin <= threshold.2, 1, 0)) %>%  
+  group_by(site, winter_period) %>%
+  summarize(num_cold_days = sum(cold_day)) %>% 
+  group_by(winter_period) %>%
+  summarize(mean_cold_days_t2 = round(mean(num_cold_days), 2))
+
+# Count number of cold days using threshold.3 and average per winter period
+cold.days.t3 <- for.cold.days %>% 
+  mutate(cold_day = if_else(tmin <= threshold.3, 1, 0)) %>%  
+  group_by(site, winter_period) %>%
+  summarize(num_cold_days = sum(cold_day)) %>% 
+  group_by(winter_period) %>%
+  summarize(mean_cold_days_t3 = round(mean(num_cold_days), 2))
+
+# Count number of cold days using threshold.4 and average per winter period
+# I'm using tmean for this summary
+cold.days.t4 <- for.cold.days %>% 
+  mutate(cold_day = if_else(tmean <= threshold.4, 1, 0)) %>%  
+  group_by(site, winter_period) %>%
+  summarize(num_cold_days = sum(cold_day)) %>% 
+  group_by(winter_period) %>%
+  summarize(mean_cold_days_t4 = round(mean(num_cold_days), 2))
+
+# Aggregate results in one data frame
+cold.days.full <- cold.days.t1 %>% 
+  left_join(cold.days.t2, by = 'winter_period') %>% 
+  left_join(cold.days.t3, by = 'winter_period') %>%
+  left_join(cold.days.t4, by = 'winter_period')
 
 
 

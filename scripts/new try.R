@@ -118,3 +118,4 @@ ggplot() +
   geom_spatraster(data = ras.all.merge, fill = "lightblue") +
   geom_spatvector(data = locs.vect, color = 'red') 
 
+crs(locs.vect) == crs(ras.all.merge)

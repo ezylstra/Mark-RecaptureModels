@@ -88,8 +88,8 @@ ras.collection <- terra::sprc(ras.list)
 # Merge everything into a single raster
 ras.all.merge <- terra::merge(ras.collection)
 
+# Plot
 plot(ras.all.merge)
-plot(ras.all.mosaic)
 
 ################################################################################ 
 # Using the loop I tried before

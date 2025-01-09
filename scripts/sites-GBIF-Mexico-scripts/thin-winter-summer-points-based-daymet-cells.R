@@ -115,17 +115,17 @@ cell.number.winter <- extract(ras.all.merge,
                               ID = FALSE)
 
 # Bind the cell numbers to the original dataframe 
-locs.winter <- cbind(locs.winter, cell = cell.number.winter$cell)
+winter <- cbind(winter, cell = cell.number.winter$cell)
 
 # Thin the points 
-thinned.points.winter <- locs.winter %>%
+thinned.points.winter <- winter %>%
   group_by(cell) %>%
   slice(1) %>%  
   ungroup()
 
 # Export list of thinned points
 write.csv(thinned.points.winter, 'data/sites-BTLH-range-map-dem/thinned-winter-sites.csv',
-          row.names = FALSE)
+          row.names = F)
 
 #----------------------------------- Summer Sites -----------------------------#
 

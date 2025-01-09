@@ -124,7 +124,7 @@ thinned.points.winter <- locs.winter %>%
   ungroup()
 
 # Export list of thinned points
-write.csv(thinned.points.winter, 'output/thinned-winter-sites.csv',
+write.csv(thinned.points.winter, 'data/sites-BTLH-range-map-dem/thinned-winter-sites.csv',
           row.names = FALSE)
 
 #----------------------------------- Summer Sites -----------------------------#

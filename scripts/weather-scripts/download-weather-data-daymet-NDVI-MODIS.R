@@ -192,4 +192,5 @@ re <- ndvi.merge %>%
 ndvi.full <- cbind(ndvi, qa, re)
 
 # Export combined data set
-write.csv(ndvi.full, 'output/weather-data/cleaned-ndvi-data-all-sites-with-quality-flags.csv')
+write.csv(ndvi.full, 'output/weather-data/cleaned-ndvi-data-all-sites-with-quality-flags.csv',
+          row.names = FALSE)

@@ -14,19 +14,16 @@ library(MODISTools)
 rm(list = ls())
 
 # Load points data 
-sites_winter <- read.csv('output/GBIF-Mexico-data/GBIF-BTLH-winter-sightings-Mexico-with-elevation.csv')
-sites_summer <-read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv')
+sites_winter <- read.csv('data/sites-BTLH-range-map-dem/thinned-winter-sites.csv')
+sites_summer <-read.csv('data/sites-BTLH-range-map-dem/thinned-summer-sites.csv')
 
 # Clean up data sets
 sites_winter <- sites_winter %>% 
-  dplyr::select(latitude, longitude) %>% 
-  mutate(code = paste0('ws', 1:235)) # ws = winter sites
+  dplyr::select(code, latitude, longitude)
 
 sites_summer <- sites_summer %>% 
-  dplyr::select(latitude, longitude, site) %>% 
-  filter(!site %in% c('CC2', 'HPK2', 'WB1')) %>%  
-  # These sites are < 1 km to the nearest site, removing them to avoid duplicates
-  mutate(code = paste0('ss', 1:17))  # ss = summer sites
+  dplyr::select(site, latitude, longitude) %>% 
+  mutate(code = paste0('ss', 1:19))  # ss = summer sites
 
 # Merge data sets
 sites <- full_join(sites_winter, sites_summer)
@@ -102,16 +99,23 @@ write.csv(daymet_clean, 'output/weather-data/cleaned-daymet-data-all-sites.csv',
 
 # Edited by Gaby Samaniego
 # 2024-07-17
+# https://github.com/bluegreen-labs/MODISTools
 
-# Product and band for NDVI
+# Product and bands for NDVI
 ndvi_product <- "MOD13Q1"
-ndvi_band <- "250m_16_days_NDVI"
+ndvi_bands <- c('250m_16_days_NDVI', 
+                '250m_16_days_VI_Quality', 
+                '250m_16_days_pixel_reliability')
+# Bands description: 
+# 250m_16_days_NDVI: 16 day NDVI average
+# 250m_16_days_VI_Quality: VI quality indicators
+# 250m_16_days_pixel_reliability: Quality reliability of VI pixel
 
 # MODISTools needs lat and lon
 # We also bound the search by the beginning of the first active year (Jan 1) 
 # and the end of the last active year (Dec 31)
 modis_sites <- sites %>% 
-  mutate(sdate = '2001-01-01',
+  mutate(sdate = '2001-12-01',   
          edate = '2012-12-31')
 
 # Loop to run query for each row in sites data frame. Yes, we hate loops, but 
@@ -121,7 +125,7 @@ modis_sites <- sites %>%
 # query_sites <- modis_sites[1:2, ]
 
 # The full data set
-query_sites <- modis_sites[51:252, ] # I used chunks of points to download the data
+query_sites <- modis_sites[96:139, ] # I used chunks of points to download the data
 ndvi_list <- vector(mode = "list", length = nrow(query_sites))
 for (site_i in 1:nrow(query_sites)) {
   code <- query_sites$code[site_i]
@@ -129,7 +133,7 @@ for (site_i in 1:nrow(query_sites)) {
           " (", site_i, " of ", nrow(query_sites), ")")
   # Run the query
   ndvi_query <- mt_subset(product = ndvi_product,
-                          band = ndvi_band,
+                          band = ndvi_bands,
                           lat = query_sites$latitude[site_i],
                           lon = query_sites$longitude[site_i],
                           start = query_sites$sdate[site_i],
@@ -138,8 +142,8 @@ for (site_i in 1:nrow(query_sites)) {
   # scale column comes back as numeric, so wrap in as.numeric
   result <- ndvi_query %>%
     mutate(ndvi = as.numeric(scale) * value) %>%
-    mutate(site_name = code) %>%
-    select(site_name, calendar_date, ndvi)
+    mutate(site_name = code) %>% 
+    select(site_name, cellsize, tile, band, calendar_date, value, ndvi)
   rownames(result) <- NULL
   ndvi_list[[site_i]] <- result
   # Should be unnecessary, but for some reason paranoid about memory today?
@@ -153,6 +157,39 @@ all_ndvi <- ndvi_list %>%
 rownames(all_ndvi) <- NULL
 
 # Create csv with downloaded data
-write.csv(all_ndvi, 'output/weather-data/ndvi-data-50.2-sites.csv',
+write.csv(all_ndvi, 'output/weather-data/NDVI-raw-data/second-download-2025/points-96-to-139.csv',
           row.names = FALSE)
 
+# Merge the downloaded files
+
+# Load data
+ndvi.files <- list.files('output/weather-data/NDVI-raw-data/second-download-2025/', 
+                         pattern = '*.csv', 
+                         full.names = TRUE)
+
+# Read each csv and merge them
+ndvi.merge <- ndvi.files %>%
+  map_dfr(read_csv)
+
+# Create a new data frame with columns for QA and reliability values per each 
+# point
+
+# Filter values per band
+ndvi <- ndvi.merge %>% 
+  filter(band == '250m_16_days_NDVI') %>% 
+  select(site_name, tile, calendar_date, ndvi)
+
+qa <- ndvi.merge %>% 
+  filter(band == '250m_16_days_VI_Quality') %>% 
+  select(value) %>% 
+  rename(qa_value = value)
+
+re <- ndvi.merge %>% 
+  filter(band == '250m_16_days_pixel_reliability') %>% 
+  select(value) %>% 
+  rename(re_value = value)
+
+ndvi.full <- cbind(ndvi, qa, re)
+
+# Export combined data set
+write.csv(ndvi.full, 'output/weather-data/cleaned-ndvi-data-all-sites-with-quality-flags.csv')

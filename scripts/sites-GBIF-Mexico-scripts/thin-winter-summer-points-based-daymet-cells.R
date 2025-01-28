@@ -171,7 +171,7 @@ tile.raster.summer <- terra::rast('output/weather-data/daymet-tiles-summer/tmax_
 # Assign the LCC Projection (the correct daymet projection parameters):
 crs(tile.raster.summer) <- '+proj=lcc +lat_1=25 +lat_2=60 +lat_0=42.5 +lon_0=-100 +datum=WGS84 +units=m'
 
-# # 3) Explore if the summer sites are in the same daymet cells 
+# 3) Explore if the summer sites are in the same daymet cells 
 
 # Convert summer sites to a SpatVector
 locs.vect.summer <- vect(summer.sites,
@@ -194,7 +194,7 @@ cell.number.summer <- extract(tile.raster.summer,
                               ID = FALSE)
 
 # Bind the cell numbers to the original data frame 
-locs.summer <- cbind(locs.summer, cell = cell.number.summer$cell)
+locs.summer <- cbind(summer.sites, cell = cell.number.summer$cell)
 
 # Thin the points 
 thinned.summer.locs <- locs.summer %>%
@@ -202,3 +202,7 @@ thinned.summer.locs <- locs.summer %>%
   slice(1) %>%  
   ungroup()
 # Just one location removed WB2 
+
+# Export list of thinned points
+write.csv(thinned.summer.locs, 'data/sites-BTLH-range-map-dem/thinned-summer-sites.csv',
+          row.names = F)

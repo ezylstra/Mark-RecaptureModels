@@ -31,7 +31,7 @@ winter.sites <- read.csv('data/sites-BTLH-range-map-dem/thinned-winter-sites.csv
 # Load summer sites
 summer.sites <- read.csv('data/sites-BTLH-range-map-dem/thinned-summer-sites.csv')
 
-# --------------------------- Winter Covariates ------------------------------ # 
+# --------------------------- WINTER COVARIATES ------------------------------ # 
 
 # Prepare daymet data set to analyze it for winter months and winter periods 
 daymet.winter <- daymet %>%
@@ -70,8 +70,8 @@ winter.aver.daily.min.temp <- site.aver.daily.min.temp %>%
   group_by(winter_period) %>% 
   summarise(aver_daily_min_temp = round(mean(aver_min_temp), 2)) 
 
-# 3) Number of days when the mean temperature was equal or under threshold 
-# temperature
+# 3) Number of days when the daily mean temperature was equal or under  a 
+# threshold temperature
 
 # Calculate daily mean temperature
 mean.daily.temp <- daymet.winter %>% 
@@ -168,9 +168,7 @@ modis.winter <- modis %>%
   filter(!winter_period %in% c('2001-2002', '2012-2013'))
 
 # Filter modis data using quality flags
-
 # Using Pixel Reliability Flag = overall pixel quality
-
 # Rank key    Summary QA          Description
 #   -1       Fill/No Data     Not Processed
 #    0       Good Data        Use with confidence
@@ -179,7 +177,7 @@ modis.winter <- modis %>%
 #    3       Cloudy           Target not visible, covered with cloud
 
 # Using just good data
-filtered.ndvi.winter.0 <- modis.winter %>% 
+filtered.ndvi.winter <- modis.winter %>% 
   filter(re_value == 0)
 # From 7200 observations to 6586 observations. Removes 614 observations
 
@@ -187,20 +185,11 @@ filtered.ndvi.winter.0 <- modis.winter %>%
 filtered.ndvi.winter.0.1 <- modis.winter %>% 
   filter(re_value %in% c(0, 1))
 # From 7200 observations to 7086 observations. Removes 114 observations
-
-# Using VI Quality flag 
-# Need more time to learn hgow to interpret the bits in this flag
-
-
-
-
-################################################################################ 
-# Prepare this code before starting learning about quality flags. It might
-# be useful later. Ignore for now
-# NDVI values go from -1 to 1  
+# There is a tiny difference in the data when using rank key 0 vs c(0,1)
+# Decided to use just good data =rank key 0
 
 # Average ndvi values over each site and winter period
-site.aver.ndvi <- modis.winter %>% 
+site.aver.ndvi <- filtered.ndvi.winter %>% 
   select(site_name, ndvi, winter_period) %>% 
   group_by(site_name, winter_period) %>% 
   summarise(aver_ndvi = round(mean(ndvi), 2))
@@ -211,14 +200,35 @@ winter.aver.ndvi <- site.aver.ndvi %>%
   group_by(winter_period) %>% 
   summarise(aver_ndvi = round(mean(aver_ndvi), 2)) 
 
-# What is the correlation between average ndvi and precipitation?
-cor.test(winter.aver.daily.prcp$aver_daily_prcp, 
-         winter.aver.ndvi$aver_ndvi)
-# 0.64
-# Medium positive correlation
-################################################################################
+# Results from summarizing precipitation and ndvi data 
 
-# --------------------------- Summer Covariates ------------------------------ # 
+# Create data set with total precip and aver ndvi per winter period 
+resources.full <- winter.total.prcp %>% 
+  left_join(winter.aver.ndvi, by = 'winter_period')
+
+# What is the correlation between average ndvi and precipitation?
+cor.test(winter.total.prcp$total_prcp, 
+         winter.aver.ndvi$aver_ndvi)
+# 0.66
+# Medium positive correlation
+
+# Plot ndvi 
+ggplot(winter.aver.ndvi, aes(winter_period, aver_ndvi)) +
+  geom_bar(stat = 'identity', fill = 'darkblue') +
+  labs(x = 'Winter Period', y = 'Average NDVI') + 
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        legend.position = 'none',
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+# NDVI values go from -1 to 1
+
+# ----------------- Create data set with all winter covariates --------------- #
+
+winter.covariates <- temp.full %>% 
+  left_join(resources.full, by = 'winter_period')
+
+# ------------------------------ SUMEER COVARIATES --------------------------- # 
 
 
 

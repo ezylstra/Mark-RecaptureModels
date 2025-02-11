@@ -131,7 +131,8 @@ write.csv(thinned.points.winter, 'data/sites-BTLH-range-map-dem/thinned-winter-s
 
 # Load summer sites
 summer.sites <- read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv',
-                         strip.white = TRUE)
+                         strip.white = TRUE) %>% 
+  filter(!site %in% c('CLP', 'BGMD'))
 
 # Convert summer sites to an sf object 
 # crs WGS84 so it matches the tile_outlines later in the code

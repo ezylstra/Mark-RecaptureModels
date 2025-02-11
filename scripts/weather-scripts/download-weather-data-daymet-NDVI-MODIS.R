@@ -22,8 +22,7 @@ sites_winter <- sites_winter %>%
   dplyr::select(code, latitude, longitude)
 
 sites_summer <- sites_summer %>% 
-  dplyr::select(site, latitude, longitude) %>% 
-  mutate(code = paste0('ss', 1:19))  # ss = summer sites
+  dplyr::select(code, latitude, longitude)
 
 # Merge data sets
 sites <- full_join(sites_winter, sites_summer)

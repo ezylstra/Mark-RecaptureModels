@@ -574,7 +574,8 @@ temp.full.summer.co <- aver.max.temp.summer.co %>%
   left_join(aver.aver.daily.max.temp.summer.co, by = 'year') %>% 
   left_join(aver.aver.daily.min.temp.summer.co, by = 'year') %>% 
   left_join(aver.mean.temp.summer.co, by = 'year') %>% 
-  left_join(cold.days.summer.co, by = 'year')
+  left_join(cold.days.summer.co, by = 'year') %>% 
+  left_join(warm.days.summer.co, by ='year')
 
 # Results from summarizing temperature data for east sites
 temp.full.east <- aver.max.temp.east %>% 
@@ -781,7 +782,7 @@ frost.threshold <- -5
 # Count the number of days when the min temperature was equal or under 
 # the frost threshold and average per winter period for the growing season 
 # In RMBL late May to September, so I'm going to use summer months in CO
-winter.frost.days.co <- daymet.summer.co %>% 
+summer.frost.days.co <- daymet.summer.co %>% 
   filter(month %in% c(5,6)) %>%  
   mutate(frost = if_else(tmin <= frost.threshold, 1, 0)) %>%  
   group_by(site, year) %>%

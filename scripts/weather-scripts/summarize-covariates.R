@@ -123,7 +123,8 @@ precip.and.swe <- function(data,
   # Calculate cumulative value per period/year across all sites
   period.summary <- site.summary %>%
     group_by({{ period }}) %>%
-    summarize(total_value = sum(total_value, na.rm = TRUE), .groups = 'drop')
+    summarize(total_value = round(mean(total_value, na.rm = TRUE), 2),
+              .groups = 'drop')
   
   return(period.summary)
 }
@@ -209,7 +210,7 @@ cold.days.mx <- threshold.days(daymet.winter.mx,
 total.precip.mx <- precip.and.swe(daymet.winter.mx, 
                                   prcp, 
                                   winter_period) %>% 
-  rename(total_precip = total_value)
+  rename(aver_precip = total_value)
 
 # 5) NDVI
 ndvi.mx <- ndvi(modis.winter.mx, 
@@ -241,7 +242,7 @@ plot(winter.covar.mx$average_ndvi, winter.covar.mx$total_precip)
 # Does not look super linear
 
 # Run correlation 
-cor.test(winter.covar.mx$total_precip, winter.covar.mx$average_ndvi)
+cor.test(winter.covar.mx$aver_precip, winter.covar.mx$average_ndvi)
 # Moderate to strong positive correlation (0.659), statistically significant (p = 0.03818)
 
 # Select covariates
@@ -249,7 +250,7 @@ winter.covar.mx.final <- winter.covar.mx %>%
   select(-c(aver_min_temp, average_ndvi))
 
 # Export winter covariates
-write.csv(winter.covar.mx.final, 
+write.csv(winter.covar.mx, 
           'output/weather-data/covariates-output/winter-covar-mexico.csv',
           row.names = FALSE)
 
@@ -334,7 +335,7 @@ cold.days.co <- threshold.days(daymet.summer.co,
 total.precip.co <- precip.and.swe(daymet.summer.co, 
                                   prcp, 
                                   year) %>% 
-  rename(total_precip = total_value)
+  rename(aver_precip = total_value)
 
 # 8) NDVI
 ndvi.co <- ndvi(modis.summer.co, 
@@ -393,10 +394,10 @@ cor.test(summer.covar.co$aver_daily_max_temp, summer.covar.co$aver_daily_min_tem
 # Moderate to strong positive correlation (0.61), statistically significant (0.04626) 
 
 # aver_ndvi vs total_precip
-plot(summer.covar.co$average_ndvi, summer.covar.co$total_precip)
+plot(summer.covar.co$average_ndvi, summer.covar.co$aver_precip)
 # Looks linear
 
-cor.test(summer.covar.co$average_ndvi, summer.covar.co$total_precip)
+cor.test(summer.covar.co$average_ndvi, summer.covar.co$aver_precip)
 # Moderate to strong positive correlation (0.697), statistically significant (0.01705) 
 
 # Select covariates 
@@ -405,7 +406,7 @@ summer.covar.co.final <- summer.covar.co %>%
             average_ndvi))
 
 # Export summer covariates
-write.csv(summer.covar.co.final, 
+write.csv(summer.covar.co, 
           'output/weather-data/covariates-output/summer-covar-colorado.csv',
           row.names = FALSE)
 

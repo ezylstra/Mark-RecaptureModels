@@ -93,7 +93,7 @@ unique(banded.dat$age)
 # In two years (2008 and 2010) the data has two extra columns
 # replaced_band_number (2008) and old_band_number (2010). The records with a 
 # band number in these columns not always have a band in comments or a key 
-# word to indicate the bands have been replaced or removed
+# word to indicate the bands that have been replaced or removed
 
 # Merge these two columns in a new column as they hold the same information and 
 # delete them
@@ -306,7 +306,7 @@ banded.dat <- banded.dat %>%
 # Replace any letters in former_comment column and rename the column
 
 # Bring in BBL letter codes 
-letter.codes <- read.csv("data/BBL_letter_codes.csv")
+letter.codes <- read.csv("data/RMNP-banded-by-year/BBL_letter_codes.csv")
 
 # Separate letter from numbers 
 banded.dat$band_letter <-substr(banded.dat$former_comment,
@@ -395,7 +395,7 @@ bands_match <- banded.dat %>%
   rename(new_band = band_number) %>%
   rename(band_number = former_band)
 
-# Join the two dataframes. "new_band" column will be NA whenever bands didn't 
+# Join the two data frames. "new_band" column will be NA whenever bands didn't 
 # change
 banded.dat <- left_join(banded.dat, bands_match, by = "band_number")
 
@@ -441,7 +441,7 @@ band_number <- c('6000-53867', '9000-12279', '9000-12283', '9000-12490', '9000-9
 new_sex <- c('M','M','M','M','M','M','F','F','F','F','F','F','F','F')
 bands.sex <- data.frame(band_number, new_sex)
   
-# Join the two dataframes. "new_sex" column will be NA whenever sex didn't 
+# Join the two data frames. "new_sex" column will be NA whenever sex didn't 
 # change
 banded.dat <- left_join(banded.dat, bands.sex, by = "band_number")
 

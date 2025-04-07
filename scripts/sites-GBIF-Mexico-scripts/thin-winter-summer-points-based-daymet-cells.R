@@ -19,7 +19,7 @@ rm(list = ls())
 # Winter months are December, January, and February
 
 # Load winter sites
-winter.sites <- read.csv('output/GBIF-Mexico-data/filtered-GBIF-BTLH-winter-sites-with-names.csv',
+winter.sites <- read.csv('data/GBIF-download-BTLH-Mexico/filtered-GBIF-BTLH-winter-sites-with-names.csv',
                          strip.white = TRUE)
 
 # Filter data set to include just observations that occurred during winter months

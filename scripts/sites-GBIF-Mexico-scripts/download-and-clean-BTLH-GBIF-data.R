@@ -152,7 +152,7 @@ ggplot() +
         legend.title = element_text(size = 9),
         legend.text = element_text(size = 9)) +
   labs(title = 'Broad-tailed hummingbird wintering distribution range',
-       subtitle = 'including GBIF winter observations') +
+       subtitle = 'including 235 GBIF winter observations') +
   theme(plot.title = element_text(color = "black", size = 12, hjust = 0.5),
         plot.subtitle = element_text(color = "black", size = 12, hjust = 0.5))
 

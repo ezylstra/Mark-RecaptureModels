@@ -129,16 +129,13 @@ p1 <- ggplot(temp.full.mx, aes(winter_period, mean_cold_days)) +
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 
 p1 + 
-  geom_line(aes(winter_period, ave_min_temp * 10, 
-                color = 'Min Temperature (mean)'), group = 1, size = 1) +
   geom_line(aes(winter_period, aver_daily_min_temp * 10, 
                 color = 'Daily Min Temperature (mean)'),
             group = 1, size = 1) +
   labs(color = NULL) +
   scale_y_continuous(sec.axis = sec_axis(~. / 10,
                                          name = 'Temperature (°C)')) +  
-  scale_color_manual(values = c('Min Temperature (mean)' = 'blue4', 
-               'Daily Min Temperature (mean)' = 'blue')) + 
+  scale_color_manual(values = c('Daily Min Temperature (mean)' = 'blue')) + 
  theme(panel.grid = element_blank(),
        legend.position = 'top')
 
@@ -154,7 +151,7 @@ summary(winter.site.total.prcp.mx)
 # Average across sites to get an annual value for the wintering grounds
 winter.total.prcp.mx <- winter.site.total.prcp.mx %>% 
   group_by(winter_period) %>% 
-  summarise(total_prcp = sum(total_prcp)) 
+  summarise(total_prcp = mean(total_prcp)) 
 
 # Plot precipitation 
 ggplot(winter.total.prcp.mx, aes(winter_period, total_prcp)) +

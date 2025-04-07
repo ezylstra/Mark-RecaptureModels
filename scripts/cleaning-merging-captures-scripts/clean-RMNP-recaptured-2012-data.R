@@ -145,9 +145,9 @@ dat.12 <- dat.12 %>%
          band_number != '4100-59326',
          band_number != '4100-58885',
          band_number != '4100-58937')
-# Removes 4 bands = to 23 records
+# Removes 6 bands = to 23 records
 
-# Lines 132 to 145 remove 16 band numbers and 33 rows from data
+# Lines 132 to 147 remove 16 band numbers and 33 rows from data
 
 # Remove all identification variable columns, change column names and add band_status
 # column

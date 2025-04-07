@@ -265,25 +265,7 @@ recaptured.dat <- recaptured.dat %>%
          band_number != '5000-96877')
 
 # Lines 232 to 265 remove 25 band numbers and 28 rows from data.
-
-# Erin's code
-# dat <- dat %>% 
-  # filter(!grepl("possibly related to E12085", comments)) %>% 
-  # Removes 2 rows. I looked into these two records and they are fine. The comment
-  # 'possible related to E12085' is irrelevant and doesn't affect the records.
-  # filter(!grepl("prob. C23826", comments)) %>% 
-  # Removes one row, it is right. I agree with the deletion. 
-  # filter(!(grepl("band removed", comments) & 
-             # band_in_comment == 1 & new == 1 & rebanded == 1 & former == 0)) 
-  # Removes 2 rows. Their comments are confusing I agree, but I looked into them
-  # and they have good information. They were rebanded at some point and then 
-  # the band was removed. Both records have good recapture data (5 and 4 years).
-  # So I'll treat them as bands removed but not replaced. Bands are 
-  # 4000-47796 and 9000-11917
  
-# Adding a column indicating when a band was removed but not replaced (will
-# ultimately put NAs in capture histories for all years after band removed)
-
 # Comments say 'band removed', 'band removed, not rebanded.' There are three
 # bands in this group that also have the word 'new' in the comments they are:
 # 4000-47796, 9000-11917, and 9000-39250. The comment 'New' is old from a previous
@@ -349,7 +331,7 @@ recaptured.dat <- recaptured.dat %>%
 # Replace any letters in new_band_number and original_band
 
 # Bring in BBL letter codes 
-letter.codes <- read.csv("data/BBL_letter_codes.csv")
+letter.codes <- read.csv("data/RMNP-banded-by-year/BBL_letter_codes.csv")
 
 # Extract bands with a letter in columns new_band_number and original_band
 recaptured.dat <- recaptured.dat %>% 
@@ -395,7 +377,7 @@ recaptured.dat <- recaptured.dat %>%
   select(-c(band_letter, band_number_2, letter_number, original_band_with_letter))
 
 # Move those band numbers without a letter from new_band_number
-# and original_band to the new columns new_new_band_number and new_original_band,
+# and original_band to the new columns new_band_number and new_original_band,
 # remove unnecessary columns and rename the new columns created
 recaptured.dat <- recaptured.dat %>% 
   mutate(new = ifelse(new_new_band_number == '', new_band_number, new_new_band_number),
@@ -458,7 +440,7 @@ filter(recaptured.dat, m_2 == 1) %>%
   select(band_number, original_sex, recapture_2)
 # n = 38
 # One record needs to be changed: 6000-53867 from F to M
-# The other 37 records are in this combo because the letter M in in a site code 
+# The other 37 records are in this combo because the letter M is in a site code 
 # or M represents moderate in MTW (moderate tail wear) 
 
 # Create new column to fix the sex in this record and remove columns with indicator 

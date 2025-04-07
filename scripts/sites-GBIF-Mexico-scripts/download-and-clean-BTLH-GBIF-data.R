@@ -112,7 +112,7 @@ dat2 <- dat_model_1 %>%
 count(dat2, year)
 
 # Export the full data frame including elevation for all points
-write.csv(dat2, 'output/GBIF-Mexico-data/GBIF-BTLH-winter-sightings-Mexico-with-elevation.csv',
+write.csv(dat2, 'output/GBIF-Mexico-data/GBIF-BTLH-all-sightings-Mexico-with-elevation.csv',
           row.names = FALSE)
 
 # Plot GBIF points in BTLH wintering grounds in Mexico

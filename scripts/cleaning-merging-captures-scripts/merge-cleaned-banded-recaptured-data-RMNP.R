@@ -779,7 +779,6 @@ recap_ck <- recaplong %>%
 # Look at duplicate band-dates
 filter(recap_ck, n_recaps > 1)
 
-# Can probably delete most, but... a few with multiple sites...
 recap_ck2 <- filter(recap_ck, n_sites > 1)
 for (i in 1:nrow(recap_ck2)) {
   print(i)
@@ -788,19 +787,7 @@ for (i in 1:nrow(recap_ck2)) {
                recap_date == recap_ck2$recap_date[i]))
 }
 
-# Add an indicator to show if bird moved sites in the same day (that will be the 
-# one we keep), then remove duplicate band-dates
-# recaplong <- recaplong %>%
-#   mutate(same_sites = ifelse(band_site == recap_site, 1, 0))
-#recaplong <- recaplong %>%
-  #arrange(band, recap_date, same_sites) %>% 
-  #distinct(band, recap_date, .keep_all = TRUE) 
-
-### I think I should not do this (lines 791-797) because, now that I have breeding 
-### info I'll loose that data if I keep just one site. Is this right? or, am I not 
-### understanding exactly what this part of the code does? I think that having
-### multiple entries the same year or day won't be a problem for the survivor
-### analysis, because I'll take the first record in a year for each band. Right?
+# Records look fine
 
 # ----------------------- Merge banded and recapture data -------------------- # 
 
@@ -835,7 +822,6 @@ recaplong <- recaplong %>%
 
 # Combine recapture data with banding data, so there's one row for every 
 # capture/recapture 
-
 recaplong <- recaplong %>%
   rename(year = recap_year, 
          obsdate = recap_date,

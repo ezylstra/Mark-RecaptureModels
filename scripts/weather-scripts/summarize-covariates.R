@@ -413,3 +413,55 @@ write.csv(summer.covar.co,
 # Export winter snow water equivalent data for winter months in Colorado
 write.csv(total.swe.co, 'output/weather-data/covariates-output/winter-swe-colorado.csv',
           row.names = FALSE)
+
+
+
+
+#######################
+
+# Warm days
+p1 <- ggplot(summer.covar.co, aes(year, aver_warm_days)) +
+  geom_bar(stat = 'identity', fill = 'red') +
+  labs(x = 'Year', y = 'Warm Days (mean)') + 
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        legend.position = 'none',
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+
+p1 + 
+  geom_line(aes(year, aver_daily_max_temp * 10, 
+                color = 'Daily Max Temperature (mean)'),
+            group = 1, size = 1) +
+  labs(color = NULL) +
+  scale_y_continuous(sec.axis = sec_axis(~. / 10,
+                                         name = 'Temperature (°C)')) +  
+  scale_color_manual(values = c('Daily Max Temperature (mean)' = 'pink2')) + 
+  theme(panel.grid = element_blank(),
+        legend.position = 'top')
+
+
+
+# Cold days
+p1 <- ggplot(summer.covar.co, aes(year, aver_cold_days)) +
+  geom_bar(stat = 'identity', fill = 'powderblue') +
+  labs(x = 'Year', y = 'Cold Days (mean)') + 
+  theme_minimal() +
+  theme(panel.grid = element_blank(),
+        legend.position = 'none',
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+
+p1 + 
+  geom_line(aes(year, aver_daily_min_temp * 10, 
+                color = 'Daily Min Temperature (mean)'),
+            group = 1, size = 1) +
+  labs(color = NULL) +
+  scale_y_continuous(sec.axis = sec_axis(~. / 10,
+                                         name = 'Temperature (°C)')) +  
+  scale_color_manual(values = c('Daily Min Temperature (mean)' = 'blue')) + 
+  theme(panel.grid = element_blank(),
+        legend.position = 'top')
+
+
+
+
+

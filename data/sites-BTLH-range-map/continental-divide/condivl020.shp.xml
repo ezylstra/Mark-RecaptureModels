@@ -1,0 +1,949 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+	<Esri>
+		<CreaDate>20140802</CreaDate>
+		<CreaTime>13073700</CreaTime>
+		<ArcGISFormat>1.0</ArcGISFormat>
+		<ArcGISstyle>ISO 19139 Metadata Implementation Specification</ArcGISstyle>
+		<SyncOnce>FALSE</SyncOnce>
+		<DataProperties>
+			<itemProps>
+				<itemName Sync="TRUE">condivl020</itemName>
+				<nativeExtBox>
+					<westBL Sync="TRUE">-114.077240</westBL>
+					<eastBL Sync="TRUE">-105.628326</eastBL>
+					<southBL Sync="TRUE">31.333286</southBL>
+					<northBL Sync="TRUE">49.000412</northBL>
+					<exTypeCode Sync="TRUE">1</exTypeCode>
+				</nativeExtBox>
+				<itemSize Sync="TRUE">0.067</itemSize>
+				<itemLocation>
+					<linkage Sync="TRUE">file://\\SUL-GISLAB\gis_shared\GIS_Lab\DATA\USA_NationalAtlas_2002_2013\Geology\condivl020_nt00155\condivl020.shp</linkage>
+					<protocol Sync="TRUE">Local Area Network</protocol>
+				</itemLocation>
+				<imsContentType Sync="TRUE" export="False">002</imsContentType>
+			</itemProps>
+			<coordRef>
+				<type Sync="TRUE">Geographic</type>
+				<geogcsn Sync="TRUE">GCS_North_American_1983</geogcsn>
+				<csUnits Sync="TRUE">Angular Unit: Degree (0.017453)</csUnits>
+				<peXml Sync="TRUE">&lt;GeographicCoordinateSystem xsi:type='typens:GeographicCoordinateSystem' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:typens='http://www.esri.com/schemas/ArcGIS/10.3'&gt;&lt;WKT&gt;GEOGCS[&amp;quot;GCS_North_American_1983&amp;quot;,DATUM[&amp;quot;D_North_American_1983&amp;quot;,SPHEROID[&amp;quot;GRS_1980&amp;quot;,6378137.0,298.257222101]],PRIMEM[&amp;quot;Greenwich&amp;quot;,0.0],UNIT[&amp;quot;Degree&amp;quot;,0.0174532925199433],AUTHORITY[&amp;quot;EPSG&amp;quot;,4269]]&lt;/WKT&gt;&lt;XOrigin&gt;-400&lt;/XOrigin&gt;&lt;YOrigin&gt;-400&lt;/YOrigin&gt;&lt;XYScale&gt;11258999068426.238&lt;/XYScale&gt;&lt;ZOrigin&gt;-100000&lt;/ZOrigin&gt;&lt;ZScale&gt;10000&lt;/ZScale&gt;&lt;MOrigin&gt;-100000&lt;/MOrigin&gt;&lt;MScale&gt;10000&lt;/MScale&gt;&lt;XYTolerance&gt;8.9831528411952133e-009&lt;/XYTolerance&gt;&lt;ZTolerance&gt;0.001&lt;/ZTolerance&gt;&lt;MTolerance&gt;0.001&lt;/MTolerance&gt;&lt;HighPrecision&gt;true&lt;/HighPrecision&gt;&lt;LeftLongitude&gt;-180&lt;/LeftLongitude&gt;&lt;WKID&gt;4269&lt;/WKID&gt;&lt;LatestWKID&gt;4269&lt;/LatestWKID&gt;&lt;/GeographicCoordinateSystem&gt;</peXml>
+			</coordRef>
+		</DataProperties>
+		<SyncDate>20150825</SyncDate>
+		<SyncTime>14522800</SyncTime>
+		<ModDate>20150825</ModDate>
+		<ModTime>14522800</ModTime>
+		<ArcGISProfile>ISO19139</ArcGISProfile>
+		<scaleRange>
+			<minScale>20000000</minScale>
+			<maxScale>625000</maxScale>
+		</scaleRange>
+	</Esri>
+	<Binary>
+		<Thumbnail>
+			<Data EsriPropertyType="PictureX">/9j/4AAQSkZJRgABAQEAYABgAAD/4RDuRXhpZgAATU0AKgAAAAgABAE7AAIAAAAMAAAISodpAAQA
+AAABAAAIVpydAAEAAAAYAAAQzuocAAcAAAgMAAAAPgAAAAAc6gAAAAgAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEtpbSBEdXJhbnRlAAAF
+kAMAAgAAABQAABCkkAQAAgAAABQAABC4kpEAAgAAAAM4MQAAkpIAAgAAAAM4MQAA6hwABwAACAwA
+AAiYAAAAABzqAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAMjAxNDowODoxMiAxMjo0NzowNgAyMDE0OjA4OjEyIDEyOjQ3OjA2AAAA
+SwBpAG0AIABEAHUAcgBhAG4AdABlAAAA/+ECqmh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8A
+PD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4NCjx4
+OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iPjxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0
+cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpEZXNjcmlwdGlv
+biByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4
+bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPjx4bXA6Q3JlYXRlRGF0ZT4y
+MDE0LTA4LTEyVDEyOjQ3OjA2LjgwNTwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+
+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEt
+ZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8i
+PjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8w
+Mi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5LaW0gRHVyYW50ZTwvcmRmOmxpPjwvcmRmOlNl
+cT4NCgkJCTwvZGM6Y3JlYXRvcj48L3JkZjpEZXNjcmlwdGlvbj48L3JkZjpSREY+PC94OnhtcG1l
+dGE+DQo8P3hwYWNrZXQgZW5kPSd3Jz8+/9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwK
+DAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/9sAQwEDBAQFBAUJBQUJFA0LDRQU
+FBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/8AAEQgB6AEZ
+AwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMF
+BQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkq
+NDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqi
+o6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/E
+AB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMR
+BAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVG
+R0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKz
+tLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A
+/VOiiigAoorM1azmvNNvLeC/udNmliaNLy1WNpbdmXaJEEium5T83zKy+qtQBo0cV87fC/8Aa58P
+6v4dtbLxndwWHjrTYdniq10Cxvb7T9DuEmmhkF3dLC0dqqtbzM3nSbVVWYSSR7Zn+iOCODWlWjUo
+y5Zqwk0x9FJS1mMKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoo
+ooAKKKKACiiigAooooAKKKKAMLxVpp1jwzrFgdJsdZ+1Wc0J03VG22l5ujZfJmby5MRt91j5bfK3
+3W+7Xzn8P/Hmvfsv/CXRfD/i74a+K18J+EdJsrO/8XWmoWuqQblZo7u68j7Q10tnH8si7Y9ywsy+
+TCsIWvqbd75rM1jSbLXNKvNN1Kzg1DTryJoLm0uY1kinjYbWjZW+VlYHbtb1rWnWjGPJNXi2u/4A
+0aYw3NLXzV4J1rWv2d/iNeeE/GMuoaj4S8YeIlj8J+J7vW5LuK1eSzYrptwL64kuFk3WblWRpI5J
+Lj5Vh3eXX0pn0pVafsmrO6ezBO4+ikpazAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiig
+AooooAKKKKACiiigAooooAKKKKACiiigAooooASilooAwPEPhbR/Flqlrrmk2OtWo8zbDqFrHPGu
++GSGT5WH8UcssbeqyMv3WavmrwXqQ0v4xSt8D9L1TUvAun6k3hfxT4fto7e10DTLyG4UTSWsc1xH
+JazQrI8kgtreSG63L92TdMvvHxq1DX9F+D3je+8JrO/ia20O+n0lbW3NxK12tu7Q7YtreYxk2/Lt
+bd6GqvwO0Wx0H4W6KdNv77U7bUvO1z7bqU1rPPLLfTyXkrNJaf6O3z3DY8n93t+6zL81dlGfsqTk
+9b6W6etvy8yXqz0WlpKWuMoKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKA
+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
+BRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFJQB5h+0dZ6/dfA
+T4hJ4XvtWsPEa6HeS6dNoY3XxuEhZo44flZt0jL5fyfvPn/dsrbWXhP2QfAXw+0f4e6T4k8P+HtL
+sfGM2nWtl4gaC5lvL7TrpbW3WbTZJLiSSeFYfLiX7K7fu/LX5d1fRGMV4D8YP2ZU8Qf8Jb4t+HGr
+3vgb4r6x9juE16HVb1bW4mtdnkrc2qyeTIhjRofnjkCrIzbG+63oYetGVJ4eUuRN7/5+XXr6akuO
+tz6ApOtcL8IfHV78RPBo1XU9Mt9Hv4dS1DTLiztLtrqNZLO+ntWZJWjjZlZrctzGv3q7qvPlFwk4
+PdFjqKKKBBRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRR
+RQAUUUUAFFFFABSUtFAHz9N4Z174E/EqTVvD0HivxJ8OtcOp6nrWi2slreRaNqEk1rJ9ot45Nt00
+cn+nyNDC037yQ+XDuZVr0/4d/E7wp8XvDcHiDwbr1l4i0eYqpuLOUN5bNGknlyL96OQK6lo3Csu7
+5lrr8Bmr5l/aH0bx78H9ZvPi18MptJTRrSG61vx5oes31xt1uO2tYo4fs6+XItvMsMMi7o/L3MsP
+meYq7a7adsY1Tl7suj7+vm9k/S/dTsfTmKWsHwr4o0/xp4X0nX9HuTd6Tq1pDf2dz5bJ5sMkayRv
+tYBl3Ky/K2DzW7XE04uzKFooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAK
+KKKACiiigAooooAKKKKACiiigAooooAZ3rz744fC9vjF8OrvwwLmztvPvLC73app/wBvtX+zXkN1
+5c1v5kfmRyeT5bLvX5XNehD0oNEJSpyVSO6GeTxfFLXPAt5Y6f8AEPQ/ssF1eW+m2niXQw93p11c
+TTJDAssf+us5JJG+66yW8e6NftTs22uzs/H3hjUPFt14Vs/EOlXPieyg+0XOixX0T3tvFhP3kkO7
+zFX95H8xX/lov96vJP2tNQt9a8J+FfAFtpNj4l8Q+LfEWnrZaDfXMMUF3DZ3Ud9dNceZub7OsNqy
+yMscjbpI18tt+2u8X4C/DP8A4RX/AIR0/Dzwp/wj/wBr+3/2T/Ydt9k+0+X5fneVs2+Zs+Xft3be
+K65wp+zU5aN32/P8/uI15rHoW7HfFfPPxY/bk+E/wruZbGbX49e1qHXY/D9zpWkXlqtzbXLJuZpD
+cTQxrCnyxyS7tsbnaxVlbb0+m/srfDrRYTZ2GnatZaK0skzaDb+I9Sj0ciSRpJIjp63H2XyWZm3Q
++X5bKzLt2/LXovhnwlo3gnQ7fRvD+k2Oh6Pblvs+n6dbR28EW5mZgsaKqruZmb/eY1MHh6bvK8vw
+/wA/66j1MvWvin4O8M+G9P8AEmteLtC0jw9qHliz1W81OGG0uvMj8yMxzM21tyqWXa3K81u6PrFl
+rel2eo6be2+oaddxLPbXltIskU8bLuWRWX5WVgd25fWuE8Ffs6fDb4dalDqegeC9Ks9Rt57iazuj
+F50lh5zO0kdq0m5reFmkkbyYdsa+ZJtUbm3V2/Zs8C267NLt9d8N2SnMel+G/E+p6TYQ8/N5Vra3
+McMe5ss21F3MzM3zMzEkqH2W/uX5X/UNT1XIJx1pc9q+Y9E+GuqeGP2utJg8GeIdW0fwJpfhh7vX
+PDMmqz3mn7p5pI7KGC0m/d2a/uZmVrdmVVtPL8uFWVpvprd69azrU1RcbSvdX9PX8/Rji+YkopKW
+sgCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACkpaKAPmDw
+z8JfiD4D+OXxH13R9E0vxA3iCaNtN8beK/EFxc3OmWMvzPp0NmsP+pt7jzpvJWaFZFmhXzN0bNH3
+Xhv4oeMdB1jwj4a+Ivg+Cy1rXJmsodd8Magt1pElytrNcsjLN5VzCzLaztt8qRFUx/vmZm2+xfpX
+N+MvAHhr4jabDpvirw9pXibT4ZhcR2msWUd3EsgVlDhJFZd212Xd/tNXW8Uqz/ex6WvrfRW7/hsK
+3LsdJwelHHNfO+pfsnjw38Qh4m+FHiWH4SQX2nxaXrWl6Hodu1tcxR3SzLPDF8sKXW3zofOmjm2x
+zfKq7fms3f7O/iHwW1z4l+H/AI5v7n4iyiUXuqeOrm41G01eD/SZIrOa3hkhhtY45rhWjkt41aNV
+ZVVlkkVz2NFq6qb+T/H/AIFyeZ9j6Arxz4+/EDX/AAvc+BvDXgybSj4w8Ua5HDa2uqX32dTa20bX
+l4f9TM21obf7PuWP9213G33ttYd1pH7SUhuNUtPEvw5trq5MiR+HLnSby4tLFF+0NCy3qzRyTSSF
+raORmhjVVVmjjyu2bzn4v2/xA/Z98aR/G7XPHWl65BLHpfhXUPD2m+HbiysprVtS3GdppNRaG3mj
+Wa423Fwywru2Nt8yujDYWm6iTmm+i11fRbd/l521G3oex/DfwN8QYPiHf+NfGep+HbSa+05tMm0H
+w7aXEiiOK6kks2kvJpf3rRxzXH+rt4dzXLbt3lx7fYa5vwb8QPDPxG02XUvCviHSvE2nwzG3kutH
+vY7uJZAqsULxsy7trq23/aWul/WuCs5SlaSs/uKQ6iiiswCiiigAooooAKKKKACiiigAooooAKKK
+KACiiigAooooAKKKKACiiigAooooAKKKKACiiigBKWiigAooooAKTAPalooA+aviTomv/AP4l+K/
+i74S8J/8Jpo/iaz0228T+H9M+0vrJnt5vJhurKNVkSb/AEe4ZZIW8lf9HVvM+aSvbfAfjnQ/ib4R
+0rxN4Y1OHWdB1OHzra9t2O2QfdI/vKysGVlYblZWVsEV0jAsK+Yx4X+I37Ma+J5PBVv4d8S/COx0
+/wC32OieJfEl5Z3+ktFbRxtBDeXH2iL7KFt2kVZPLVWnb5lWP5u9Sji4csv4itZ33W1vVaW8t+gv
+hPp/FLWD4V8Uad408L6Tr+j3Ju9J1a0hv7O58tk82GSNZI32sAy7lZflbB5rdrgacXZjFopKWgAo
+oooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACii
+koASvFP2vIfN/Z48WSTWt7f6Ra/ZbvWrPTrn7PPPpMV1DJqUSt5kf3rNLhdu5dwbb/FXtYPFIyhl
+xV0qnsqkai6NMT1Rm6Pq1jrWlWeo6de29/p13Es9td2sqyRTxsu5ZFZflZWB3ZX1rTrwD/hjXwTp
+u648Jax4s8D6t/ZP/CPprGla7PdXcWl/8+cLX32hbeNW2srQrG6MvysuW3abfs++IpNFvNK/4Xl8
+Rvsl59o8yQPpInXzmZn8ub+z/Mj/ANY23y2XyxtWPaqrt6JU6Mn7k/vT/S4anY6j8XPC2j/EnTPA
+VzfTr4o1KJZ7e0WwuGiZWW5kXdcLGYY2ZbO6ZVZ1ZvJau52leleKaT+yv4J0G3uHtJ9e/wCEim1c
+62vimbV5p9WS6WKSG3LXEjM00cEMzQpDN5kbR58xZN0jNv8AwE8dy+PvAciahqcOra9oOpXnh3V7
+uB41aa7sriS3aaSOP5YWmWNLjyf4FnVfmXDNFWlT5eai20rXv3/yGm+p6fS0UVzgFFFFABRRRQAU
+UUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAGTr
+GrWWi6Xe6jqN7b6fp1pE09zeXMixxQRqu5pHZvlVVA3Zb0rxz9j3wzLpvwY0rxNfa5q3iLXfHUVr
+4t1e91aSNibu5s7cNHF5caqkKLGqxx/wqAv3QK8n+N3hGDS/2uPCk3iTwz4V+LVr8RvK0XTvD+v6
+VCt34dtbFfOubmC4kjkjmj/0i6kkjby5GZ4VjZlX5fs3oPSvQrQ+rUEk7+0s/u6d979lppclasko
+oorzygooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAK
+KKKACiikoA8J+I/xm19vjhoPwh8Dww2vie60/wD4SLUtZ1mw+12FnpQ86Hcsa3UMkkzXS28e1flV
+ZGbtWnpWg/HSa1Y3/jbwBaTedKqx2/hC+lUxiRvLbc2pr8zR7WZdvyszLubbubi/h/8AErS/hV4y
+8fD4s6mfCXiLVNXnurHWvFt/p9tZ6hpa3E8djb6dIsmWjghSOSSGTbJHJePI3/Hxub6D0fVrLWtL
+s9S028g1DT7yJZ7a8tpFkinjYblkVl+VlYHduX1rvqydFKMIK3eyd36v+tBL3jzr4Q/AbTvhtdS6
+/qmp33jH4hX1r9k1PxbrErSTzp5zTNDBGWMdpb+ZIxW3h2rhY925l3V6xtoo61xVKkqsuaTuwtYd
+RRRUjCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAo
+pKWgAooooA8G/ak0+w1rSfBdh4iOqxeAbvXpIfFDafcXdvENPbS75f8AS5bVlaO1877P5jSMsY48
+w7a9j0fSbLQ9Js9O06zt9P06ziWC2s7aNY4oI1G1Y1VflVVA24X0rzD46/Ej4Xx6bqvw08feOdK8
+KTeJtCvImS9vobWUWki/Z3kV5PkVv3jbd33tkm1W8uTbb+Avi/xF4t0nxGutm+urTTdX+waTqmqe
+H7jR7vUbP7LbSCae3mVP3nmyTRtJHHHGzRlljjX5a65xqOhG90l9z810v0+ROlz1mloorkKCiiig
+AooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAjPNLxi
+gnqO9fFGm+IF+L3gB9f+Nvxot/APhLxhNJFB8OopbbRFgjtbhobvTri8uo1vJ23Kkdx5fk/M0yru
+jkWujD4X2/NJyslbu3r2S8k30Wm4Sdj7F1bWLHRdLvNR1G9t7DTrSJp7m8uZVjigjVdzSMzfKqqB
+u3N6V5P41/aDMPjyy8CfD7S7Px340ks21O5tZdV+w2lrZx3q2M0jXCxSK0kc7SboVXdtt5v41jjk
+q+G/2KfgX4ZuLmey+F3hy5a4ht4X/tG0F8gWGPy12LNuWNtv3mXDSN80m5vmr0XwT8LPBvw1a8/4
+RDwlofhb7YEN1/Yumw2fn7d23zPLRd23c2N395q0l9WpO8by9VZfOzbFqYfwN+Gup/D3wjey+JdQ
+h1Pxhr2pT65r17aSzNbG7m2jyoBMzMsMMMcNvH9393ArbVZmr0v9KXNB61yTm6knKXUY6iiikAUU
+UUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFADf0r
+jrr4V+DbzW9Z1i58J6FNqus2jWGp6hJpsJnvrVlVTBPJt3SR7Y1Xa2Vwq+ldjzS04ylHZjPC9B/Z
+P8N/DuLT7f4a+IPEfwvtbaGaCWz0G8juLe88yRZPMmhvo7iNpl2hVm2+Z5f7vd5aqq87qfxO+LXw
+HsYI/F/g4/Efw3Fd3gk8VaLrdqurGFrhvsMcmnyW9rHJcSeZDCsdvIxZlO1dzKrfSf4cV578cfg9
+o3x6+Fut+BvEF1e2mkasYTPNpskaTr5cyTLtZ1ZfvRr1XpXbRxXtKq+s+8m9W9/W6s383YiS93Q9
+DXlRS+leT/sy+LvEnj74E+D9f8VN52qajaGcXbQR2z3ls0jfZbiSGOSRI5JrfyZWjViFaRl4xtr1
+bNcVSLpTcH0dhx1RJRSUtIYUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUA
+FFFFABRRRQAUUUUAFFFFABRRRQAwnHPavmLxLNrH7Yvh/wAK2ugaLc6H8LJNdtdV1bUvFVnD/wAV
+JptvM00UFrZndJ5M0kULNJcfZz5flsqzLIy13X7Vi6rH8AfFr6FqtxpGtW8UNzZG1mnjkvJ47mOS
+OxVreSObddMq2v7t1dvtHy7mwteo6LpFloelWenabZwafp1pEsFvZ20axxQRqu1Y1VflVVA24X0r
+rpSVGCrL4r6eVuvrrp2sQ9XY1FAUADpS0UVyFhRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAU
+UUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFADPSlLcelYfijxVo3gfQ7nWfEGq2ehaPbFft
+GoajcJbwRbmVVLSOyqu5mVf95gK8St9Xi/an8WWl5oWs+I7L4WeHpryG41HR9Rk0yDxJfDy44zbX
+Fu63E1rB/pasytHHJL5e3zlRtulOlKacpaRXX9PULm9+1hqumx/BnVfDl34X/wCE51PxVu0PRvDr
+W7TLf6jJHJJD5hV4/Jjj8lpmm8yPy1hZldWVa9D8AyavL4E8OyeIILiz11rC3a/gupoZ5UuPLXzV
+eSFVjdt275o1VT/CqjisHwX8EvCPw98S3fiTS7O9uvEF1ZLYSatrOrXuqXa2qyNIsMct1NK0ce9t
+zKrKrNtZvurXonTGadWpD2apU9t7v/K7X+Ydbj6WkpayAKKKKACiiigAooooAKKKKACiiigAoooo
+AKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigDlvHnjrQvhl4R1XxN4n1SDRtB0yHzrm+u
+GIVFztA/vMzMVVVUbmZlVck15Rr37Sniqx8N6fqFh8BPiPd3WreXHptrMmnoPPkj3RLd+XdySWcf
+aSSSPbHn5vm+WrM8b/FT49eJ/CfiO4mufDng6HRNf07T7WC4sEkvJJppI3uJN3+mLDJYq0fl7Yd0
+rrJHJJCrR+5KBx7dK6r08PaMoXe/W1mrra3z/AnWR498N/gvFF4uvviP440nSrr4l38zLHdQTyX0
+Gj2sfmRwWtjJNGrQqYWZpiqr5k00zfd2qvsnTtR2o/GuepUlUd3/AF5DSsLS0UVIwooooAKKKKAC
+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigDy744+Bf
+h54n8I3Gv/EPTLeaw8MwyatHq6LLHe6YsJWdpre4g23ETfuVJ8lgzbdvzVzX7JknxJ/4Vv5XxCgu
+UtFmZvD02tz7tfk03c3kLqsar5a3Sx+XuZWZm3fvFWRWLcF8eNN8XftCfGXQ/h54Ye4HgLw1KR8Q
+1vLm60+y1CO6ji8vT45rdlmmmW1mlmaNW8n95D5zN8q19X88gD6V6NZujhYUm7uev+Ht6X3flYmO
+ruPpaSlrzigooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAo
+oooAKKKKACiiigAoopKAPJ/iZ8CtN8beNPDHj/SvsWi/EXwx5iaXrl1ZNdRmGWOSOS3uIVkjaaPb
+NIy/vFaNzuDbWkWTA/Z3/aIm+L13qfhvWfDGraH4y8Oww22vzxwRzaOdQWNPtVvbXcE00e6N5F/c
+ySLIAw+XKybT4gfEjx34u1zX/BHwx0CfT9WsdRh0jUfHOrNatp2kCS1jupJorfzvOupljuIVSNo1
+j8yT5m2q270/wH4F0L4Z+EdK8NeF9Lg0XQdMh8m2sbcfLGvUn+8zM25mZiWZmZmyxr0JS5aHJX1f
+2ddUt/ud9vnp1nrodTRSUteeUFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFF
+FABRRRQAUUUUAFFFFABRRRQAUUUUAFNZvlNOrC8VeF9O8aeGNV0DWLY3ek6taTWF7bGRo/NhkjZJ
+E3Lhl3KzfMuDzQrX1A+af2QfiFpPhn9neP4mfEfxfpekah8QtcvNdvrvU9YgWyiuJWaOG1t5Gkba
+qW9rGqwtI0kflsrbdu1fT5/2irTVNWt7Lwh4J8Z+PUlikuP7Q0nSltNP8tWjCyR3l9Jb29wsnmbo
+2t5JNyqzfd+anfC79lX4WfB3U7XU/C3hKC11Gzg+zWV3eXVxfSWUe6ZmjtmuJJGt1ZriZmWPbu8x
+t26vXm4ye1ejiq2GqYidSmm0++norJvb1JSfLY89+EHxi0j40aJq1/pVpfadcaLrF1oWq6dqKRrc
+WV7bttliYxtJG3DK26ORlw4+bcGUeiD07V4r+yj9l1D4XT+I7X7daS+KNXvtZvNGvPtCrot5JMy3
+djGs3zr5dxHN5n3VaZp5FWNZFjX2muKvGMKsox0SY47D6KKKzGFFFFABRRRQAUUUUAFFFFABRRRQ
+AUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUh6UAN3fnXnvxR+MWj/Cv+xbO
+6tr3WvEev3n2LR/DuixpLf6hJ96Ro1ZlVY41PmSSSMscaj5m+Zc8V8SviJ8QJPj14W+Hnge98Haf
+De6Fea5qd1rkVxf3sEcM0MMe20ikh2qzzLtdpPm2zfd8nbJ0Pwj+A1h8NdS1PxNq2of8Jj8Q9Z2N
+qvi6+0+1t7q4xBbwmGPyY18u3/0WNlh3NhuWZm+auuFKFOKqVXurpdX69l+P5qb32NT4F+A9U+G/
+wu0bRNb1H+1/EJ8+/wBXvht2z6hdTSXV00e1I18szzS7RsXC7a9DozR/KuWcnOTk92UOooopAFFF
+FABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAU05p
+c1wuqfGrwBpHi5PC17448OWXiZpY7ddFuNXt471pJdvlp5LP5m5ty7V2/NuX1ojGUvhVxnl3hfTN
+J8C/HrXfEPxFM0PirUZm0Lwz4s1O4gt7LUNNnmjuIdLt442VVmhmfy1WdWuJvLaSNmXdHD9E9a8f
+/a30yz1j9l/4rW99aW95CvhjULhYriJZFWSO3eSOTDcbldVZW/hZVbtXr47c8dq6a0ueEaj328tL
+bfft93YlaaD6WiiuYYUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFA
+BRRRQAUUUUAFFFFABRRSUAMz8xFeB+B/DPhXx58Vvj9pGs21lrMcmraTb6j4bv3F3aSLHptrNDeS
+WshZVkkZmj3Kqqy2MPy7o2Zvffu/XFfPH7MPiTUPi14m8cfFxrW4tfDXiqLTbTw0l1e2skv2C1hk
+Zg0dvvWNvtVzeZ8yZpP4Wjh8v5uvD3jRq1Fpovvun+jfyJl8SLLfsz+IdY+Ht74O1/42+OdY0i7t
+LnS5ka20lWmspA0axyTSWMkzSeSyq0xk3SNuk+XdtX2XwpoP/CL+GdG0g399qzafZw2n2/U5jNd3
+PlxqvmTSfxyNt3M38TGtjH50tYVK86qtP12S/IpJIfRRRWYBRRRQAUUUUAFFFFABRRRQAUUUUAFF
+FFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFADGXdXI/DfwT/wr/QbrTBefbhc
+axquqmVYfKC/bL+4vPL27m+79o27v4tu7C7ttdhjijHFF3bl6DFooooEFFFFABRRRQAUUUUAFFFF
+ABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUA
+FFFFABRRRQAUUUUAFFFFABRRRQAUUUUAf//Z</Data>
+		</Thumbnail>
+	</Binary>
+	<mdLang>
+		<languageCode value="eng"/>
+		<countryCode Sync="TRUE" value="USA"/>
+	</mdLang>
+	<mdChar>
+		<CharSetCd value="004"/>
+	</mdChar>
+	<mdHrLv>
+		<ScopeCd value="005"/>
+	</mdHrLv>
+	<mdContact>
+		<rpOrgName>Stanford Geospatial Center</rpOrgName>
+		<rpCntInfo>
+			<cntAddress addressType="physical">
+				<delPoint>Branner Earth Sciences Library</delPoint>
+				<city>Stanford</city>
+				<adminArea>California</adminArea>
+				<postCode>94305</postCode>
+				<eMailAdd>brannerlibrary@stanford.edu</eMailAdd>
+				<delPoint>Mitchell Building, 2nd Floor</delPoint>
+				<delPoint>397 Panama Mall</delPoint>
+				<country>US</country>
+			</cntAddress>
+			<cntPhone>
+				<voiceNum tddtty="">650-723-2746</voiceNum>
+			</cntPhone>
+		</rpCntInfo>
+		<displayName>Stanford Geospatial Center</displayName>
+		<role>
+			<RoleCd value="007"/>
+		</role>
+	</mdContact>
+	<mdDateSt Sync="TRUE">20150825</mdDateSt>
+	<mdStanName>ArcGIS Metadata</mdStanName>
+	<mdStanVer>1.0</mdStanVer>
+	<distInfo>
+		<distTranOps>
+			<onLineSrc>
+				<linkage>http://purl.stanford.edu/pw312bv3382</linkage>
+				<protocol>http</protocol>
+				<orFunct>
+					<OnFunctCd value="001"/>
+				</orFunct>
+				<orName>condivl020.shp</orName>
+			</onLineSrc>
+			<transSize Sync="TRUE">0.067</transSize>
+		</distTranOps>
+		<distributor>
+			<distorCont>
+				<rpOrgName>Stanford Geospatial Center</rpOrgName>
+				<rpCntInfo>
+					<cntAddress addressType="physical">
+						<delPoint>Branner Earth Sciences Library</delPoint>
+						<city>Stanford</city>
+						<adminArea>California</adminArea>
+						<postCode>94305</postCode>
+						<eMailAdd>brannerlibrary@stanford.edu</eMailAdd>
+						<delPoint>Mitchell Building, 2nd Floor</delPoint>
+						<delPoint>397 Panama Mall</delPoint>
+					</cntAddress>
+					<cntPhone>
+						<voiceNum>650-723-2746</voiceNum>
+					</cntPhone>
+				</rpCntInfo>
+				<displayName>Stanford Geospatial Center</displayName>
+				<displayName>Stanford Geospatial Center</displayName>
+				<role>
+					<RoleCd value="005"/>
+				</role>
+				<displayName>Stanford Geospatial Center</displayName>
+			</distorCont>
+		</distributor>
+		<distFormat>
+			<formatName Sync="TRUE">Shapefile</formatName>
+		</distFormat>
+	</distInfo>
+	<dataIdInfo>
+		<idCredit>National Atlas of the United States. (2002). Continental Divide of the United States. National Atlas of the United States. Available at: http://purl.stanford.edu/pw312bv3382.</idCredit>
+		<idCitation>
+			<resTitle Sync="FALSE">Continental Divide of the United States</resTitle>
+			<date>
+				<pubDate>2002-01-01T00:00:00</pubDate>
+			</date>
+			<citRespParty>
+				<rpOrgName>National Atlas of the United States</rpOrgName>
+				<rpCntInfo>
+					<cntAddress addressType="">
+						<city>Reston</city>
+						<adminArea>Virginia</adminArea>
+						<country>US</country>
+					</cntAddress>
+				</rpCntInfo>
+				<role>
+					<RoleCd value="010"/>
+				</role>
+			</citRespParty>
+			<citRespParty>
+				<rpOrgName>National Atlas of the United States</rpOrgName>
+				<role>
+					<RoleCd value="006"/>
+				</role>
+			</citRespParty>
+			<presForm>
+				<PresFormCd Sync="TRUE" value="005"/>
+				<fgdcGeoform>vector digital data</fgdcGeoform>
+			</presForm>
+			<otherCitDet>These data were downloaded from the National Atlas website (http://www.nationalatlas.gov/atlasftp.html) in August 2014.</otherCitDet>
+			<citId>
+				<identCode>http://purl.stanford.edu/pw312bv3382</identCode>
+			</citId>
+			<collTitle>National Atlas of the United States of America, 1997-2014 </collTitle>
+			<otherCitDet>These data were downloaded from the National Atlas website (http://www.nationalatlas.gov/atlasftp.html) in August 2014.</otherCitDet>
+			<collTitle>National Atlas of the United States of America, 1997-2014</collTitle>
+			<collTitle>National Atlas of the United States of America, 1997-2014</collTitle>
+		</idCitation>
+		<idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;DIV&gt;&lt;DIV&gt;&lt;P&gt;&lt;SPAN&gt;This line shapefile represents the Continental Divide of the United States. The map layer was created by extracting Hydrologic Unit Boundary line features from an existing National Atlas layer. The source data are aligned with the individual 1:2,000,000-scale Digital Line Graph (DLG) hypsography files produced by the U.S. Geological Survey. This layer is part of the 1997-2014 edition National Atlas of the United States.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;&lt;/DIV&gt;&lt;/DIV&gt;</idAbs>
+		<idPurp>These data are intended for geographic display and analysis at the national level, and for large regional areas. The data should be displayed and analyzed at scales appropriate for 1:2,000,000-scale data. No responsibility is assumed by the National Atlas of the United States in the use of these data.</idPurp>
+		<idStatus>
+			<ProgCd value="001"/>
+		</idStatus>
+		<idPoC>
+			<rpIndName>Peg Rawson</rpIndName>
+			<rpOrgName>National Atlas of the United States</rpOrgName>
+			<rpCntInfo>
+				<cntPhone>
+					<voiceNum tddtty="">703-648-4183</voiceNum>
+				</cntPhone>
+				<cntAddress addressType="postal">
+					<delPoint>12201 Sunrise Valley Dr</delPoint>
+					<delPoint>MS 561</delPoint>
+					<city>Reston</city>
+					<adminArea>VA</adminArea>
+					<postCode>20192</postCode>
+					<eMailAdd>atlasmail@usgs.gov</eMailAdd>
+					<country>US</country>
+				</cntAddress>
+			</rpCntInfo>
+			<role>
+				<RoleCd value="007"/>
+			</role>
+		</idPoC>
+		<resMaint>
+			<maintFreq>
+				<MaintFreqCd value="010"/>
+			</maintFreq>
+		</resMaint>
+		<thesaName>
+			<resTitle>geonames</resTitle>
+			<date>
+				<reviseDate>2012-11-01T00:00:00</reviseDate>
+			</date>
+			<citId>
+				<identCode>http://www.geonames.org/ontology#</identCode>
+			</citId>
+		</thesaName>
+		<thesaName>
+			<resTitle>geonames</resTitle>
+			<date>
+				<reviseDate>2012-11-01T00:00:00</reviseDate>
+			</date>
+			<resEd>3.1</resEd>
+			<citId>
+				<identCode>http://www.geonames.org/ontology#</identCode>
+			</citId>
+		</thesaName>
+		<keyword>Colorado</keyword>
+		<keyword>New Mexico</keyword>
+		<keyword>Idaho</keyword>
+		<keyword>Wyoming</keyword>
+		<keyword>Montana</keyword>
+		<keyword>Rocky Mountains</keyword>
+		<thesaName>
+			<resTitle>lcsh</resTitle>
+			<date>
+				<reviseDate>2011-04-26T00:00:00</reviseDate>
+			</date>
+			<citId>
+				<identCode>http://id.loc.gov/authorities/subjects.html</identCode>
+			</citId>
+		</thesaName>
+		<thesaName>
+			<resTitle>lcsh</resTitle>
+			<date>
+				<reviseDate>2011-04-26T00:00:00</reviseDate>
+			</date>
+			<citId>
+				<identCode>http://id.loc.gov/authorities/subjects.html</identCode>
+			</citId>
+		</thesaName>
+		<keyword>Watersheds</keyword>
+		<resConst>
+			<LegConsts>
+				<useLimit>Although these data have been processed successfully on a computer system at the U.S. Geological Survey, no warranty expressed or implied is made by the U.S. Geological Survey regarding the utility of the data on any other system, nor shall the act of distribution constitute any such warranty. No responsibility is assumed by the U.S. Geological Survey in the use of these data.</useLimit>
+				<useConsts>
+					<RestrictCd value="008"/>
+				</useConsts>
+				<othConsts>This item is in the public domain.</othConsts>
+			</LegConsts>
+		</resConst>
+		<aggrInfo>
+			<assocType>
+				<AscTypeCd value="002"/>
+			</assocType>
+			<aggrDSName>
+				<resTitle>National Atlas of the United States of America, 1997-2014 </resTitle>
+				<date>
+					<pubDate>2006-01-01T00:00:00</pubDate>
+				</date>
+				<citRespParty>
+					<rpOrgName>Geological Survey (U.S.)</rpOrgName>
+					<role>
+						<RoleCd value="006"/>
+					</role>
+					<rpCntInfo>
+						<cntAddress addressType="both">
+							<city>Reston</city>
+							<adminArea>Virginia</adminArea>
+							<country>US</country>
+						</cntAddress>
+						<cntPhone>
+							<voiceNum>1-888-ASK-USGS (1-888-275-8747)</voiceNum>
+						</cntPhone>
+					</rpCntInfo>
+					<displayName>Geological Survey (U.S.)</displayName>
+				</citRespParty>
+				<citRespParty>
+					<rpOrgName>National Atlas of the United States of America</rpOrgName>
+					<role>
+						<RoleCd value="010"/>
+					</role>
+					<rpCntInfo>
+						<cntAddress addressType="both">
+							<city>Reston</city>
+							<adminArea>Virginia</adminArea>
+							<country>US</country>
+						</cntAddress>
+					</rpCntInfo>
+					<displayName>Geological Survey (U.S.)</displayName>
+				</citRespParty>
+				<citId>
+					<identCode>http://purl.stanford.edu/cv275yx9215</identCode>
+				</citId>
+			</aggrDSName>
+			<initType>
+				<InitTypCd value="002"/>
+			</initType>
+		</aggrInfo>
+		<spatRpType>
+			<SpatRepTypCd value="001"/>
+		</spatRpType>
+		<dataLang>
+			<languageCode value="eng"/>
+			<countryCode Sync="TRUE" value="USA"/>
+		</dataLang>
+		<dataExt>
+			<exDesc>Publication date</exDesc>
+			<tempEle>
+				<TempExtent>
+					<exTemp>
+						<TM_Instant>
+							<tmPosition>2002-01-01T00:00:00</tmPosition>
+						</TM_Instant>
+					</exTemp>
+				</TempExtent>
+			</tempEle>
+		</dataExt>
+		<envirDesc Sync="TRUE">Microsoft Windows 7 Version 6.1 (Build 7601) Service Pack 1; Esri ArcGIS 10.3.1.4959</envirDesc>
+		<dataExt>
+			<geoEle>
+				<GeoBndBox esriExtentType="search">
+					<exTypeCode Sync="TRUE">1</exTypeCode>
+					<westBL Sync="TRUE">-114.077240</westBL>
+					<eastBL Sync="TRUE">-105.628326</eastBL>
+					<northBL Sync="TRUE">49.000412</northBL>
+					<southBL Sync="TRUE">31.333286</southBL>
+				</GeoBndBox>
+			</geoEle>
+		</dataExt>
+		<dataChar>
+			<CharSetCd value="004"/>
+		</dataChar>
+		<tempKeys>
+			<keyword>2002</keyword>
+		</tempKeys>
+		<dataScale>
+			<equScale>
+				<rfDenom>2000000</rfDenom>
+			</equScale>
+		</dataScale>
+		<tpCat>
+			<TopicCatCd value="012"/>
+		</tpCat>
+		<tpCat>
+			<TopicCatCd value="006"/>
+		</tpCat>
+	</dataIdInfo>
+	<mdConst>
+		<SecConsts>
+			<class>
+				<ClasscationCd value="001"/>
+			</class>
+			<classSys>None</classSys>
+			<handDesc>None</handDesc>
+		</SecConsts>
+	</mdConst>
+	<dqInfo>
+		<dqScope>
+			<scpLvl>
+				<ScopeCd value="005"/>
+			</scpLvl>
+		</dqScope>
+		<report type="DQTopConsis">
+			<evalMethDesc>No checks for topological consistency were performed on this map layer.</evalMethDesc>
+		</report>
+		<report type="DQConcConsis">
+			<measDesc>No checks for topological consistency were performed on this map layer.</measDesc>
+		</report>
+		<report type="DQCompOm">
+			<measDesc>This map layer contains the Continental Divide of the United States. Data completeness reflects the content of the source files.</measDesc>
+		</report>
+		<dataLineage>
+			<dataSource type="">
+				<srcDesc>Spatial information</srcDesc>
+				<srcMedName>
+					<MedNameCd value="015"/>
+				</srcMedName>
+				<srcScale>
+					<rfDenom>2000000</rfDenom>
+				</srcScale>
+				<srcCitatn>
+					<resTitle>1:2,000,000-Scale Hydrologic Unit Boundaries</resTitle>
+					<resAltTitle>ATLAS-HUC</resAltTitle>
+					<date>
+						<pubDate>2001-04-01</pubDate>
+					</date>
+					<citRespParty>
+						<rpOrgName>National Atlas of the United States</rpOrgName>
+						<rpCntInfo>
+							<cntAddress>
+								<delPoint>Reston, VA</delPoint>
+							</cntAddress>
+						</rpCntInfo>
+						<role>
+							<RoleCd value="010"/>
+						</role>
+					</citRespParty>
+					<citRespParty>
+						<rpOrgName>National Atlas of the United States</rpOrgName>
+						<role>
+							<RoleCd value="006"/>
+						</role>
+					</citRespParty>
+				</srcCitatn>
+				<srcExt>
+					<exDesc>Publication date</exDesc>
+					<tempEle>
+						<TempExtent>
+							<exTemp>
+								<TM_Instant>
+									<tmPosition>2001-04-01</tmPosition>
+								</TM_Instant>
+							</exTemp>
+						</TempExtent>
+					</tempEle>
+				</srcExt>
+			</dataSource>
+			<dataSource type="">
+				<srcDesc>Spatial and attribute information</srcDesc>
+				<srcMedName>
+					<MedNameCd value="001"/>
+				</srcMedName>
+				<srcScale>
+					<rfDenom>2000000</rfDenom>
+				</srcScale>
+				<srcCitatn>
+					<resTitle>1:2,000,000-scale Digital Line Graph Data - Hypsography</resTitle>
+					<resAltTitle>DLG-HP</resAltTitle>
+					<date>
+						<pubDate>1990-01-01</pubDate>
+					</date>
+					<citRespParty>
+						<rpOrgName>U.S. Geological Survey</rpOrgName>
+						<rpCntInfo>
+							<cntAddress>
+								<delPoint>Reston, VA</delPoint>
+							</cntAddress>
+						</rpCntInfo>
+						<role>
+							<RoleCd value="010"/>
+						</role>
+					</citRespParty>
+					<citRespParty>
+						<rpOrgName>U.S. Geological Survey</rpOrgName>
+						<role>
+							<RoleCd value="006"/>
+						</role>
+					</citRespParty>
+				</srcCitatn>
+				<srcExt>
+					<exDesc>Ground condition</exDesc>
+					<tempEle>
+						<TempExtent>
+							<exTemp>
+								<TM_Period>
+									<tmBegin>1972-01-01</tmBegin>
+									<tmEnd>1980-01-01</tmEnd>
+								</TM_Period>
+							</exTemp>
+						</TempExtent>
+					</tempEle>
+				</srcExt>
+			</dataSource>
+			<prcStep>
+				<stepDesc>ATLAS-HUC was read into Arc/INFO. The four sectionals (10,11,12, and 15) from DLG-HP covering the Continental Divide were used as references to determine which drainage boundaries to select from ATLAS-HUC. The selected arcs were put into a new file, which was then converted to shapefile format.</stepDesc>
+				<stepDateTm>2001-12-01</stepDateTm>
+				<stepSrc type="used">
+					<srcCitatn>
+						<resAltTitle>DLG-HP</resAltTitle>
+					</srcCitatn>
+				</stepSrc>
+				<stepSrc type="used">
+					<srcCitatn>
+						<resAltTitle>ATLAS-HUC</resAltTitle>
+					</srcCitatn>
+				</stepSrc>
+			</prcStep>
+		</dataLineage>
+	</dqInfo>
+	<spatRepInfo>
+		<VectSpatRep><geometObjs Name="condivl020"><geoObjTyp><GeoObjTypCd value="002" Sync="TRUE"></GeoObjTypCd></geoObjTyp><geoObjCnt Sync="TRUE">11</geoObjCnt></geometObjs><topLvl><TopoLevCd value="001" Sync="TRUE"></TopoLevCd></topLvl></VectSpatRep></spatRepInfo>
+	<eainfo>
+		<detailed Name="condivl020">
+			<enttyp>
+				<enttypl Sync="TRUE">condivl020</enttypl>
+				<enttypd>The divide that runs along the crest of the Rocky Mountains, dividing the waters flowing into the Atlantic Ocean from those flowing into the Pacific Ocean.</enttypd>
+				<enttypds>National Atlas of the United States</enttypds>
+				<enttypt Sync="TRUE">Feature Class</enttypt>
+				<enttypc Sync="TRUE">11</enttypc>
+			</enttyp>
+			<attr>
+				<attrlabl Sync="TRUE">FID</attrlabl>
+				<attalias Sync="TRUE">FID</attalias>
+				<attrtype Sync="TRUE">OID</attrtype>
+				<attwidth Sync="TRUE">4</attwidth>
+				<atprecis Sync="TRUE">0</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+				<attrdef Sync="TRUE">Internal feature number.</attrdef>
+				<attrdefs Sync="TRUE">Esri</attrdefs>
+				<attrdomv>
+					<udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom>
+				</attrdomv>
+			</attr>
+			<attr>
+				<attrlabl>Condivl020</attrlabl>
+				<attrdef>Internal feature number.</attrdef>
+				<attrdefs>National Atlas of the United States</attrdefs>
+				<attrdomv>
+					<rdom>
+						<rdommin>1</rdommin>
+						<rdommax>11</rdommax>
+					</rdom>
+				</attrdomv>
+				<attalias Sync="TRUE">CONDIVL020</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">11</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">FNODE_</attrlabl>
+				<attalias Sync="TRUE">FNODE_</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">11</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+				<attrdef>Internal number of the from-node. </attrdef>
+				<attrdefs>USGS</attrdefs>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">TNODE_</attrlabl>
+				<attalias Sync="TRUE">TNODE_</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">11</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+				<attrdef>Internal number of the to-node.</attrdef>
+				<attrdefs>USGS</attrdefs>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">LPOLY_</attrlabl>
+				<attalias Sync="TRUE">LPOLY_</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">11</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+				<attrdef>Internal number of the polygon to the left of the arc. </attrdef>
+				<attrdefs>USGS</attrdefs>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">RPOLY_</attrlabl>
+				<attalias Sync="TRUE">RPOLY_</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">11</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+				<attrdef>Internal number of the polygon to the right of the arc. </attrdef>
+				<attrdefs>USGS</attrdefs>
+			</attr>
+			<attr>
+				<attrlabl>Shape</attrlabl>
+				<attrdef>The representation of the entity in the data.</attrdef>
+				<attrdefs>National Atlas of the United States</attrdefs>
+				<attrdomv>
+					<edom>
+						<edomv>Polyline</edomv>
+						<edomvd>1-dimensional element that may or may not surround a 2-dimensional element.</edomvd>
+						<edomvds>ESRI GIS software</edomvds>
+					</edom>
+					<udom Sync="TRUE">Coordinates defining the features.</udom>
+				</attrdomv>
+				<attalias Sync="TRUE">Shape</attalias>
+				<attrtype Sync="TRUE">Geometry</attrtype>
+				<attwidth Sync="TRUE">0</attwidth>
+				<atprecis Sync="TRUE">0</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+			</attr>
+			<attr>
+				<attrlabl>Length</attrlabl>
+				<attrdef>The length of the line in coverage units. In the distributed file, coverage units represent decimal degrees.</attrdef>
+				<attrdefs>National Atlas of the United States</attrdefs>
+				<attrdomv>
+					<rdom>
+						<rdommin>1.63</rdommin>
+						<rdommax>6.895</rdommax>
+					</rdom>
+				</attrdomv>
+				<attalias Sync="TRUE">LENGTH</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">12</attwidth>
+				<atprecis Sync="TRUE">11</atprecis>
+				<attscale Sync="TRUE">3</attscale>
+			</attr>
+		</detailed>
+	</eainfo>
+	<mdHrLvName Sync="TRUE">dataset</mdHrLvName>
+	<refSysInfo>
+		<RefSystem dimension="">
+			<refSysID>
+				<identCode Sync="TRUE" code="4269" value="4269"/>
+				<idCodeSpace Sync="TRUE">EPSG</idCodeSpace>
+				<idVersion Sync="TRUE">8.6.2</idVersion>
+			</refSysID>
+		</RefSystem>
+	</refSysInfo>
+	<spdoinfo>
+		<ptvctinf><esriterm Name="condivl020"><efeatyp Sync="TRUE">Simple</efeatyp><efeageom code="3" Sync="TRUE"></efeageom><esritopo Sync="TRUE">FALSE</esritopo><efeacnt Sync="TRUE">11</efeacnt><spindex Sync="TRUE">FALSE</spindex><linrefer Sync="TRUE">FALSE</linrefer></esriterm></ptvctinf></spdoinfo>
+	<mdFileID>edu.stanford.purl:pw312bv3382</mdFileID>
+	<contInfo>
+		<FetCatDesc>
+			<compCode>False</compCode>
+			<incWithDS>True</incWithDS>
+			<catCitation>
+				<resTitle>Feature Catalog for Continental Divide of the United States</resTitle>
+				<citId>
+					<identCode>0bd21a51-e80e-4f21-9280-fbe03ec83ade</identCode>
+				</citId>
+				<date>
+					<pubDate>2002-01-01T00:00:00</pubDate>
+				</date>
+				<citRespParty>
+					<rpOrgName>Geological Survey (U.S.)</rpOrgName>
+					<role>
+						<RoleCd value="006"/>
+					</role>
+					<rpCntInfo>
+						<cntAddress addressType="both">
+							<city>Reston</city>
+							<adminArea>Virginia</adminArea>
+							<country>US</country>
+						</cntAddress>
+						<cntPhone>
+							<voiceNum tddtty="">1-888-ASK-USGS (1-888-275-8747)</voiceNum>
+						</cntPhone>
+					</rpCntInfo>
+					<displayName>Geological Survey (U.S.)</displayName>
+					<displayName>Geological Survey (U.S.)</displayName>
+				</citRespParty>
+			</catCitation>
+		</FetCatDesc>
+	</contInfo>
+	<mdContact>
+		<rpOrgName>National Atlas of the United States</rpOrgName>
+		<rpCntInfo>
+			<cntPhone>
+				<voiceNum tddtty="">703-648-4183</voiceNum>
+			</cntPhone>
+			<cntAddress addressType="postal">
+				<delPoint>12201 Sunrise Valley Dr</delPoint>
+				<delPoint>MS 561</delPoint>
+				<city>Reston</city>
+				<adminArea>VA</adminArea>
+				<postCode>20192</postCode>
+				<eMailAdd>atlasmail@usgs.gov</eMailAdd>
+				<country>US</country>
+			</cntAddress>
+		</rpCntInfo>
+		<role>
+			<RoleCd value="007"/>
+		</role>
+		<displayName>Peg Rawson</displayName>
+	</mdContact>
+	<mdParentID>http://purl.stanford.edu/cv275yx9215.mods</mdParentID>
+	<dataSetURI>http://purl.stanford.edu/pw312bv3382</dataSetURI>
+</metadata>

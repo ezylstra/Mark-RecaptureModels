@@ -26,10 +26,10 @@ daymet <- read.csv('output/weather-data/cleaned-daymet-data-all-sites.csv')
 modis <- read.csv('output/weather-data/cleaned-ndvi-data-all-sites-with-quality-flags.csv')
 
 # Load thinned winter sites
-winter.sites <- read.csv('data/sites-BTLH-range-map-dem/thinned-winter-sites.csv')
+winter.sites <- read.csv('data/sites-BTLH-range-map/thinned-winter-sites.csv')
 
 # Load summer sites
-summer.sites <- read.csv('data/sites-BTLH-range-map-dem/thinned-summer-sites.csv')
+summer.sites <- read.csv('data/sites-BTLH-range-map/thinned-summer-sites.csv')
 
 # Edit summer sites
 # Remove sites that don't have any recapture information and just a few captured

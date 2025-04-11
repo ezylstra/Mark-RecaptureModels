@@ -10,17 +10,15 @@ library(RMark)
 # Clear environment
 rm(list = ls()) 
 
-# Load data
-dat <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
+# Load banding data
+dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 
 # Prepare data set for survival analysis 
-dat1 <- dat %>%
+dat <- dat.raw %>%
+  filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   select(band, band_status, year, sex, obssite, band_age, band_site, location) %>% 
   rename(age = band_age) %>% 
-  distinct()
-
-# Sort data
-dat1 <- dat1 %>% 
+  distinct() %>% 
   arrange(band, band_status, year)
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
@@ -29,7 +27,7 @@ dat1 <- dat1 %>%
 # --------------------- includes just adult individuals ---------------------- #
 
 # Create capture history 
-ch_adults <- dat1 %>% 
+ch.adults <- dat %>% 
   filter(age == 'AHY') %>%   
   group_by(band, year, sex, location) %>%  
   summarize(n.observation = length(year)) %>%
@@ -46,19 +44,19 @@ ch_adults <- dat1 %>%
   select(-band) 
 
 # Make several variables factors (specifying levels for clarity)
-ch_adults$sex <- factor(ch_adults$sex, levels = c('F', 'M'))
-ch_adults$location <- factor(ch_adults$location, levels = c('east', 'west'))
+ch.adults$sex <- factor(ch.adults$sex, levels = c('F', 'M'))
+ch.adults$location <- factor(ch.adults$location, levels = c('east', 'west'))
 
 # Checks
-head(ch_adults)
-str(ch_adults)
+head(ch.adults)
+str(ch.adults)
 
 # ------------------ Capture histories with age at first capture ------------- #
 # ------------------------ includes juveniles and adults --------------------- #
 
 # Create capture histories
 # (Not including location now -- can easily add in later)
-ch_age <- dat1 %>%
+ch.age <- dat %>%
   group_by(band, year, sex, age) %>%  
   summarize(n.observation = length(year), .groups = 'keep') %>%
   mutate(observed = 1) %>% 
@@ -75,64 +73,77 @@ ch_age <- dat1 %>%
   select(-band)
 
 # Make several variables factors (specifying levels for clarity)
-ch_age$sex <- factor(ch_age$sex, levels = c('F', 'M'))
-ch_age$age <- factor(ch_age$age, levels = c('young', 'adult'))
+ch.age$sex <- factor(ch.age$sex, levels = c('F', 'M'))
+ch.age$age <- factor(ch.age$age, levels = c('young', 'adult'))
 
 # Checks
-head(ch_age)
-str(ch_age)
+head(ch.age)
+str(ch.age)
 
-# -------------------- Prepare effort to add it as a covariate --------------- #
+# ------------------------------ PRPEPARE COVARIATES ------------------------- #
+
+# -------------------------------- Trapping Effort --------------------------- #
 
 # Load data
-effort <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
+effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
 # Total banding days per year
 
 # Prepare effort data to add to ddl
-effort1 <- effort %>% 
-  filter(!site %in% c('CLP', 'BGMD')) %>%  # Sites not included in capture data for analysis
+effort <- effort.raw %>% 
+  # Sites not included in capture data for analysis:
+  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>%  
   group_by(year) %>% 
   summarize(total_days = sum(total_banding_days)) %>% 
   rename(time = year,
          effort = total_days) %>% 
   mutate_if(is.character, as.numeric) %>% 
-  as.data.frame
+  as.data.frame()
 
 # It's usually a good idea to standardize covariates (to avoid estimation problems
 # and to help with interpretation). If effort is standardized to a mean of 0 and
 # SD = 1, then the intercept will represent recapture probability at the mean
 # effort level and the coefficient represents the expected change in recapture 
 # probability for a 1-SD increase in effort.
-effort1 <- effort1 %>%
+effort.stand <- effort %>%
   mutate(effort.z = (effort - mean(effort)) / sd(effort)) %>% 
   select(-effort) %>% 
-  rename(effort = effort.z)
-effort1
+  rename(effort = effort.z) %>% 
+  print()
+
+# ---------------------------- Environmental Covariates ---------------------- # 
+
+# Load data
+winter.mx <- read.csv('output/weather-data/covariates-output/winter-covar-mexico.csv')
+summer.co <- read.csv('output/weather-data/covariates-output/summer-covar-colorado.csv')
+winter.co <- read.csv('output/weather-data/covariates-output/winter-swe-colorado.csv')
+
+
 
 # ------------------------------ RUN CJS ANALYSIS ---------------------------- #
+# --------------------- Without environmental covariates --------------------- #
 
 # 1) ADULTS
 
 # Process the encounter history data frame for Mark analysis
-adults_process <- process.data(ch_adults,
+adults.process <- process.data(ch.adults,
                                model = 'CJS',
                                begin.time = 2003,
                                groups = c('sex','location')) 
 
 # Create design data frame for Mark model specification based in PIM (parameter 
 # index matrix)
-adults_ddl <- make.design.data(adults_process)
+adults.ddl <- make.design.data(adults.process)
 
 # Add effort to ddl 
-adults_ddl$p <- merge_design.covariates(adults_ddl$p, effort1)
+adults.ddl$p <- merge_design.covariates(adults.ddl$p, effort.stand)
 
 # Run models using a function
 
-# The function defines and runs a set of models and returns a marklist with the 
-# results and a model.table. It uses the processed and designed data created
-# previously 
+# Create a function that defines and runs a set of models and returns a marklist 
+# with the results and a model table. It uses the processed and designed data 
+# created previously 
 
-adults_models <- function()
+adults.models <- function()
 {
   Phi.dot <- list(formula = ~1) # intercept/dot 
   Phi.Time <- list(formula = ~Time) # trend 
@@ -150,31 +161,35 @@ adults_models <- function()
   p.timePlusEffortPluslussex <- list(formula = ~time + sex)
   p.location <- list(formula = ~location)
   
-  cml <- create.model.list('CJS') # Creates a dataframe of all combinations of parameter specifications for each parameter 
-  results <- mark.wrapper(cml, # Constructs and runs a set of MARK models from a dataframe (cml)
-                          data = adults_process,
-                          ddl = adults_ddl,
+  # Create a data frame of all combinations of parameter specifications for each 
+  # parameter
+  cml <- create.model.list('CJS')  
+  
+  # Construct and run a set of MARK models from the cml data frame
+  results <- mark.wrapper(cml, 
+                          data = adults.process,
+                          ddl = adults.ddl,
                           adjust = FALSE) # Accepts the parameter counts from MARK
   return(results)
 }
 
-# Store the results in a marklist
-adults_results <- adults_models()
-adults_results
+# Run the function and store the results in a marklist
+adults.results <- adults.models()
+adults.results
 
 # Two models with lowest Delta AIC of 0. 
 # Phi(~sex * Time)p(~time)
 # Phi(~sex * Time)p(~time + effort) 
 
 # Using model 26
-best <- adults_results[[26]]
+best <- adults.results[[26]]
 
 # Look at beta-hats
 best$results$beta
 best$results$real
 
 # Adult male broad-tailed hummingbirds' survival probability in RMNP has decreased 
-# over time (β = -0.05). Males have a lower probability of survival (β = -0.48) 
+# over time (β = -0.05). Males have a lower probability of survival (β = -0.47) 
 # than females. The top model used for inference shows a time effect 
 # on the probability of recapture.    
 
@@ -183,7 +198,7 @@ best$results$real
 reals <- best$results$real %>%
   rownames_to_column('rowname') %>%
   select(-c(fixed, note)) %>%
-  separate_wider_delim(rowname,  
+  separate_wider_delim(rowname,  # Splits this column into different columns
                        delim = ' ',
                        names = c('parameter', 'sex', NA, NA, 'year')) %>%
   mutate(sex = str_sub(sex, 2, 2), 
@@ -193,41 +208,43 @@ reals <- best$results$real %>%
 # Visualize results
 
 # Plot estimates of recapture probability
-p_reals <- reals %>%
-  filter(parameter == 'p')
+p.reals <- reals %>%
+  filter(parameter == 'p') 
 
-p_fig <- ggplot(p_reals, aes(x = year, y = estimate)) +
+p.fig <- ggplot(p.reals, aes(x = year, y = estimate)) +
   geom_point(size = 1.5) +
   geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0) +
   theme_classic() +
   ylab(expression(atop('Estimated recapture probability', paste('(95% CI)')))) + 
-  xlab('') +
-  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2))
-p_fig
+  xlab('Year') +
+  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)) +
+  scale_x_continuous(breaks = 2004:2012)
+p.fig
 
 # Plot estimates of survival probabilities 
-phi_reals <- reals %>%
+phi.reals <- reals %>%
   filter(parameter == 'Phi')
 
-phi_fig <- ggplot(phi_reals, aes(x = year, y = estimate)) +
+phi.fig <- ggplot(phi.reals, aes(x = year, y = estimate)) +
   geom_point(size = 1.5, aes(color = sex)) +
   geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0) +
   scale_color_manual(values = c('#8E3E6E', '#4F7942')) +
   scale_fill_manual (values = c('#8E3E6E', '#4F7942')) +
   theme_classic() +
   ylab(expression(atop('Estimated survival probability', paste('(95% CI)')))) + 
-  xlab('') +
-  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2))
-phi_fig
+  xlab('Year') +
+  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)) +
+  scale_x_continuous(breaks = 2003:2011)
+phi.fig
 
 #Get rid of the mark files so they don't clog repo
-rm(adults_results)
-cleanup(ask = F)
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv)$')))
 
-# 2) AGE
+
+# 2) ADULTS AND JUVENILES
 
 # Process the encounter history data frame for Mark analysis
-age_process <- process.data(data = ch_age,
+age.process <- process.data(data = ch.age,
                             model = 'CJS',
                             begin.time = 2003,
                             groups = c('sex', 'age'),
@@ -235,12 +252,12 @@ age_process <- process.data(data = ch_age,
                             initial.ages = c(0, 1)) # Initial ages for each level of age variable
 
 # Create design matrix
-age_ddl <- make.design.data(age_process)
+age.ddl <- make.design.data(age.process)
 
 # This is the key step: creating age classes for survival: juvenile = age 0, 
 #                                                          adult = 1+
-age_ddl <- add.design.data(data = age_process,
-                           ddl = age_ddl,
+age.ddl <- add.design.data(data = age.process,
+                           ddl = age.ddl,
                            parameter = 'Phi',
                            type = 'age',
                            bins = c(0,1,9), 
@@ -252,7 +269,7 @@ age_ddl <- add.design.data(data = age_process,
 # since all individuals are at least 1 year old (adults) when recaptured.
 
 # Add effort to ddl 
-age_ddl$p <- merge_design.covariates(age_ddl$p, effort1)
+age.ddl$p <- merge_design.covariates(age.ddl$p, effort.stand)
 
 # Create a couple other variables to help with model construction
 # Why these groups? 
@@ -260,38 +277,37 @@ age_ddl$p <- merge_design.covariates(age_ddl$p, effort1)
 # Creating 3 groups: Juveniles (0; both sexes combined) 
 #                    AdultF (1) 
 #                    AdultM (2)
-age_ddl$Phi$sexadult <- ifelse(age_ddl$Phi$ageclass == '[0,1)', 0,
-                               ifelse(age_ddl$Phi$sex == 'F', 1, 2))
+age.ddl$Phi$sexadult <- ifelse(age.ddl$Phi$ageclass == '[0,1)', 0,
+                               ifelse(age.ddl$Phi$sex == 'F', 1, 2))
 
 # Change new variable to a class factor
-age_ddl$Phi$sexadult <- factor(age_ddl$Phi$sexadult)
+age.ddl$Phi$sexadult <- factor(age.ddl$Phi$sexadult)
 
 # Indicator for adults: Juvenile (0)
 #                       Adult (1)
-age_ddl$Phi$adult <- ifelse(age_ddl$Phi$ageclass == '[0,1)', 0, 1)
+age.ddl$Phi$adult <- ifelse(age.ddl$Phi$ageclass == '[0,1)', 0, 1)
 
 #Why this one was not a factor? Should it be a factor?
 # Change new variable to a class factor
-age_ddl$Phi$adult <- factor(age_ddl$Phi$adult)
+age.ddl$Phi$adult <- factor(age.ddl$Phi$adult)
 
 # Inspect the newly created RMark objects
-str(age_ddl)
+str(age.ddl)
 
 # Phi
-head(age_ddl$Phi, 10)
-tail(age_ddl$Phi, 10)
-summary(age_ddl$Phi)
+head(age.ddl$Phi, 10)
+tail(age.ddl$Phi, 10)
+summary(age.ddl$Phi)
 
 # p
-head(age_ddl$p, 10)
-summary(age_ddl$p)
+head(age.ddl$p, 10)
+summary(age.ddl$p)
 
-# ------------------------- Run models --------------------------------------- #  
-
-# Run models exploring effects of sex and ageclass on survival (no time/Trends 
+# Run models exploring effects of sex and age class on survival (no time/Trends 
 # yet, except in recapture probability model)
 
-age_sex_models <- function()
+# Create function
+age.sex.models <- function()
 {
   Phi.dot <- list(formula = ~1) 
   Phi.sex <- list(formula = ~sex)
@@ -309,39 +325,37 @@ age_sex_models <- function()
   
   cml <- create.model.list('CJS') 
   results <- mark.wrapper(cml, 
-                          data = age_process,
-                          ddl = age_ddl,
+                          data = age.process,
+                          ddl = age.ddl,
                           output = FALSE,
                           adjust = FALSE)
   return(results)
 }
 
-# Store the results in a marklist
-age_sex_results <- age_sex_models()
-age_sex_results
+# Run function and store the results in a marklist
+age.sex.results <- age.sex.models()
+age.sex.results
 
 # Pick index of model you'd like to look at more closely
-model_ind <- 18 
+model.ind <- 17
 
 # Look at estimates from one of the models and interpret coefficients
-age_sex_results[[model_ind]]$results$beta
+age.sex.results[[model.ind]]$results$beta
 
-# Using model 18 
-# Phi(~ageclass + sex)p(~time + sex)
+# Using model 17 
+# Phi(~ageclass + sex)p(~time)
 
 # The probability of survival is different by age class and sex. Adults have a 
 # higher probability of survival than juveniles and males have a lower probability
-# of survival than females. Males have a lower probability of recapture than 
-# females and it is different by year 
+# of survival than females. Recapture probability differs by year 
 
 # Look at real estimates
-age_sex_results[[model_ind]]$results$real
+age.sex.results[[model.ind]]$results$real
 
-# ---------------------------------------------------------------------------#
-# Code below organizes the real estimates into a new dataframe
+# Code below organizes the real estimates for phi and p into new data frames
 
 # Extract real estimates and add columns to identify grouping variables
-real_ests <- age_sex_results[[model_ind]]$results$real %>%
+real.ests <- age.sex.results[[model.ind]]$results$real %>%
   rownames_to_column(var = 'group') %>%
   mutate(param = ifelse(str_sub(group, 1, 3) == 'Phi', 'Phi', 'p'),
          group = ifelse(param == 'Phi', 
@@ -353,22 +367,24 @@ real_ests <- age_sex_results[[model_ind]]$results$real %>%
          sexMF = str_sub(group, 2, 2)) %>%
   select(param, year, age, sexMF, estimate, se, lcl, ucl)
 
-real_ests_Phi <- real_ests %>%
+real.ests.Phi <- real.ests %>%
   filter(param == 'Phi')
 
-real_ests_p <- real_ests %>%
+real.ests.p <- real.ests %>%
   filter(param == 'p') %>%
   select(-age)
 
 # Create dataframe to organize the real survival estimates
-Phi_ests <- data.frame(Time = rep(min(age_ddl$Phi$Time):max(age_ddl$Phi$Time), 4),
-                       ageclass = rep(c(0, 0, 1, 1), each = 8),
-                       sex = rep(c(0, 1, 0, 1), each = 8)) %>%
+time.range <- min(age.ddl$Phi$Time):max(age.ddl$Phi$Time)
+n.years <- length(time.range)
+
+Phi.ests <- tibble(Time = rep(time.range, 4),
+                   ageclass = rep(c(0, 0, 1, 1), each = n.years),
+                   sex = rep(c(0, 1, 0, 1), each = n.years)) %>%
   mutate(year = Time + 2003,
          age = ifelse(ageclass == 0, 'J', 'A'),
-         sexMF = ifelse(sex == 0, 'F', 'M'))
-Phi_ests <- Phi_ests %>%
-  left_join(real_ests_Phi, by = c('year', 'age', 'sexMF')) %>%
+         sexMF = ifelse(sex == 0, 'F', 'M')) %>% 
+  left_join(real.ests.Phi, by = c('year', 'age', 'sexMF')) %>%
   filter(!is.na(estimate)) %>%
   group_by(age, sexMF) %>%
   mutate(nyears = length(year)) %>%
@@ -378,29 +394,25 @@ Phi_ests <- Phi_ests %>%
   select(-c(Time, ageclass, sex, nyears)) %>%
   relocate(param)
 
-# Create a dataframe to organize the real recapture probability estimates
-p_ests <- data.frame(Time = rep(min(age_ddl$Phi$Time):max(age_ddl$Phi$Time), 2),
-                     sex = rep(c(0, 1), each = 8)) %>%
+# Create a data frame to organize the real recapture probability estimates
+p.ests <- data.frame(Time = rep(time.range, 2),
+                     sex = rep(c(0, 1), each = n.years)) %>%
   mutate(year = Time + 2003,
-         sexMF = ifelse(sex == 0, 'F', 'M'))
-p_ests <- p_ests %>%
-  left_join(real_ests_p, by = c('year', 'sexMF')) %>%
+         sexMF = ifelse(sex == 0, 'F', 'M')) %>%
+  left_join(real.ests.p, by = c('year', 'sexMF')) %>%
   filter(!is.na(estimate)) %>%
   group_by(sexMF) %>%
-  mutate(nyears = length(year)) %>%
+  mutate(nyears = n()) %>%
   ungroup() %>%
-  data.frame() %>%
   mutate(year = ifelse(nyears == 1, 'All years', as.character(year))) %>%
   select(-c(Time, sex, nyears)) %>%
   relocate(param)
 
-Phi_ests
-p_ests
+Phi.ests
+p.ests
 # If just one sex is listed, then that means that males and females were
 # assumed to have the same survival (or recapture) probability
 
-# ---------------------------------------------------------------------------#
-
 #Get rid of the mark files so they don't clog repo
-rm(age_sex_results)
-cleanup(ask = F)
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv)$')))
+

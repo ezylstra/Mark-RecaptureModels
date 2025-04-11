@@ -124,7 +124,7 @@ library(ggplot2)
 library(sf)
 
 # Import non breeding range of BTLH from eBird
-range <- vect("data/sites-BTLH-range-map-dem/brthum_range_2021.gpkg")
+range <- vect("data/sites-BTLH-range-map/brthum_range_2021.gpkg")
 data.frame(range)
 nonbreeding <- subset(range, range$season == 'nonbreeding')
 

@@ -14,8 +14,8 @@ library(MODISTools)
 rm(list = ls())
 
 # Load points data 
-sites_winter <- read.csv('data/sites-BTLH-range-map-dem/thinned-winter-sites.csv')
-sites_summer <-read.csv('data/sites-BTLH-range-map-dem/thinned-summer-sites.csv')
+sites_winter <- read.csv('data/sites-BTLH-range-map/thinned-winter-sites.csv')
+sites_summer <-read.csv('data/sites-BTLH-range-map/thinned-summer-sites.csv')
 
 # Clean up data sets
 sites_winter <- sites_winter %>% 

@@ -124,13 +124,13 @@ thinned.points.winter <- winter %>%
   ungroup()
 
 # Export list of thinned points
-write.csv(thinned.points.winter, 'data/sites-BTLH-range-map-dem/thinned-winter-sites.csv',
+write.csv(thinned.points.winter, 'data/sites-BTLH-range-map/thinned-winter-sites.csv',
           row.names = F)
 
 #----------------------------------- Summer Sites -----------------------------#
 
 # Load summer sites
-summer.sites <- read.csv('data/sites-BTLH-range-map-dem/RMNP-sites-data.csv',
+summer.sites <- read.csv('data/sites-BTLH-range-map/RMNP-sites-data.csv',
                          strip.white = TRUE) %>% 
   filter(!site %in% c('CLP', 'BGMD'))
 
@@ -205,5 +205,5 @@ thinned.summer.locs <- locs.summer %>%
 # Just one location removed WB2 
 
 # Export list of thinned points
-write.csv(thinned.summer.locs, 'data/sites-BTLH-range-map-dem/thinned-summer-sites.csv',
+write.csv(thinned.summer.locs, 'data/sites-BTLH-range-map/thinned-summer-sites.csv',
           row.names = F)

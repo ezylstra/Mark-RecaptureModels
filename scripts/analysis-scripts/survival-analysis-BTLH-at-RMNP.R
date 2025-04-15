@@ -82,33 +82,34 @@ str(ch.age)
 
 # ------------------------------ PRPEPARE COVARIATES ------------------------- #
 
+# From Erin about effort:
+# It's usually a good idea to standardize covariates (to avoid estimation problems
+# and to help with interpretation). If effort is standardized to a mean of 0 and
+# SD = 1, then the intercept will represent recapture probability at the mean
+# effort level and the coefficient represents the expected change in recapture 
+# probability for a 1-SD increase in effort.
+
+# Createa function to z-standardize the covariates
+z.stand <- function(x) {
+  (x - mean(x)) / sd(x)
+}
+
 # -------------------------------- Trapping Effort --------------------------- #
 
-# Load data
+# Load effort data
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
 # Total banding days per year
 
 # Prepare effort data to add to ddl
-effort <- effort.raw %>% 
+effort.df <- effort.raw %>% 
   # Sites not included in capture data for analysis:
   filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>%  
   group_by(year) %>% 
   summarize(total_days = sum(total_banding_days)) %>% 
   rename(time = year,
          effort = total_days) %>% 
-  mutate_if(is.character, as.numeric) %>% 
+  mutate(effort = z.stand(effort), .keep = 'unused') %>% 
   as.data.frame()
-
-# It's usually a good idea to standardize covariates (to avoid estimation problems
-# and to help with interpretation). If effort is standardized to a mean of 0 and
-# SD = 1, then the intercept will represent recapture probability at the mean
-# effort level and the coefficient represents the expected change in recapture 
-# probability for a 1-SD increase in effort.
-effort.stand <- effort %>%
-  mutate(effort.z = (effort - mean(effort)) / sd(effort)) %>% 
-  select(-effort) %>% 
-  rename(effort = effort.z) %>% 
-  print()
 
 # ---------------------------- Environmental Covariates ---------------------- # 
 
@@ -117,7 +118,33 @@ winter.mx <- read.csv('output/weather-data/covariates-output/winter-covar-mexico
 summer.co <- read.csv('output/weather-data/covariates-output/summer-covar-colorado.csv')
 winter.co <- read.csv('output/weather-data/covariates-output/winter-swe-colorado.csv')
 
+# Standardize winter mx covariates
+winter.mx.stand <- winter.mx %>% 
+  mutate(aver_min_temp_z = z.stand(aver_min_temp),
+         aver_daily_min_temp_z = z.stand(aver_daily_min_temp), 
+         aver_cold_days_z = z.stand(aver_cold_days),
+         aver_precip_z = z.stand(aver_precip),
+         average_ndvi_z = z.stand(average_ndvi), .keep = 'unused') %>% 
+  mutate(time = 2003:2012, .after = winter_period) %>% # so time matches Phi
+  select(-winter_period)
 
+# Standardize summer co covariates
+summer.co.stand.2 <- summer.co %>% 
+  mutate(aver_max_temp_z = z.stand(aver_max_temp),
+         aver_min_temp_z = z.stand(aver_min_temp),
+         aver_daily_max_temp_z = z.stand(aver_daily_max_temp),
+         aver_daily_min_temp_z = z.stand(aver_daily_min_temp),
+         aver_warm_days_z = z.stand(aver_warm_days),
+         aver_cold_days_z = z.stand(aver_cold_days),
+         aver_precip_z = z.stand(aver_precip),
+         average_ndvi_z = z.stand(average_ndvi),
+         frost_days_z = z.stand(frost_days), .keep = 'unused')
+
+# Standardize winter co covariates
+winter.co.stand <- winter.co %>% 
+  mutate(total_swe_winter_co_z = z.stand(total_swe_winter_co), .keep = 'unused') %>% 
+  mutate(time = 2002:2012) %>% 
+  select(-winter_period)
 
 # ------------------------------ RUN CJS ANALYSIS ---------------------------- #
 # --------------------- Without environmental covariates --------------------- #
@@ -135,7 +162,7 @@ adults.process <- process.data(ch.adults,
 adults.ddl <- make.design.data(adults.process)
 
 # Add effort to ddl 
-adults.ddl$p <- merge_design.covariates(adults.ddl$p, effort.stand)
+adults.ddl$p <- merge_design.covariates(adults.ddl$p, effort.df)
 
 # Run models using a function
 
@@ -237,8 +264,8 @@ phi.fig <- ggplot(phi.reals, aes(x = year, y = estimate)) +
   scale_x_continuous(breaks = 2003:2011)
 phi.fig
 
-#Get rid of the mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv)$')))
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 
 # 2) ADULTS AND JUVENILES
@@ -413,6 +440,113 @@ p.ests
 # If just one sex is listed, then that means that males and females were
 # assumed to have the same survival (or recapture) probability
 
-#Get rid of the mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv)$')))
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
+# ------------------------------ RUN CJS ANALYSIS ---------------------------- #
+# ----------------------- With environmental covariates ---------------------- #
+
+################################################################################
+
+# But first select covariates when more than one was summarized, for example:
+# NDVI vs precipitation 
+# aver_min_temp vs daily_aver_min_temp
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Which temperature variable in the wintering grounds better explains survival?
+
+# 1) Run models exploring effects of covariates in adult survival
+
+# Process the encounter history data frame for Mark analysis
+adults.temperature.winter.process <- process.data(ch.adults,
+                                                  model = 'CJS',
+                                                  begin.time = 2003,
+                                                  groups = 'sex') 
+
+# Create design data frame for Mark model specification based in PIM (parameter 
+# index matrix)
+adults.temperature.winter.ddl <- make.design.data(adults.temperature.winter.process)
+
+# Add weather covariates to ddl 
+adults.temperature.winter.ddl$Phi <- merge_design.covariates(
+  adults.temperature.winter.ddl$Phi, winter.mx.stand)
+
+# Add effort to ddl 
+adults.temperature.winter.ddl$p <- merge_design.covariates(
+  adults.temperature.winter.ddl$p, effort.df)
+
+# Run models using a function
+
+# I'm using the same function I used before but adding temperature. I'm not including
+# interactions or aditive effects
+adults.temp.winter.models <- function()
+{
+  Phi.dot <- list(formula = ~1) # intercept/dot 
+  Phi.Time <- list(formula = ~Time) # trend 
+  Phi.sex <- list(formula = ~sex)
+  Phi.time <- list(formula = ~time) # each year
+  Phi.aver_min_temp_z <- list(formula = ~aver_min_temp_z)
+  Phi.aver_daily_min_temp_z <- list(formula = ~aver_daily_min_temp_z)
+  
+  p.dot <- list(formula = ~1)
+  p.sex <- list(formula = ~sex)
+  p.time <- list(formula = ~time)
+  p.effort <- list(formula = ~effort)
+  
+  # Create a data frame of all combinations of parameter specifications for each 
+  # parameter
+  cml <- create.model.list('CJS')  
+  
+  # Construct and run a set of MARK models from the cml data frame
+  results <- mark.wrapper(cml, 
+                          data = adults.temperature.winter.process,
+                          ddl = adults.temperature.winter.ddl,
+                          adjust = FALSE) # Accepts the parameter counts from MARK
+  return(results)
+}
+
+# Run the function and store the results in a marklist
+adults.temperature.results <- adults.temp.winter.models()
+adults.temperature.results
+
+# Looking at Delta AIC:
+# Neither temperature variable included in the formulas explain survival. 
+# aver_min_temp performed better than aver_daily_min_temp by a little bit
+
+# Maybe I need to try just with formulas for temperature
+
+# Run models using a function
+just.temp.winter.models <- function()
+{
+  Phi.dot <- list(formula = ~1)
+  Phi.aver_min_temp_z <- list(formula = ~aver_min_temp_z)
+  Phi.aver_daily_min_temp_z <- list(formula = ~aver_daily_min_temp_z)
+  
+  p.dot <- list(formula = ~1)
+  p.time <- list(formula = ~time)
+  
+  # Create a data frame of all combinations of parameter specifications for each 
+  # parameter
+  cml <- create.model.list('CJS')  
+  
+  # Construct and run a set of MARK models from the cml data frame
+  results <- mark.wrapper(cml, 
+                          data = adults.temperature.winter.process,
+                          ddl = adults.temperature.winter.ddl,
+                          adjust = FALSE) # Accepts the parameter counts from MARK
+  return(results)
+}
+
+# Run the function and store the results in a marklist
+just.temp.winter.results <- just.temp.winter.models()
+just.temp.winter.results
+
+# aver_daily_min_temp explains more than aver_min_temp, but before it was the
+# oposite based in the position of the models in the table of results
+# Phi(~aver_daily_min_temp_z)p(~time)
+two <- just.temp.winter.results[[2]]
+two$results$beta
+
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

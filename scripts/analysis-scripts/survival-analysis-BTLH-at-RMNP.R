@@ -125,7 +125,7 @@ winter.mx.stand <- winter.mx %>%
          aver_cold_days_z = z.stand(aver_cold_days),
          aver_precip_z = z.stand(aver_precip),
          average_ndvi_z = z.stand(average_ndvi), .keep = 'unused') %>% 
-  mutate(time = 2003:2012, .after = winter_period) %>% # so time matches Phi
+  mutate(time = 2002:2011, .after = winter_period) %>% # so time matches Phi
   select(-winter_period)
 
 # Standardize summer co covariates
@@ -478,7 +478,7 @@ adults.temperature.winter.ddl$p <- merge_design.covariates(
 # Run models using a function
 
 # I'm using the same function I used before but adding temperature. I'm not including
-# interactions or aditive effects
+# interactions or additive effects
 adults.temp.winter.models <- function()
 {
   Phi.dot <- list(formula = ~1) # intercept/dot 

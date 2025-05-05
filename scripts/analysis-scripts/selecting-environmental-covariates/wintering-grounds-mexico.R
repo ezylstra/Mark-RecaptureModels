@@ -269,7 +269,7 @@ results.3$results$real
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 # Is this right?:
-# # Even though neither temperature variable explained survival better than sex, 
+# Even though neither temperature variable explained survival better than sex, 
 # it is preferable to use aver_min_temp in further analysis because it performed 
 # better than aver_daily_min_temp and cold_days when used in different combinations.
 

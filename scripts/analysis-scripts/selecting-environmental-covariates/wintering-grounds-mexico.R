@@ -1,6 +1,6 @@
 # Selecting environmental covariates for survival analysis
 
-# Covariate for winter period: December-January-February in Mexico
+# Covariates for winter period: December-January-February in Mexico
 
   # average min temperature 
   # average daily min temperature
@@ -166,9 +166,9 @@ results.1 <- ahy.temp.mx.results.1[[16]]
 results.1$results$beta
 results.1$results$real
 
-# Since Phi(~sex)p(~effort) was the second best model, I tried to include an 
+# Since p(~sex)p(~effort) was the second best model, I tried to include an 
 # additive model p(~effort + time). This resulted in two models with AIC 0
-# Phi(~sex)p(~effort) and Phi(~sex)p(~effort + time). After exploring SE in both 
+# p(~sex)p(~effort) and p(~sex)p(~effort + time). After exploring SE in both 
 # results I decided to exclude p(~effort + time) as SE were huge.   
 
 # Remove mark files so they don't clog repo

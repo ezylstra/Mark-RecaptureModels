@@ -167,7 +167,7 @@ results.1$results$beta
 results.1$results$real
 
 # Since Phi(~sex)p(~effort) was the second best model, I tried to include an 
-# additive model p(~effort + time) in p. This resulted in two models with AIC 0
+# additive model p(~effort + time). This resulted in two models with AIC 0
 # Phi(~sex)p(~effort) and Phi(~sex)p(~effort + time). After exploring SE in both 
 # results I decided to exclude p(~effort + time) as SE were huge.   
 
@@ -269,8 +269,9 @@ results.3$results$real
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 # Is this right?:
-# In conclusion it is better to use aver_min_temp as a covariate to explain survival
-# because it performed better than aver_daily_min_temp and cold_days
+# # Even though neither temperature variable explained survival better than sex, 
+# it is preferable to use aver_min_temp in further analysis because it performed 
+# better than aver_daily_min_temp and cold_days when used in different combinations.
 
 # 2) Which resource availability variable in the wintering grounds better 
 # explains survival?
@@ -324,13 +325,17 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 ################################################################################
 
+# Trying to run a more complete set of models
+
 # Create function to run models
 ahy.mx.full <- function()
 {
   Phi.dot <- list(formula = ~1) 
   Phi.sex <- list(formula = ~sex)
   Phi.time <- list(formula = ~time)
+  # Added this model to identify if survival of F and M varies by year
   Phi.sexandtime <- list(formula = ~ sex + time) 
+  # Using the two covariates that performed the best
   Phi.minTemp <- list(formula = ~aver_min_temp_z)
   Phi.precip <- list(formula = ~aver_precip_z)
   
@@ -357,16 +362,18 @@ ahy.mx.full.results
 
 # Model with lowest Delta AIC 
 # Phi(~sex + time)p(~time)
+# Models with environmental covarites are not in the top 5 models
 
 # Look at estimates and standard errors 
 results.5 <- ahy.mx.full.results[[20]]
 results.5$results$beta
 results.5$results$real
 
-# Survival probability for males is lower than females and also varies by year
-# Should I include Phi(~sex + time) in the models in this script to select the 
-# environmelt covariates? 
+# Survival probability for males is lower than females and also varies by year.
+# Declines in 2006, 2009 and 2010 and goes way high in 2011
+
+# Should I include Phi(~sex + time) in the functions in this script to select the 
+# environmental covariates? 
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-

@@ -128,6 +128,8 @@ ahy.ddl$p <- merge_design.covariates(
 # Error!
 #Error in merge_design.covariates(ahy.ddl$p, effort.z) : 
 #  effort.z uses the same field names as used in design data
+# Is it because I have two values per time? I have duplicated effort values
+# per year. Is this the problem? 
 
 # Add temperature covariates to ddl 
 ahy.ddl$Phi <- merge_design.covariates(

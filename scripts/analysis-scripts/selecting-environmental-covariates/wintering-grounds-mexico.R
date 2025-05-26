@@ -73,16 +73,25 @@ z.stand <- function(x) {
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
 # Total banding days per year
 
-# Prepare effort data to add to ddl
-effort.stand <- effort.raw %>% 
+# Edit effort data to include location
+effort.dat <- effort.raw %>% 
   # Sites not included in capture data for analysis:
-  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>%  
-  group_by(year) %>% 
-  summarize(total_days = sum(total_banding_days)) %>% 
+  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>%
+  mutate(location = ifelse(site %in% c('CLP', 'GNMTN', 'HOLZ', 'KV1'), 'west', 'east'))
+
+# Standardize effort
+effort.z <- effort.dat %>% 
+  group_by(location, year) %>%  # grouping by location seems the right thing to do, but 
+  # I can't add the effort to the ddl
+  summarize(total_days = sum(total_banding_days, na.rm = TRUE), 
+            .groups = 'drop') %>% 
   rename(time = year,
-         effort = total_days) %>% 
-  mutate(effort = z.stand(effort), .keep = 'unused') %>% 
+         effort_raw = total_days) %>% 
+  mutate(effort_z = z.stand(effort_raw)) %>%
+  select(time, location, effort_z) %>% 
   as.data.frame()
+
+# Here I have z_effort by year and location
 
 # ---------------------------- Environmental Covariates ---------------------- # 
 
@@ -107,22 +116,29 @@ winter.mx.stand <- winter.mx %>%
 ahy.process <- process.data(ch.adults,
                             model = 'CJS',
                             begin.time = 2003,
-                            groups = c('sex')) 
+                            groups = c('sex', 'location')) # added location as suggested by Erin
 
 # Create design data frame
 ahy.ddl <- make.design.data(ahy.process)
 
 # Add effort to ddl 
 ahy.ddl$p <- merge_design.covariates(
-  ahy.ddl$p, effort.stand)
+  ahy.ddl$p, effort.z)
+
+# Error!
+#Error in merge_design.covariates(ahy.ddl$p, effort.z) : 
+#  effort.z uses the same field names as used in design data
 
 # Add temperature covariates to ddl 
 ahy.ddl$Phi <- merge_design.covariates(
   ahy.ddl$Phi, winter.mx.stand)
 
-# 1) Which temperature variable in the wintering grounds better explains survival?
+# Left here
+################################################################################
 
-# ~~~~~~~~~~~~~~~~~~~~~~ aver_min_temp vs aver_daily_min_temp ~~~~~~~~~~~~~~~~ #
+
+
+# 1) Which temperature variable in the wintering grounds better explains survival?
 
 # Create function to run models
 ahy.temp.mx.1 <- function()
@@ -133,10 +149,7 @@ ahy.temp.mx.1 <- function()
   Phi.minTemp <- list(formula = ~aver_min_temp_z)
   Phi.dailyTemp <- list(formula = ~aver_daily_min_temp_z)
   
-  p.dot <- list(formula = ~1)
-  p.sex <- list(formula = ~sex)
-  p.time <- list(formula = ~time)
-  p.effort <- list(formula = ~effort)
+  p.sexeffort = p(sex + effort.z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter

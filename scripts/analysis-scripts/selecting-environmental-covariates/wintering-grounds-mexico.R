@@ -73,25 +73,18 @@ z.stand <- function(x) {
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
 # Total banding days per year
 
-# Edit effort data to include location
-effort.dat <- effort.raw %>% 
+# Edit effort data and standardize it
+effort.z <- effort.raw %>% 
   # Sites not included in capture data for analysis:
-  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>%
-  mutate(location = ifelse(site %in% c('CLP', 'GNMTN', 'HOLZ', 'KV1'), 'west', 'east'))
-
-# Standardize effort
-effort.z <- effort.dat %>% 
-  group_by(location, year) %>%  # grouping by location seems the right thing to do, but 
-  # I can't add the effort to the ddl
+  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  group_by(year) %>%
   summarize(total_days = sum(total_banding_days, na.rm = TRUE), 
             .groups = 'drop') %>% 
   rename(time = year,
          effort_raw = total_days) %>% 
-  mutate(effort_z = z.stand(effort_raw)) %>%
-  select(time, location, effort_z) %>% 
+  mutate(effort = z.stand(effort_raw)) %>%
+  select(time, effort) %>% 
   as.data.frame()
-
-# Here I have z_effort by year and location
 
 # ---------------------------- Environmental Covariates ---------------------- # 
 
@@ -108,15 +101,30 @@ winter.mx.stand <- winter.mx %>%
   mutate(time = 2002:2011, .after = winter_period) %>% # so time matches Phi
   select(-winter_period)
 
-# ------------------------------ RUN CJS ANALYSIS ---------------------------- #
-# ------------------------- Two covariates at a time ------------------------- #
+# ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
-# Process the encounter history data frame for Mark analysis
-# No location included. ahy = after hatch year = adults
+# 1) LOCATION INCLUDED
+ahy.process.loc <- process.data(ch.adults,
+                                model = 'CJS',
+                                begin.time = 2003,
+                                groups = c('sex', 'location'))
+
+# Create design data frame
+ahy.ddl.loc <- make.design.data(ahy.process.loc)
+
+# Add effort to ddl 
+ahy.ddl.loc$p <- merge_design.covariates(
+  ahy.ddl.loc$p, effort.z)
+
+# Add temperature covariates to ddl 
+ahy.ddl.loc$Phi <- merge_design.covariates(
+  ahy.ddl.loc$Phi, winter.mx.stand)
+
+# 2) LOCATION NOT INCLUDED
 ahy.process <- process.data(ch.adults,
                             model = 'CJS',
                             begin.time = 2003,
-                            groups = c('sex', 'location')) # added location as suggested by Erin
+                            groups = c('sex'))
 
 # Create design data frame
 ahy.ddl <- make.design.data(ahy.process)
@@ -125,33 +133,27 @@ ahy.ddl <- make.design.data(ahy.process)
 ahy.ddl$p <- merge_design.covariates(
   ahy.ddl$p, effort.z)
 
-# Error!
-#Error in merge_design.covariates(ahy.ddl$p, effort.z) : 
-#  effort.z uses the same field names as used in design data
-# Is it because I have two values per time? I have duplicated effort values
-# per year. Is this the problem? 
-
 # Add temperature covariates to ddl 
 ahy.ddl$Phi <- merge_design.covariates(
   ahy.ddl$Phi, winter.mx.stand)
 
-# Left here
-################################################################################
+# ------------------------ RUN MODELS TO SELECT COVARIATES ------------------- #
 
+# ------------------- All temperature covariates at same time ---------------- #
 
+# Which temperature variable in the wintering grounds better explains survival?
 
-# 1) Which temperature variable in the wintering grounds better explains survival?
+# Create function to run models 
 
-# Create function to run models
+# 1) LOCATION INCLUDED
 ahy.temp.mx.1 <- function()
 {
-  Phi.dot <- list(formula = ~1) 
-  Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
-  Phi.minTemp <- list(formula = ~aver_min_temp_z)
-  Phi.dailyTemp <- list(formula = ~aver_daily_min_temp_z)
+  Phi.sexLocation <- list(formula = ~sex + location)
+  Phi.sexLocationMinTemp <- list(formula = ~sex + location + aver_min_temp_z)
+  Phi.sexLocationDailyTemp <- list(formula = ~sex + location + aver_daily_min_temp_z)
+  Phi.sexLocationColdDays <- list(formula = ~sex + location + aver_cold_days_z)
   
-  p.sexeffort = p(sex + effort.z)
+  p.sexEffort <- list(formula = ~sex + effort)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -159,51 +161,50 @@ ahy.temp.mx.1 <- function()
   
   # Construct and run a set of MARK models from the cml data frame
   results <- mark.wrapper(cml, 
-                          data = ahy.process,
-                          ddl = ahy.ddl,
+                          data = ahy.process.loc,
+                          ddl = ahy.ddl.loc,
                           adjust = FALSE) # Accepts the parameter counts from MARK
   return(results)
 }
 
-# Run the function
+# Run the function and explore results
 ahy.temp.mx.results.1 <- ahy.temp.mx.1()
 ahy.temp.mx.results.1
 
 # Model with lowest Delta AIC 
-# Phi(~sex)p(~time)
+# Phi(~sex + location + aver_min_temp_z)p(~sex + effort_z)
+# Closely followed by 
+# Phi(~sex + location + aver_cold_days_z)p(~sex + effort_z)
 
-# Looking at Delta AIC:
-# Neither temperature variable included in the formulas explain survival better 
-# than sex; aver_min_temp performed better than aver_daily_min_temp 
+# Based on DeltaAIC values, aver_min_temp is the covariate that better explained 
+# survival 
 
 # Look at estimates and standard errors 
-results.1 <- ahy.temp.mx.results.1[[16]]
+results.1 <- ahy.temp.mx.results.1[[4]]
 results.1$results$beta
-results.1$results$real
 
-# Since p(~sex)p(~effort) was the second best model, I tried to include an 
-# additive model p(~effort + time). This resulted in two models with AIC 0
-# p(~sex)p(~effort) and p(~sex)p(~effort + time). After exploring SE in both 
-# results I decided to exclude p(~effort + time) as SE were huge.   
+# Adult males have less probability of survival than females (-, significant) 
+# Warmer winters (0.14) increase the probability of survival (+, significant)
+# Location does not have an effect on survival (not significant)
+# Sex does not have an effect on the probability of recapture (not significant)
+# More effort increases the probability of recapture (+, significant)
+
+# I also explored the results of model 2. Here aver_cold_days had a similar
+# effect on survival (-0.14) but the effect was negative. This makes total sense.
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~ aver_min_temp vs aver_cold_days ~~~~~~~~~~~~~~~~~~~ #
-
-# Create function to run models
+# 2) LOCATION NOT INCLUDED
+# As location did not have an effect in survival, I remove it and run new models
 ahy.temp.mx.2 <- function()
 {
-  Phi.dot <- list(formula = ~1) 
   Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
-  Phi.minTemp <- list(formula = ~aver_min_temp_z)
-  Phi.coldDays <- list(formula = ~aver_cold_days_z)
+  Phi.sexMinTemp <- list(formula = ~sex + aver_min_temp_z)
+  Phi.sexDailyTemp <- list(formula = ~sex + aver_daily_min_temp_z)
+  Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
   
-  p.dot <- list(formula = ~1)
-  p.sex <- list(formula = ~sex)
-  p.time <- list(formula = ~time)
-  p.effort <- list(formula = ~effort)
+  p.sexEffort <- list(formula = ~sex + effort)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -222,90 +223,39 @@ ahy.temp.mx.results.2 <- ahy.temp.mx.2()
 ahy.temp.mx.results.2
 
 # Model with lowest Delta AIC 
-# Phi(~sex)p(~time)
-
-# Looking at Delta AIC:
-# Neither temperature variable included in the formulas explain survival better 
-# than sex; aver_min_temp performed better than aver_cold_days by a little bit
+# Phi(~sex + aver_min_temp_z)p(~sex + effort_z)
+# Followed by 
+# Phi(~sex + aver_cold_days_z)p(~sex + effort)
+# Although not as close as before
 
 # Look at estimates and standard errors 
-results.2 <- ahy.temp.mx.results.2[[3]]
+results.2 <- ahy.temp.mx.results.2[[2]]
 results.2$results$beta
-results.2$results$real
+
+# Adult males have less probability of survival than females (-, significant) 
+# Warmer winters (0.14) increase the probability of survival (+, significant)
+# Sex does not have an effect on the probability of recapture (not significant)
+# More effort increases the probability of recapture (+, significant)
+
+# When explored the results of model 2, same as before, aver_cold_days had a similar
+# effect on survival (-0.14) but the effect was negative. This makes total sense.
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
-# ~~~~~~~~~~~~~~~~~~~~ aver_daily_min_temp vs aver_cold_days ~~~~~~~~~~~~~~~~~ #
 
-# Create function to run models
-ahy.temp.mx.3 <- function()
-{
-  Phi.dot <- list(formula = ~1) 
-  Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
-  Phi.minTemp <- list(formula = ~aver_daily_min_temp_z)
-  Phi.coldDays <- list(formula = ~aver_cold_days_z)
-  
-  p.dot <- list(formula = ~1)
-  p.sex <- list(formula = ~sex)
-  p.time <- list(formula = ~time)
-  p.effort <- list(formula = ~effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process,
-                          ddl = ahy.ddl,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
+# -------------------- All resources covariates at same time ----------------- #
 
-# Run the function
-ahy.temp.mx.results.3 <- ahy.temp.mx.3()
-ahy.temp.mx.results.3
-
-# Model with lowest Delta AIC 
-# Phi(~sex)p(~time)
-
-# Looking at Delta AIC:
-# Neither temperature variable included in the formulas explain survival better 
-# than sex; aver_cold_days performed better than aver_daily_min_temp
-
-# Look at estimates and standard errors 
-results.3 <- ahy.temp.mx.results.3[[3]]
-results.3$results$beta
-results.3$results$real
-
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-
-# Is this right?:
-# Even though neither temperature variable explained survival better than sex, 
-# it is preferable to use aver_min_temp in further analysis because it performed 
-# better than aver_daily_min_temp and cold_days when used in different combinations.
-
-# 2) Which resource availability variable in the wintering grounds better 
-# explains survival?
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~ aver_NDVI vs aver_precip  ~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Which resource variable in the wintering grounds better explains survival?
 
 # Create function to run models
 ahy.resources.mx <- function()
 {
-  Phi.dot <- list(formula = ~1) 
   Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
-  Phi.ndvi <- list(formula = ~average_ndvi_z)
-  Phi.precip <- list(formula = ~aver_precip_z)
-  
-  p.dot <- list(formula = ~1)
-  p.sex <- list(formula = ~sex)
-  p.time <- list(formula = ~time)
-  p.effort <- list(formula = ~effort)
+  Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
+  Phi.sexNDVI <- list(formula = ~sex + average_ndvi_z)
+
+  p.sexeffort <- list(formula = ~sex + effort)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -324,71 +274,21 @@ ahy.resources.mx.results <- ahy.resources.mx()
 ahy.resources.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex)p(~time)
-
-# Looking at Delta AIC:
-# Neither resource availability variable included in the formulas explain survival 
-# better than sex; aver_precip performed better than aver_ndvi 
+# Phi(~sex + aver_precip_z)p(~sex + effort)
+# Closely followed by 
+# Phi(~sex)p(~sex + effort)
 
 # Look at estimates and standard errors 
-results.4 <- ahy.resources.mx.results[[11]]
-results.4$results$beta
-results.4$results$real
+results.3 <- ahy.resources.mx.results[[3]]
+results.3$results$beta
+
+# Adult males have less probability of survival than females (-, significant) 
+# Precipitation does not have an effect on survival (not significant)
+# Sex does not have an effect on the probability of recapture (not significant)
+# More effort increases the probability of recapture (+, significant)
+
+# Neither resource covarite (precipitation or NDVI) have an effect on survival
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
-################################################################################
-
-# Trying to run a more complete set of models
-
-# Create function to run models
-ahy.mx.full <- function()
-{
-  Phi.dot <- list(formula = ~1) 
-  Phi.sex <- list(formula = ~sex)
-  Phi.time <- list(formula = ~time)
-  # Added this model to identify if survival of F and M varies by year
-  Phi.sexandtime <- list(formula = ~ sex + time) 
-  # Using the two covariates that performed the best
-  Phi.minTemp <- list(formula = ~aver_min_temp_z)
-  Phi.precip <- list(formula = ~aver_precip_z)
-  
-  p.dot <- list(formula = ~1)
-  p.sex <- list(formula = ~sex)
-  p.time <- list(formula = ~time)
-  p.effort <- list(formula = ~effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process,
-                          ddl = ahy.ddl,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
-
-# Run the function
-ahy.mx.full.results <- ahy.mx.full()
-ahy.mx.full.results
-
-# Model with lowest Delta AIC 
-# Phi(~sex + time)p(~time)
-# Models with environmental covarites are not in the top 5 models
-
-# Look at estimates and standard errors 
-results.5 <- ahy.mx.full.results[[20]]
-results.5$results$beta
-results.5$results$real
-
-# Survival probability for males is lower than females and also varies by year.
-# Declines in 2006, 2009 and 2010 and goes way high in 2011
-
-# Should I include Phi(~sex + time) in the functions in this script to select the 
-# environmental covariates? 
-
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

@@ -103,24 +103,7 @@ winter.mx.stand <- winter.mx %>%
 
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
-# 1) LOCATION INCLUDED
-ahy.process.loc <- process.data(ch.adults,
-                                model = 'CJS',
-                                begin.time = 2003,
-                                groups = c('sex', 'location'))
-
-# Create design data frame
-ahy.ddl.loc <- make.design.data(ahy.process.loc)
-
-# Add effort to ddl 
-ahy.ddl.loc$p <- merge_design.covariates(
-  ahy.ddl.loc$p, effort.z)
-
-# Add temperature covariates to ddl 
-ahy.ddl.loc$Phi <- merge_design.covariates(
-  ahy.ddl.loc$Phi, winter.mx.stand)
-
-# 2) LOCATION NOT INCLUDED
+# Process capture histories
 ahy.process <- process.data(ch.adults,
                             model = 'CJS',
                             begin.time = 2003,
@@ -144,60 +127,7 @@ ahy.ddl$Phi <- merge_design.covariates(
 # Which temperature variable in the wintering grounds better explains survival?
 
 # Create function to run models 
-
-# 1) LOCATION INCLUDED
-ahy.temp.mx.1 <- function()
-{
-  Phi.sexLocation <- list(formula = ~sex + location)
-  Phi.sexLocationMinTemp <- list(formula = ~sex + location + aver_min_temp_z)
-  Phi.sexLocationDailyTemp <- list(formula = ~sex + location + aver_daily_min_temp_z)
-  Phi.sexLocationColdDays <- list(formula = ~sex + location + aver_cold_days_z)
-  
-  p.sexEffort <- list(formula = ~sex + effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process.loc,
-                          ddl = ahy.ddl.loc,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
-
-# Run the function and explore results
-ahy.temp.mx.results.1 <- ahy.temp.mx.1()
-ahy.temp.mx.results.1
-
-# Model with lowest Delta AIC 
-# Phi(~sex + location + aver_min_temp_z)p(~sex + effort_z)
-# Closely followed by 
-# Phi(~sex + location + aver_cold_days_z)p(~sex + effort_z)
-
-# Based on DeltaAIC values, aver_min_temp is the covariate that better explained 
-# survival 
-
-# Look at estimates and standard errors 
-results.1 <- ahy.temp.mx.results.1[[4]]
-results.1$results$beta
-
-# Adult males have less probability of survival than females (-, significant) 
-# Warmer winters (0.14) increase the probability of survival (+, significant)
-# Location does not have an effect on survival (not significant)
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
-
-# I also explored the results of model 2. Here aver_cold_days had a similar
-# effect on survival (-0.14) but the effect was negative. This makes total sense.
-
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-
-# 2) LOCATION NOT INCLUDED
-# As location did not have an effect in survival, I remove it and run new models
-ahy.temp.mx.2 <- function()
+ahy.temp.mx <- function()
 {
   Phi.sex <- list(formula = ~sex)
   Phi.sexMinTemp <- list(formula = ~sex + aver_min_temp_z)
@@ -219,18 +149,17 @@ ahy.temp.mx.2 <- function()
 }
 
 # Run the function
-ahy.temp.mx.results.2 <- ahy.temp.mx.2()
-ahy.temp.mx.results.2
+ahy.temp.mx.results <- ahy.temp.mx()
+ahy.temp.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_min_temp_z)p(~sex + effort_z)
-# Followed by 
-# Phi(~sex + aver_cold_days_z)p(~sex + effort)
-# Although not as close as before
+# Phi(~sex + aver_min_temp_z)p(~sex + effort_z) 0.0
+# Followed by
+# Phi(~sex + aver_cold_days_z)p(~sex + effort) 1.4
 
 # Look at estimates and standard errors 
-results.2 <- ahy.temp.mx.results.2[[2]]
-results.2$results$beta
+results.1 <- ahy.temp.mx.results[[4]]
+results.1$results$beta
 
 # Adult males have less probability of survival than females (-, significant) 
 # Warmer winters (0.14) increase the probability of survival (+, significant)
@@ -239,6 +168,14 @@ results.2$results$beta
 
 # When explored the results of model 2, same as before, aver_cold_days had a similar
 # effect on survival (-0.14) but the effect was negative. This makes total sense.
+
+# Explore correlation between covariates in the two first candidate models
+cor.test(winter.mx.stand$aver_min_temp_z, 
+         winter.mx.stand$aver_cold_days_z)
+
+# High negative correlation (-0.860), statistically significant (p = 0.001)
+
+# I'm keeping aver_min_temp and dropping aver_cold_days
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -274,20 +211,30 @@ ahy.resources.mx.results <- ahy.resources.mx()
 ahy.resources.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_precip_z)p(~sex + effort)
-# Closely followed by 
-# Phi(~sex)p(~sex + effort)
+# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
+# Followed by 
+# Phi(~sex)p(~sex + effort) 0.38
+# and
+# Phi(~sex + average_ndvi_z)p(~sex + effort) 1.75
 
 # Look at estimates and standard errors 
-results.3 <- ahy.resources.mx.results[[3]]
-results.3$results$beta
+results.2 <- ahy.resources.mx.results[[2]]
+results.2$results$beta
 
-# Adult males have less probability of survival than females (-, significant) 
-# Precipitation does not have an effect on survival (not significant)
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
+# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
+# It's likely that more precipitation might be associated with lower survival,
+# the 95% CI overlaps zero, but not by much (-, barely not significant)
 
-# Neither resource covarite (precipitation or NDVI) have an effect on survival
+# Phi(~sex + average_ndvi_z)p(~sex + effort)
+# NDVI is not significant 
+
+# Check for correlation, as delta AIC < 2 in model with NDVI
+cor.test(winter.mx.stand$aver_precip_z,
+         winter.mx.stand$average_ndvi_z)
+
+# Moderate positive correlation (0.66), statistically significant (p = 0.04)
+
+# I'm keeping aver_precip as a covariate based on delta AIC and significance 
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

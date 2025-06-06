@@ -118,24 +118,7 @@ winter.co.stand <- winter.co %>%
 
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
-# 1) LOCATION INCLUDED
-ahy.process.loc <- process.data(ch.adults,
-                                model = 'CJS',
-                                begin.time = 2003,
-                                groups = c('sex', 'location'))
-
-# Create design data frame
-ahy.ddl.loc <- make.design.data(ahy.process.loc)
-
-# Add effort to ddl 
-ahy.ddl.loc$p <- merge_design.covariates(
-  ahy.ddl.loc$p, effort.z)
-
-# Add temperature covariates to ddl 
-ahy.ddl.loc$Phi <- merge_design.covariates(
-  ahy.ddl.loc$Phi, summer.co.stand)
-
-# 2) LOCATION NOT INCLUDED
+# Process capture histories
 ahy.process <- process.data(ch.adults,
                             model = 'CJS',
                             begin.time = 2003,
@@ -163,55 +146,7 @@ ahy.ddl$Phi <- merge_design.covariates(
 # Which max temperature variable in the summer grounds better explains survival?
 
 # Create function to run models 
-
-# 1) LOCATION INCLUDED
-ahy.max.temp.co.1 <- function()
-{
-  Phi.sexLocation <- list(formula = ~sex + location)
-  Phi.sexLocationMaxTemp <- list(formula = ~sex + location + aver_max_temp_z)
-  Phi.sexLocationDailyMaxTemp <- list(formula = ~sex + location + aver_daily_max_temp_z)
-  Phi.sexLocationWarmdDays <- list(formula = ~sex + location + aver_warm_days_z)
-  
-  p.sexEffort <- list(formula = ~sex + effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process.loc,
-                          ddl = ahy.ddl.loc,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
-
-# Run the function and explore results
-ahy.max.temp.co.results.1 <- ahy.max.temp.co.1()
-ahy.max.temp.co.results.1
-
-# Model with lowest Delta AIC 
-# Phi(~sex + location)p(~sex + effort)
-# Closely followed by 
-# Phi(~sex + location + aver_cold_days_z)p(~sex + effort_z)
-# and
-# Phi(~sex + location + aver_max_temp_z)p(~sex + effort)
-
-# Based on DeltaAIC values, neither max temperature covariate explained survival
-
-# Look at estimates and standard errors 
-results.1 <- ahy.max.temp.co.results.1[[2]]
-results.1$results$beta
-
-# Exploring the estimates in all models, neither max temp covariate have a significant
-# effect on survival
-
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-
-# 2) LOCATION NOT INCLUDED
-# As location did not have an effect in survival, I remove it and run new models
-ahy.max.temp.co.2 <- function()
+ahy.max.temp.co <- function()
 {
   Phi.sex <- list(formula = ~sex)
   Phi.sexMaxTemp <- list(formula = ~sex + aver_max_temp_z)
@@ -233,24 +168,24 @@ ahy.max.temp.co.2 <- function()
 }
 
 # Run the function
-ahy.max.temp.co.results.2 <- ahy.max.temp.co.2()
-ahy.max.temp.co.results.2
+ahy.max.temp.co.results <- ahy.max.temp.co()
+ahy.max.temp.co.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex)p(~sex + effort)
+# Phi(~sex)p(~sex + effort) 0.0
 # Closely followed by 
-# Phi(~sex + aver_cold_days_z)p(~sex + effort_z)
+# Phi(~sex + aver_cold_days_z)p(~sex + effort_z) 0.86
+# Phi(~sex + aver_max_temp_z)p(~sex + effort) 0.86
 # and
-# Phi(~sex + aver_max_temp_z)p(~sex + effort)
-
-# Based on DeltaAIC values, neither max temperature covariate explained survival
+# Phi(~sex + aver_daily_max_temp_z)p(~sex + effort) 1.62
 
 # Look at estimates and standard errors 
-results.2 <- ahy.max.temp.co.results.2[[3]]
-results.2$results$beta
+results.1 <- ahy.max.temp.co.results[[2]]
+results.1$results$beta
 
-# Exploring the estimates in all models, neither max temp covariate have a significant
-# effect on survival
+# Looking at the estimates in all models, none of the max temperature covariates 
+# had a significant effect on survival. Although all candidate models had delta AIC <2, 
+# the effects were low. Therefore, I am dropping all max temperature covariates 
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -261,9 +196,6 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # Which min temperature variable in the summer grounds better explains survival?
 
 # Create function to run models 
-
-# LOCATION NOT INCLUDED
-# As location did not have an effect in survival, I remove it and run new models
 ahy.min.temp.co <- function()
 {
   Phi.sex <- list(formula = ~sex)
@@ -290,73 +222,21 @@ ahy.min.temp.co.results <- ahy.min.temp.co()
 ahy.min.temp.co.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_min_temp_z)p(~sex + effort)
+# Phi(~sex + aver_min_temp_z)p(~sex + effort) 0.0
 # Not closely followed by other model
 
-# Based on DeltaAIC values, aver_min_temp is the covariate that explained survival 
-# better
-
 # Look at estimates and standard errors 
-results.3 <- ahy.min.temp.co.results[[4]]
-results.3$results$beta
+results.2 <- ahy.min.temp.co.results[[4]]
+results.2$results$beta
 
-# Adult males have less probability of survival than females (-, significant) 
 # Warmer summers decrease the probability of survival (-, significant)
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
 
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+# Based on delta AIC values, aver_min_temp is the covariate that explained survival 
+# better as the other candidate models had delta AIC > 2. Also aver_min_temp
+# had a significant effect on survival.
 
-
-# ------------------- All temperature covariates at same time ---------------- #
-
-# Which temperature variable in the summer grounds better explains survival?
-
-# Create function to run models 
-ahy.temp.co <- function()
-{
-  Phi.sex <- list(formula = ~sex)
-  Phi.sexMinTemp <- list(formula = ~sex + aver_min_temp_z)
-  Phi.sexDailyMinTemp <- list(formula = ~sex + aver_daily_min_temp_z)
-  Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
-  Phi.sexMaxTemp <- list(formula = ~sex + aver_max_temp_z)
-  Phi.sexDailyMaxTemp <- list(formula = ~sex + aver_daily_max_temp_z)
-  Phi.sexWarmdDays <- list(formula = ~sex + aver_warm_days_z)
-  
-  p.sexEffort <- list(formula = ~sex + effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process,
-                          ddl = ahy.ddl,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
-
-# Run the function
-ahy.temp.co.results <- ahy.temp.co()
-ahy.temp.co.results
-
-# Model with lowest Delta AIC 
-# Phi(~sex + aver_min_temp_z)p(~sex + effort)
-# Not closely followed by other model
-
-# Again, based on DeltaAIC values, aver_min_temp is the covariate that explained 
-# survival better
-
-# Look at estimates and standard errors 
-results.4 <- ahy.temp.co.results[[6]]
-results.4$results$beta
-
-# Adult males have less probability of survival than females (-, significant) 
-# Warmer summers decrease the probability of survival (-, significant)
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
+# I'm keeping aver min temp as a covariate for the summer grounds and dropping
+# the others off
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -394,20 +274,29 @@ ahy.resources.co.results <- ahy.resources.co()
 ahy.resources.co.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + frost_days_z)p(~sex + effort)
+# Phi(~sex + frost_days_z)p(~sex + effort) 0.0
 # Followed by 
-# Phi(~sex + aver_precip_z)p(~sex + effort)
+# Phi(~sex + aver_precip_z)p(~sex + effort) 3.12
 
 # Look at estimates and standard errors 
-results.5 <- ahy.resources.co.results[[2]]
-results.5$results$beta
+results.3 <- ahy.resources.co.results[[4]]
+results.3$results$beta
 
-# Adult males have less probability of survival than females (-, significant) 
 # The number of frost days have a positive effect on survival (+, significant),
 # As the number of frost days increases survival also increases. Doesn't make
-# sense!
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
+# sense! 
+
+# Exploring the results for Phi(~sex + aver_precip_z)p(~sex + effort), it seems
+# like more precipitation increases the probability of survival as CI barely
+# overlap zero.
+
+# Look at correlation between covariates
+cor.test(summer.co.stand$frost_days_z,
+         summer.co.stand$aver_precip_z)
+
+# No correlation between covariates (0.002) statistically not significant (0.995)
+
+# I think I'm going to keep both covariates in consideration for further analyses
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

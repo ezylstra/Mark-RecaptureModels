@@ -296,7 +296,57 @@ cor.test(summer.co.stand$frost_days_z,
 
 # No correlation between covariates (0.002) statistically not significant (0.995)
 
-# I think I'm going to keep both covariates in consideration for further analyses
+# I'm inclined not to include the number of frost days in further analysis and
+# choose average precip
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+# What if I remove the number of frost days from the candidate models?
+
+# Create function to run models
+ahy.resources.co.2 <- function()
+{
+  Phi.sex <- list(formula = ~sex)
+  Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
+  Phi.sexNDVI <- list(formula = ~sex + aver_ndvi_z)
+  Phi.sexSWE <- list(formula = ~sex + swe_z)
+  
+  p.sexeffort <- list(formula = ~sex + effort)
+  
+  # Create a data frame of all combinations of parameter specifications for each 
+  # parameter
+  cml <- create.model.list('CJS')  
+  
+  # Construct and run a set of MARK models from the cml data frame
+  results <- mark.wrapper(cml, 
+                          data = ahy.process,
+                          ddl = ahy.ddl,
+                          adjust = FALSE) # Accepts the parameter counts from MARK
+  return(results)
+}
+
+# Run the function
+ahy.resources.co.results.2 <- ahy.resources.co.2()
+ahy.resources.co.results.2
+
+# Model with lowest Delta AIC 
+# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
+# Followed by 
+# Phi(~sex)p(~sex + effort) 0.57
+# Phi(~sex + aver_ndvi_z)p(~sex + effort) 1.16
+# Phi(~sex + swe_z)p(~sex + effort) 2.24
+
+# Look at estimates and standard errors 
+results.4 <- ahy.resources.co.results.2[[4]]
+results.4$results$beta
+
+# Look at correlation between covariates
+cor.test(summer.co.stand$aver_ndvi_z,
+         summer.co.stand$aver_precip_z)
+
+# Moderate positive correlation between covariates (0.7) statistically significant 
+# (0.017)
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

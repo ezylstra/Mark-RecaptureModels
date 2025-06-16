@@ -174,7 +174,7 @@ ahy.max.temp.co.results
 # Model with lowest Delta AIC 
 # Phi(~sex)p(~sex + effort) 0.0
 # Closely followed by 
-# Phi(~sex + aver_cold_days_z)p(~sex + effort_z) 0.86
+# Phi(~sex + aver_warm_days_z)p(~sex + effort_z) 0.86
 # Phi(~sex + aver_max_temp_z)p(~sex + effort) 0.86
 # and
 # Phi(~sex + aver_daily_max_temp_z)p(~sex + effort) 1.62
@@ -185,7 +185,13 @@ results.1$results$beta
 
 # Looking at the estimates in all models, none of the max temperature covariates 
 # had a significant effect on survival. Although all candidate models had delta AIC <2, 
-# the effects were low. Therefore, I am dropping all max temperature covariates 
+# the effects were low. 
+
+# As suggested by Erin, I should choose one to add to the more complex model 
+# with the other covaraites. 
+
+# I'm going to use aver_warm_days as it can be use a threshold when days were to
+# hot for the birds
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

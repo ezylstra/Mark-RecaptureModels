@@ -25,7 +25,7 @@ dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 # Prepare data set for survival analysis 
 dat <- dat.raw %>%
   filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
-  select(band, band_status, year, sex, obssite, band_age, band_site, location) %>% 
+  select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
   arrange(band, band_status, year)
@@ -38,23 +38,22 @@ dat <- dat.raw %>%
 # Create capture history 
 ch.adults <- dat %>% 
   filter(age == 'AHY') %>%   
-  group_by(band, year, sex, location) %>%  
+  group_by(band, year, sex) %>%  
   summarize(n.observation = length(year)) %>%
   mutate(observed = 1) %>% 
   pivot_wider(names_from = year, 
               values_from = observed, 
-              id_cols = c(band, sex, location), 
+              id_cols = c(band, sex), 
               values_fill = 0) %>% 
   relocate(band, '2003','2004','2005','2006','2007','2008','2009','2010','2011', 
-           '2012', sex, location) %>% 
+           '2012', sex) %>% 
   unite(ch, c('2003','2004','2005','2006','2007','2008','2009','2010','2011','2012'), 
         sep = '')%>% 
   as.data.frame() %>% 
   select(-band) 
 
-# Make several variables factors (specifying levels for clarity)
+# Make sex variable factor (specifying levels for clarity)
 ch.adults$sex <- factor(ch.adults$sex, levels = c('F', 'M'))
-ch.adults$location <- factor(ch.adults$location, levels = c('east', 'west'))
 
 # Checks
 head(ch.adults)
@@ -218,7 +217,7 @@ ahy.resources.mx.results
 # Phi(~sex + average_ndvi_z)p(~sex + effort) 1.75
 
 # Look at estimates and standard errors 
-results.2 <- ahy.resources.mx.results[[2]]
+results.2 <- ahy.resources.mx.results[[3]]
 results.2$results$beta
 
 # Phi(~sex + aver_precip_z)p(~sex + effort) 0.0

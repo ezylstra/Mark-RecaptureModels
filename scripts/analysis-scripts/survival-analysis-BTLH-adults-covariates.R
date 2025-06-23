@@ -1,16 +1,9 @@
-# Selecting environmental covariates for survival analysis
-
-# Covariates for winter period: December-January-February in Mexico
-
-  # average min temperature 
-  # average daily min temperature
-  # number of cold days
-  # average mean ndvi
-  # average max precipitation
+# Survival analysis for Broad-tailed Hummingbird at Rocky Mountain National Park
+# Adults only and selected covariates for wintering and summer grounds included
 
 # Gaby Samaniego
 # gabysamaniego@arizona.edu
-# 2024-05-01
+# 2024-06-06
 
 # Load packages
 library(tidyverse)
@@ -46,13 +39,13 @@ ch.adults <- dat %>%
               id_cols = c(band, sex), 
               values_fill = 0) %>% 
   relocate(band, '2003','2004','2005','2006','2007','2008','2009','2010','2011', 
-           '2012', sex) %>% 
+           '2012', sex,) %>% 
   unite(ch, c('2003','2004','2005','2006','2007','2008','2009','2010','2011','2012'), 
         sep = '')%>% 
   as.data.frame() %>% 
   select(-band) 
 
-# Make sex variable factor (specifying levels for clarity)
+# Make sex variable a factor (specifying levels for clarity)
 ch.adults$sex <- factor(ch.adults$sex, levels = c('F', 'M'))
 
 # Checks
@@ -89,17 +82,23 @@ effort.z <- effort.raw %>%
 
 # Load data
 winter.mx <- read.csv('output/weather-data/covariates-output/winter-covar-mexico.csv')
+summer.co <- read.csv('output/weather-data/covariates-output/summer-covar-colorado.csv')
 
-# Standardize winter mx covariates
-winter.mx.stand <- winter.mx %>% 
-  mutate(aver_min_temp_z = z.stand(aver_min_temp),
-         aver_daily_min_temp_z = z.stand(aver_daily_min_temp), 
-         aver_cold_days_z = z.stand(aver_cold_days),
-         aver_precip_z = z.stand(aver_precip),
-         average_ndvi_z = z.stand(average_ndvi), .keep = 'unused') %>% 
-  mutate(time = 2002:2011, .after = winter_period) %>% # so time matches Phi
-  select(-winter_period)
+# Edit data sets and prepare data
+winter <- winter.mx %>% 
+  mutate(time = 2002:2011, .after = winter_period) %>%
+  select(time, aver_min_temp, aver_precip) %>% 
+  mutate(winter_min_temp = z.stand(aver_min_temp),
+         winter_precip = z.stand(aver_precip), .keep = 'unused')
 
+summer <- summer.co %>% 
+  rename(time = year) %>% 
+  select(time, aver_warm_days, aver_min_temp, aver_precip, frost_days) %>% 
+  mutate(summer_warm_days = z.stand(aver_warm_days),
+         summer_min_temp = z.stand(aver_min_temp),
+         summer_precip = z.stand(aver_precip),
+         summer_frost_days = z.stand(frost_days), .keep = 'unused')
+  
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
 # Process capture histories
@@ -115,23 +114,30 @@ ahy.ddl <- make.design.data(ahy.process)
 ahy.ddl$p <- merge_design.covariates(
   ahy.ddl$p, effort.z)
 
-# Add temperature covariates to ddl 
+# Add summer covariates to ddl 
 ahy.ddl$Phi <- merge_design.covariates(
-  ahy.ddl$Phi, winter.mx.stand)
+  ahy.ddl$Phi, summer)
 
-# ------------------------ RUN MODELS TO SELECT COVARIATES ------------------- #
+# Add winter covariates to ddl
+ahy.ddl$Phi <- merge_design.covariates(
+  ahy.ddl$Phi, winter)
 
-# ------------------- All temperature covariates at same time ---------------- #
+# ----------------------------------- RUN MODELS ----------------------------- #
 
-# Which temperature variable in the wintering grounds better explains survival?
+# Which of the selected covariates in the wintering and summer grounds better 
+# explains survival of adults?
 
-# Create function to run models 
-ahy.temp.mx <- function()
+# Create function
+ahy.full <- function()
 {
   Phi.sex <- list(formula = ~sex)
-  Phi.sexMinTemp <- list(formula = ~sex + aver_min_temp_z)
-  Phi.sexDailyTemp <- list(formula = ~sex + aver_daily_min_temp_z)
-  Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
+  Phi.Time <- list(formula = ~Time)
+  Phi.sexWMinTemp <- list(formula = ~sex + winter_min_temp) 
+  Phi.sexSWarmDays <- list(formula = ~sex + summer_warm_days) 
+  Phi.sexSMinTemp <- list(formula = ~sex + summer_min_temp)
+  Phi.sexWPrecip <- list(formula = ~sex + winter_precip)
+  Phi.sexSPrecip <- list(formula = ~sex + summer_precip)
+  Phi.sexWSFrost <- list(formula = ~sex + summer_frost_days)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -148,50 +154,43 @@ ahy.temp.mx <- function()
 }
 
 # Run the function
-ahy.temp.mx.results <- ahy.temp.mx()
-ahy.temp.mx.results
+ahy.full.results <- ahy.full()
+ahy.full.results
 
-# Model with lowest Delta AIC 
-# Phi(~sex + aver_min_temp_z)p(~sex + effort_z) 0.0
+# Model with lowest Delta AIC
+# Phi(~sex + winter_min_temp)p(~sex + effort) 0.0
+# No other model with <2 Delta AIC
 # Followed by
-# Phi(~sex + aver_cold_days_z)p(~sex + effort) 1.4
+# Phi(~sex + summer_min_temp)p(~sex + effort) 9.3
+
+# I included Time as a candidate model to test if survival has changed linearly 
+# over the study period. The model Phi ~ Time performed poorly with the highest
+# Delta AIC. Survival did not change over the 10 years of the study? Can I 
+# make this claim? Variation in survival is better explained by winter temperature.
 
 # Look at estimates and standard errors 
-results.1 <- ahy.temp.mx.results[[4]]
+results.1 <- ahy.full.results[[5]]
 results.1$results$beta
 
 # Adult males have less probability of survival than females (-, significant) 
 # Warmer winters (0.14) increase the probability of survival (+, significant)
-# Sex does not have an effect on the probability of recapture (not significant)
 # More effort increases the probability of recapture (+, significant)
-
-# When explored the results of model 2, same as before, aver_cold_days had a similar
-# effect on survival (-0.14) but the effect was negative. This makes total sense.
-
-# Explore correlation between covariates in the two first candidate models
-cor.test(winter.mx.stand$aver_min_temp_z, 
-         winter.mx.stand$aver_cold_days_z)
-
-# High negative correlation (-0.860), statistically significant (p = 0.001)
-
-# I'm keeping aver_min_temp and dropping aver_cold_days
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# -------------------- All resources covariates at same time ----------------- #
+# Does winter_min_temp have a different effect in adult females and males?
 
-# Which resource variable in the wintering grounds better explains survival?
-
-# Create function to run models
-ahy.resources.mx <- function()
+# Create function
+ahy.short <- function()
 {
   Phi.sex <- list(formula = ~sex)
-  Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
-  Phi.sexNDVI <- list(formula = ~sex + average_ndvi_z)
-
-  p.sexeffort <- list(formula = ~sex + effort)
+  Phi.sexWMinTemp <- list(formula = ~sex + winter_min_temp) 
+  Phi.sexAndWMinTemp <- list(formula = ~ sex * winter_min_temp)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -206,34 +205,29 @@ ahy.resources.mx <- function()
 }
 
 # Run the function
-ahy.resources.mx.results <- ahy.resources.mx()
-ahy.resources.mx.results
+ahy.short.results <- ahy.short()
+ahy.short.results
 
-# Model with lowest Delta AIC 
-# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
-# Followed by 
-# Phi(~sex)p(~sex + effort) 0.38
-# and
-# Phi(~sex + average_ndvi_z)p(~sex + effort) 1.75
+# Model with lowest Delta AIC
+# Phi(~sex * winter_min_temp)p(~sex + effort) 0.0
+# Followed by far by
+# Phi(~sex + winter_min_temp)p(~sex + effort) 21.9
 
 # Look at estimates and standard errors 
-results.2 <- ahy.resources.mx.results[[3]]
+results.2 <- ahy.short.results[[2]]
 results.2$results$beta
 
-# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
-# It's likely that more precipitation might be associated with lower survival,
-# the 95% CI overlaps zero, but not by much (-, barely not significant)
+# Adult males have a lower probability of survival than females (–, significant)
+# Warmer winters are associated with higher survival for adults males and females 
+# (+, significant) 
+# The positive effect of warmer winters is stronger for males (+ interaction, significant)
+# More effort increases the probability of recapture (+, significant)
 
-# Phi(~sex + average_ndvi_z)p(~sex + effort)
-# NDVI is not significant 
+# Look at real estimates
+results.2$results$real
 
-# Check for correlation, as delta AIC < 2 in model with NDVI
-cor.test(winter.mx.stand$aver_precip_z,
-         winter.mx.stand$average_ndvi_z)
-
-# Moderate positive correlation (0.66), statistically significant (p = 0.04)
-
-# I'm keeping aver_precip as a covariate based on delta AIC and significance 
+# The estimates for survival of males are almost half of what they are for 
+# females
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

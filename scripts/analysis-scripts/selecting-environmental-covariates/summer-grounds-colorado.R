@@ -2,16 +2,16 @@
 
 # Covariates for summer period: May-June-July-August in Colorado
 
-# average max temperature 
-# average min temperature
-# average daily max temperature
-# average daily min temperature
-# average warm days
-# average cold days
-# average ndvi
-# average max precipitation
-# frost days
-# snow water equivalent
+  # average max temperature 
+  # average min temperature
+  # average daily max temperature
+  # average daily min temperature
+  # average warm days
+  # average cold days
+  # average ndvi
+  # average max precipitation
+  # frost days
+  # snow water equivalent
 
 # Gaby Samaniego
 # gabysamaniego@arizona.edu
@@ -30,7 +30,7 @@ dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 # Prepare data set for survival analysis 
 dat <- dat.raw %>%
   filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
-  select(band, band_status, year, sex, obssite, band_age, band_site, location) %>% 
+  select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
   arrange(band, band_status, year)
@@ -43,23 +43,22 @@ dat <- dat.raw %>%
 # Create capture history 
 ch.adults <- dat %>% 
   filter(age == 'AHY') %>%   
-  group_by(band, year, sex, location) %>%  
+  group_by(band, year, sex) %>%  
   summarize(n.observation = length(year)) %>%
   mutate(observed = 1) %>% 
   pivot_wider(names_from = year, 
               values_from = observed, 
-              id_cols = c(band, sex, location), 
+              id_cols = c(band, sex), 
               values_fill = 0) %>% 
   relocate(band, '2003','2004','2005','2006','2007','2008','2009','2010','2011', 
-           '2012', sex, location) %>% 
+           '2012', sex) %>% 
   unite(ch, c('2003','2004','2005','2006','2007','2008','2009','2010','2011','2012'), 
         sep = '')%>% 
   as.data.frame() %>% 
   select(-band) 
 
-# Make several variables factors (specifying levels for clarity)
+# Make sex variable factor (specifying levels for clarity)
 ch.adults$sex <- factor(ch.adults$sex, levels = c('F', 'M'))
-ch.adults$location <- factor(ch.adults$location, levels = c('east', 'west'))
 
 # Checks
 head(ch.adults)
@@ -187,11 +186,16 @@ results.1$results$beta
 # had a significant effect on survival. Although all candidate models had delta AIC <2, 
 # the effects were low. 
 
-# As suggested by Erin, I should choose one to add to the more complex model 
-# with the other covaraites. 
+# Are these covaraites correlated?
+cor(summer.co.stand[, c('aver_warm_days_z', 
+                        'aver_max_temp_z', 
+                        'aver_daily_max_temp_z')])
 
-# I'm going to use aver_warm_days as it can be use a threshold when days were to
-# hot for the birds
+# All variables are moderate to highly correlated. 
+
+# As suggested by Erin, I should choose one of theme to add to the more complex model 
+# with the other covaraites. I'm going to use aver_warm_days as it can be use a 
+# threshold when days were to hot for the birds and/or availability of resources
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -288,7 +292,7 @@ ahy.resources.co.results
 results.3 <- ahy.resources.co.results[[4]]
 results.3$results$beta
 
-# The number of frost days have a positive effect on survival (+, significant),
+# The number of frost days has a positive effect on survival (+, significant),
 # As the number of frost days increases survival also increases. Doesn't make
 # sense! 
 
@@ -344,7 +348,7 @@ ahy.resources.co.results.2
 # Phi(~sex + swe_z)p(~sex + effort) 2.24
 
 # Look at estimates and standard errors 
-results.4 <- ahy.resources.co.results.2[[4]]
+results.4 <- ahy.resources.co.results.2[[3]]
 results.4$results$beta
 
 # Look at correlation between covariates

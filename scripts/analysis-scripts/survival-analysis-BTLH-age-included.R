@@ -1,5 +1,5 @@
 # Survival analysis for Broad-tailed Hummingbird at Rocky Mountain National Park
-# Including age at first capture
+# Including age at first capture 
 
 # Edited from original code by Erin Zylstra
 # Gaby Samaniego
@@ -78,7 +78,16 @@ effort.z <- effort.raw %>%
   select(time, effort) %>% 
   as.data.frame()
 
-#### Later add environmental covariates here....
+# ---------------------------- Environmental Covariates ---------------------- # 
+
+# Load data
+winter.mx <- read.csv('output/weather-data/covariates-output/winter-covar-mexico.csv')
+
+# Edit data sets and prepare data
+winter <- winter.mx %>% 
+  mutate(time = 2002:2011, .after = winter_period) %>%
+  select(time, aver_min_temp) %>% 
+  mutate(winter_min_temp = z.stand(aver_min_temp), .keep = 'unused')
 
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
@@ -122,6 +131,10 @@ age.ddl <- add.design.data(data = age.process,
 
 # Add effort to ddl 
 age.ddl$p <- merge_design.covariates(age.ddl$p, effort.z)
+
+# Add winter covariates to ddl
+age.ddl$Phi <- merge_design.covariates(
+  age.ddl$Phi, winter)
 
 # Create a couple of other variables to help with model construction
 
@@ -247,9 +260,9 @@ base.age.sex.results.2
 results.2 <- base.age.sex.results.2[[1]]
 results.2$results$beta
 
-# Juveniles (intercept) have a significantly lower probability of survival than both 
-# adult females and adult males. Among adults, females have a significantly higher 
-# probability of survival than males.
+# Juveniles (intercept) have a significantly lower probability (-) of survival 
+# than both adult females and adult males. Among adults, females have a 
+# significantly higher probability of survival than males.
 
 # The probability of recapture increases with banding effort and differs by sex were
 # males have a lower probability of being recaptured than females.
@@ -259,24 +272,103 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 # ----------------------------- Including covariates ------------------------- #
 
-# Now, what weather or resource availability covariates influence juvenile/adult 
-# survival? 
+# --------- Using the covariate that best explained survival of adults ------- #
 
-# My thoughts:
+# Is survival of juveniles and adults affected differently by warmer winters in
+# Mexico?
 
-# In the summer grounds when preparing to migrate, availability of resources can 
-# be critical for a successful migration. Also maybe hot weather in the summer 
-# grounds can affect juveniles (and adults) negatively. The variable of frost days, 
-# I think affects more to adults in the summer grounds as juveniles are born later 
-# in the season when the days are not that cold as in early May and June. 
+# Create function
+base.age.sex.models.3 <- function()
+{
+  Phi.sexAdult <- list(formula = ~sexadult)
+  Phi.sexAdultCovar <- list(formula = ~sexadult + winter_min_temp)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
 
-# For those juveniles who survived migration and arrived to the wintering grounds, 
-# the availability of resources and temperature can be important predictor of survival. 
+# Run function and store the results in a marklist
+base.age.sex.results.3 <- base.age.sex.models.3()
+base.age.sex.results.3
 
-# But first I need to select these covariates. I'll use Phi(~sexadult + covar) and
-# p(sex + effort) to identify which weather and resource covariates explain survival.
-# The same way I did wit the adult only data.
+# Model with lowest Delta AIC
+# Phi(~sexadult + winter_min_temp)p(~sex + effort) 0.0
+# Followed by far by 
+# Phi(~sexadult)p(~sex + effort) 27.6
 
+# Look at estimates and standard errors 
+results.3 <- base.age.sex.results.3[[2]]
+results.3$results$beta
 
+# Survival of juveniles, adult females and adult males increases whit warmer winters
+# (+, significant)
+
+# Look at real estimates
+results.3$results$real
+
+# This output is confusing and I'm not sure how to interpret it. Juveniles were
+# not separated by sex in my model, so what estimates should I use for interpretation 
+# or for plotting? 
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Are juveniles more or less affected by warmer winters in Mexico than adult 
+# females and adult males? 
+
+# Create function
+base.age.sex.models.4 <- function()
+{
+  Phi.sexAdult <- list(formula = ~sexadult)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_min_temp)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_min_temp)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.results.4 <- base.age.sex.models.4()
+base.age.sex.results.4
+
+# Model with lowest Delta AIC
+# Phi(~sexadult * winter_min_temp)p(~sex + effort) 0.0
+# Followed by far by 
+# Phi(~sexadult + winter_min_temp)p(~sex + effort) 28.1
+
+# Look at estimates and standard errors 
+results.4 <- base.age.sex.results.4[[3]]
+results.4$results$beta
+
+# Warmer winters are associated with increase survival in juveniles (+, but not 
+# significant) 
+# Adult females show a weaker response to warmer winters than juveniles 
+# (- interaction, but not significant) 
+# Adult males show stronger positive response to warmer winters compared to 
+# juveniles (+ interaction, significant)
+
+# Look at real estimates
+results.4$results$real
+
+# Again, this output is confusing. 
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
 

@@ -82,12 +82,20 @@ effort.z <- effort.raw %>%
 
 # Load data
 winter.mx <- read.csv('output/weather-data/covariates-output/winter-covar-mexico.csv')
+summer.co <- read.csv('output/weather-data/covariates-output/summer-covar-colorado.csv')
 
 # Edit data sets and prepare data
 winter <- winter.mx %>% 
   mutate(time = 2002:2011, .after = winter_period) %>%
-  select(time, aver_min_temp) %>% 
-  mutate(winter_min_temp = z.stand(aver_min_temp), .keep = 'unused')
+  select(time, aver_min_temp, aver_precip) %>% 
+  mutate(winter_min_temp = z.stand(aver_min_temp),
+         winter_precip = z.stand(aver_precip), .keep = 'unused')
+
+summer <- summer.co %>% 
+  select(year, aver_min_temp, aver_precip) %>% 
+  rename(time = year) %>% 
+  mutate(summer_min_temp = z.stand(aver_min_temp),
+         summer_precip = z.stand(aver_precip), .keep = 'unused')
 
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
@@ -135,6 +143,10 @@ age.ddl$p <- merge_design.covariates(age.ddl$p, effort.z)
 # Add winter covariates to ddl
 age.ddl$Phi <- merge_design.covariates(
   age.ddl$Phi, winter)
+
+# Add summer covaraites to ddl
+age.ddl$Phi <- merge_design.covariates(
+  age.ddl$Phi, summer)
 
 # Create a couple of other variables to help with model construction
 
@@ -270,6 +282,7 @@ results.2$results$beta
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
+
 # ----------------------------- Including covariates ------------------------- #
 
 # --------- Using the covariate that best explained survival of adults ------- #
@@ -313,9 +326,8 @@ results.3$results$beta
 # Look at real estimates
 results.3$results$real
 
-# This output is confusing and I'm not sure how to interpret it. Juveniles were
-# not separated by sex in my model, so what estimates should I use for interpretation 
-# or for plotting? 
+# Estimates for juveniles are around 0.2, for adult females are around 0.5
+# and for adult males are around  0.3
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -363,12 +375,209 @@ results.4$results$beta
 # Adult males show stronger positive response to warmer winters compared to 
 # juveniles (+ interaction, significant)
 
-# Look at real estimates
-results.4$results$real
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
-# Again, this output is confusing. 
+
+# --------------------- Adding a summer grounds covariate -------------------- #
+
+# summer_min_temp was in the second best model for survival of adults, although
+# the Delta AIC for that model was 9.3
+
+# Is survival of juveniles and adults affected differently by warmer summers in
+# Colorado?
+
+# Create function
+base.age.sex.models.5 <- function()
+{
+  Phi.sexAdult <- list(formula = ~sexadult)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_min_temp)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_min_temp)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.results.5 <- base.age.sex.models.5()
+base.age.sex.results.5
+
+# Model with lowest Delta AIC
+# Phi(~sexadult + summer_min_temp)p(~sex + effort) 0.0
+# Closely followed by 
+# Phi(~sexadult * summer_min_temp)p(~sex + effort) 2.52
+
+# Look at estimates and standard errors 
+results.5 <- base.age.sex.results.5[[2]]
+results.5$results$beta
+
+# Warmer summers are associated with a decrease in survival across all groups
+# (-, significant) 
+# Among groups, juveniles have lower probability of survival than adult females 
+# and adult males (-, significant), adult males have better probability of 
+# survival than juveniles (+, significant) but females have better probability 
+# of survival than males (+, significant)
+
+# Look at real estimates
+results.5$results$real
+
+# Estimates very similar to those in model with winter_min_temp
+
+# When exploring the estimates for the model with the interaction, none were
+# statistically significant
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
+# ----------------- Combining summer and winter covariates ------------------- # 
+
+# What happens with survival of juveniles, adult females and adult males when 
+# considering temperature conditions in summer and winter?
+
+# Create function
+base.age.sex.models.6 <- function()
+{
+  Phi.sexAdultxCovarW <- list(formula = ~sexadult * winter_min_temp) 
+  Phi.sexAdultPlusCovarS <- list(formula = ~sexadult + summer_min_temp)
+  Phi.sexAdultCovarWPlusCovarS <- list(formula = ~sexadult + winter_min_temp + summer_min_temp)
+  Phi.sexAdultxCovarWPlusCovarS <- list(formula = ~sexadult * winter_min_temp + summer_min_temp)
+  Phi.sexAdultxCovarWPlusSexAdultxCovarS <- list(formula = ~sexadult * winter_min_temp + sexadult * summer_min_temp)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.results.6 <- base.age.sex.models.6()
+base.age.sex.results.6
+
+# Model with lowest Delta AIC
+# Phi(~sexadult * winter_min_temp + summer_min_temp)p(~sex + effort) 0.0
+# Followed by  
+# Phi(~sexadult * winter_min_temp + sexadult * summer_min_temp)p(~sex + effort) 1.7
+
+# Look at estimates and standard errors of best model
+results.6 <- base.age.sex.results.6[[4]]
+results.6$results$beta
+
+# Adding summer min temp improved model fit.
+# Warmer summers decrease survival probability for all groups! (-, significant) 
+
+# Look at estimates of second best model 
+results.7 <- base.age.sex.results.6[[5]]
+results.7$results$beta
+
+# There is no evidence that summer min temp affects survival differently among 
+# groups. All interaction terms are not significant. 
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+
+# ---------------------- What if I try using precip? ------------------------- #
+
+# Is precipitation in the wintering grounds affecting survival?
+
+# Create function
+base.age.sex.models.7 <- function()
+{
+  Phi.sexAdult <- list(formula = ~sexadult)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_precip)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_precip)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.results.7 <- base.age.sex.models.7()
+base.age.sex.results.7
+
+# Model with lowest Delta AIC 
+# Phi(~sexadult + winter_precip)p(~sex + effort) 0.0
+# Followed by 
+# Phi(~sexadult)p(~sex + effort) 2.7
+
+# Look at estimates of best model
+results.8 <- base.age.sex.results.7[[2]]
+results.8$results$beta
+
+# Precipitation slightly reduces the probability of survival for all groups (-,
+# significant) 
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Is precipitation in the summer grounds affecting survival?
+
+# Create function
+base.age.sex.models.8 <- function()
+{
+  Phi.sexAdult <- list(formula = ~sexadult)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_precip)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_precip)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml, 
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.results.8 <- base.age.sex.models.8()
+base.age.sex.results.8
+
+# Model with lowest Delta AIC 
+# Phi(~sexadult * summer_precip)p(~sex + effort) 0.0
+# Followed very closelly by 
+# Phi(~sexadult + summer_precip)p(~sex + effort) 0.18
+
+# Look at estimates of best model
+results.9 <- base.age.sex.results.8[[3]]
+results.9$results$beta
+
+# There is no evidence that summer precip has an effect on survival probability 
+# among groups. All interaction terms are not significant. 
+
+# Looking at estimates of best second model
+results.10 <- base.age.sex.results.8[[2]]
+results.10$results$beta
+
+# There is a small positive effect of summer precip on survival for all groups 
+# (+ significant)
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+# Is it wise to add precip in both summer and winter grounds as covariates to my
+# best model so far? Or due to the little effect (very small estimates) is it better
+# to leave them out of the candidate models?
 

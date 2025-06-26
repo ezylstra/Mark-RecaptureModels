@@ -581,3 +581,60 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # best model so far? Or due to the little effect (very small estimates) is it better
 # to leave them out of the candidate models?
 
+
+# ------------------------------- Run full model ----------------------------- #
+
+# But first, check for correlation of cavariates 
+covars <- left_join(winter, summer, by = 'time')
+
+# Between winter and summer min temp
+cor.test(covars$winter_min_temp, covars$summer_min_temp)
+# No correlation, r= -0.016, p = 0.96
+
+# Between winter and summer precip
+cor.test(covars$winter_precip, covars$summer_precip)
+# No correlation, r = 0.042, p = 0.91
+
+# Create function
+base.age.sex.full <- function() 
+{
+  Phi.full <- list(formula = ~sexadult * winter_min_temp + summer_min_temp +
+                     winter_precip + summer_precip)
+  
+  p.sexEffort <- list(formula = ~sex + effort)
+  
+  cml <- create.model.list('CJS') 
+  results <- mark.wrapper(cml,
+                          data = age.process,
+                          ddl = age.ddl,
+                          output = FALSE,
+                          adjust = FALSE)
+  return(results)
+}
+
+# Run function and store the results in a marklist
+base.age.sex.full.results <- base.age.sex.full()
+
+# Look at estimates
+results.10 <- base.age.sex.full.results[[1]]
+results.10$results$beta
+
+# Phi:
+# Juveniles have a lower probability of survival than adult females and adult males 
+# (-, significant)
+# Adult females have a higher probability of survival than both juveniles and 
+# adult males (+, significant)
+# Adult males have a higher probability of survival than juveniles but lower than 
+# adult females (+, significant)
+# Warmer summers decrease the probability of survival across all groups 
+# (-, significant)
+# Warmer winters do not affect survival across all groups (not significant)
+# Neither winter nor summer precipitation affect survival across all groups 
+# (not significant)
+
+# p:
+# Increase banding effort improves the probability of recapture (+, significant)
+# Sex does not have an effect on recapture probability (-, not significant)
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

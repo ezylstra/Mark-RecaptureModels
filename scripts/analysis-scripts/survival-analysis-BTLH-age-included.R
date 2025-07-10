@@ -88,14 +88,18 @@ summer.co <- read.csv('output/weather-data/covariates-output/summer-covar-colora
 winter <- winter.mx %>% 
   mutate(time = 2002:2011, .after = winter_period) %>%
   select(time, aver_min_temp, aver_precip) %>% 
-  mutate(winter_min_temp = z.stand(aver_min_temp),
-         winter_precip = z.stand(aver_precip), .keep = 'unused')
+  mutate(winter_min_temp_z = z.stand(aver_min_temp),
+         winter_precip_z = z.stand(aver_precip),
+         winter_aver_min_temp = aver_min_temp,
+         winter_aver_precip = aver_precip, .keep = 'unused')
 
 summer <- summer.co %>% 
   select(year, aver_min_temp, aver_precip) %>% 
   rename(time = year) %>% 
-  mutate(summer_min_temp = z.stand(aver_min_temp),
-         summer_precip = z.stand(aver_precip), .keep = 'unused')
+  mutate(summer_min_temp_z = z.stand(aver_min_temp),
+         summer_precip_z = z.stand(aver_precip),
+         summer_aver_min_temp = aver_min_temp,
+         summer_aver_precip = aver_precip, .keep = 'unused')
 
 # ----------------- PROCESS CAPTURE HISTORIES FOR MARK ANALYSIS -------------- #
 
@@ -152,7 +156,7 @@ age.ddl$Phi <- merge_design.covariates(
 
 # This code creates a new grouping variable called 'sexadult' in the survival
 # design data. It defines three distinct groups:
-  # Juveniles (0, both sexes combined). This will be the intercept when interpreting coeficients
+  # Juveniles (0, both sexes combined). This will be the intercept when interpreting coefficients
   # Adult females (1)
   # Adult males (2)
 age.ddl$Phi$sexadult <- ifelse(age.ddl$Phi$ageclass == '[0,1)', 0,
@@ -294,7 +298,7 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 base.age.sex.models.3 <- function()
 {
   Phi.sexAdult <- list(formula = ~sexadult)
-  Phi.sexAdultCovar <- list(formula = ~sexadult + winter_min_temp)
+  Phi.sexAdultCovar <- list(formula = ~sexadult + winter_min_temp_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -341,8 +345,8 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 base.age.sex.models.4 <- function()
 {
   Phi.sexAdult <- list(formula = ~sexadult)
-  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_min_temp)
-  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_min_temp)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_min_temp_z)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_min_temp_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -391,8 +395,8 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 base.age.sex.models.5 <- function()
 {
   Phi.sexAdult <- list(formula = ~sexadult)
-  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_min_temp)
-  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_min_temp)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_min_temp_z)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_min_temp_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -436,6 +440,7 @@ results.5$results$real
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
+
 # ----------------- Combining summer and winter covariates ------------------- # 
 
 # What happens with survival of juveniles, adult females and adult males when 
@@ -444,11 +449,11 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # Create function
 base.age.sex.models.6 <- function()
 {
-  Phi.sexAdultxCovarW <- list(formula = ~sexadult * winter_min_temp) 
-  Phi.sexAdultPlusCovarS <- list(formula = ~sexadult + summer_min_temp)
-  Phi.sexAdultCovarWPlusCovarS <- list(formula = ~sexadult + winter_min_temp + summer_min_temp)
-  Phi.sexAdultxCovarWPlusCovarS <- list(formula = ~sexadult * winter_min_temp + summer_min_temp)
-  Phi.sexAdultxCovarWPlusSexAdultxCovarS <- list(formula = ~sexadult * winter_min_temp + sexadult * summer_min_temp)
+  Phi.sexAdultxCovarW <- list(formula = ~sexadult * winter_min_temp_z) 
+  Phi.sexAdultPlusCovarS <- list(formula = ~sexadult + summer_min_temp_z)
+  Phi.sexAdultCovarWPlusCovarS <- list(formula = ~sexadult + winter_min_temp_z + summer_min_temp_z)
+  Phi.sexAdultxCovarWPlusCovarS <- list(formula = ~sexadult * winter_min_temp_z + summer_min_temp_z)
+  Phi.sexAdultxCovarWPlusSexAdultxCovarS <- list(formula = ~sexadult * winter_min_temp_z + sexadult * summer_min_temp_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -496,8 +501,8 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 base.age.sex.models.7 <- function()
 {
   Phi.sexAdult <- list(formula = ~sexadult)
-  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_precip)
-  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_precip)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + winter_precip_z)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * winter_precip_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -537,8 +542,8 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 base.age.sex.models.8 <- function()
 {
   Phi.sexAdult <- list(formula = ~sexadult)
-  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_precip)
-  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_precip)
+  Phi.sexAdultPluCovar <- list(formula = ~sexadult + summer_precip_z)
+  Phi.sexAdultxCovar <- list(formula = ~sexadult * summer_precip_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -581,6 +586,7 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # best model so far? Or due to the little effect (very small estimates) is it better
 # to leave them out of the candidate models?
 
+# I'm keeping precip in the full model
 
 # ------------------------------- Run full model ----------------------------- #
 
@@ -588,18 +594,18 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 covars <- left_join(winter, summer, by = 'time')
 
 # Between winter and summer min temp
-cor.test(covars$winter_min_temp, covars$summer_min_temp)
+cor.test(covars$winter_min_temp_z, covars$summer_min_temp_z)
 # No correlation, r= -0.016, p = 0.96
 
 # Between winter and summer precip
-cor.test(covars$winter_precip, covars$summer_precip)
+cor.test(covars$winter_precip_z, covars$summer_precip_z)
 # No correlation, r = 0.042, p = 0.91
 
 # Create function
 base.age.sex.full <- function() 
 {
-  Phi.full <- list(formula = ~sexadult * winter_min_temp + summer_min_temp +
-                     winter_precip + summer_precip)
+  Phi.full <- list(formula = ~sexadult * winter_min_temp_z + summer_min_temp_z +
+                     winter_precip_z + summer_precip_z)
   
   p.sexEffort <- list(formula = ~sex + effort)
   
@@ -616,9 +622,10 @@ base.age.sex.full <- function()
 base.age.sex.full.results <- base.age.sex.full()
 
 # Look at estimates
-results.10 <- base.age.sex.full.results[[1]]
-results.10$results$beta
+results.11 <- base.age.sex.full.results[[1]]
+results.11$results$beta
 
+#######3 Edit these comments!
 # Phi:
 # Juveniles have a lower probability of survival than adult females and adult males 
 # (-, significant)
@@ -645,7 +652,7 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # --------- Prepare data frames with real estimates for Phi and p ------------ #
 
 # Extract real estimates and clean them up
-real.ests <- results.10$results$real %>% 
+real.ests <- results.11$results$real %>% 
   rownames_to_column(var = 'group') %>%
   mutate(parameter = ifelse(str_sub(group, 1, 3) == 'Phi', 'Phi', 'p'),
          group = ifelse(parameter == 'Phi', 
@@ -679,24 +686,36 @@ real.Phi.ests <- real.Phi.ests %>%
 
 # Plot survival probability
 Phi.plot <- ggplot(real.Phi.ests, aes(x = as.numeric(year), 
-                                  y = estimate, 
-                                  color = group)) +
+                                      y = estimate,
+                                      color = group,
+                                      shape = group)) +
   geom_line(aes(group = group), size = 0.3) +
-  geom_point(size = 1.5) +
+  geom_point(size = 2) +
   geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0, linewidth = 0.3) +
-  scale_color_manual(values = c('Juvenile' = '#505050', 
-                                'Adult Female' = '#6B8E23', 
-                                'Adult Male' = '#C71585')) +
+  scale_color_manual(values = c('Juvenile' = 'gray10', 
+                                'Adult Female' = 'gray26', 
+                                'Adult Male' = 'gray46')) +
+  scale_shape_manual(values = c('Juvenile' = 15,
+                                'Adult Female' = 17,  
+                                'Adult Male' = 19)) + 
+  
   scale_y_continuous(limits = c(0,1), 
                      breaks = seq(0, 1, 0.2)) +
   scale_x_continuous(breaks = 2003:2011) +
   labs(x = 'Year',
-       y = 'Estimated anual survival probability\n(95% CI)',
+       y = 'Estimated annual survival probability\n(95% CI)',
+       shape = 'Group',
        color = 'Group') +
   theme_classic() +
   theme(legend.position = 'right',
         plot.title = element_text(hjust = 0.5))
 Phi.plot
+
+# Save plot
+ggsave(filename = 'survival.png',
+       plot = Phi.plot,
+       device = 'png',
+       dpi = 300)
 
 # 2) Recapture probability of females and males over time
 
@@ -705,34 +724,42 @@ real.p.ests <- real.p.ests %>%
   mutate(group = ifelse(sexMF == 'F', 'Female', 'Male'))
 
 # Plot recapture probability
-p.fig <- ggplot(real.p.ests, aes(x = as.numeric(year), 
-                            y = estimate, 
-                            color = group)) +
+p.plot <- ggplot(real.p.ests, aes(x = as.numeric(year), 
+                                  y = estimate,
+                                  color = group,
+                                  shape = group)) +
   geom_line(aes(group = group), size = 0.3) +
-  geom_point(size = 1.5) +
-  geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0, linewidth = 0.5) +
-  scale_color_manual(values = c('Female' = '#6B8E23', 
-                                'Male' = '#C71585')) +
-  theme_classic() +
-  labs(y = 'Estimated recapture probability\n(95% CI)',
-       x = 'Year') +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = lcl, ymax = ucl), width = 0, linewidth = 0.3) +
+  scale_color_manual(values = c('Female' = 'gray26', 
+                                'Male' = 'gray46')) +
+  scale_shape_manual(values = c('Female' = 17,  
+                                'Male' = 19)) +
   scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)) +
   scale_x_continuous(breaks = 2003:2012) +
+  labs(y = 'Estimated recapture probability\n(95% CI)',
+       x = 'Year') +
+  theme_classic() +
   theme(legend.title = element_blank())
-p.fig
+p.plot
+
+# Save plot
+ggsave(filename = 'recapture.png',
+       plot = p.plot,
+       device = 'png',
+       dpi = 300)
 
 # ---------------------------- Effect of covariates -------------------------- #
 
-
 # Original base code from Erin Zylstra using BTLH data from Mount Lemmon
-# Plots for NAEP poster
+# Plots for NAEP poster 
 
 # Code adapted and expanded using ChatGPT
 
 # ------------------- First, prepare data needed for the plots --------------- #
 
 # Extract Phi beta estimates
-phi.betas <- results.10$results$beta %>%
+phi.betas <- results.11$results$beta %>%
   as.data.frame() %>%
   rownames_to_column('term') %>%
   filter(str_starts(term, 'Phi:')) %>%
@@ -748,25 +775,23 @@ build.range <- function(data, covar, n = 100) { # 100 seems standard?
 }
 
 # Create ranges 
-winter.temp.range <- build.range(covars, 'winter_min_temp')
-summer.temp.range <- build.range(covars, 'summer_min_temp')
-winter.precip.range <- build.range(covars, 'winter_precip')
-summer.precip.range <- build.range(covars, 'summer_precip')
-
-# Extract beta estimates with lower and upper CIs for Phi parameter
+winter.temp.range <- build.range(covars, 'winter_min_temp_z')
+summer.temp.range <- build.range(covars, 'summer_min_temp_z')
+winter.precip.range <- build.range(covars, 'winter_precip_z')
+summer.precip.range <- build.range(covars, 'summer_precip_z')
 
 # Create beta vectors from phi.betas
-betas     <- phi.betas$estimate
-betas.lcl <- phi.betas$lcl
-betas.ucl <- phi.betas$ucl
+betas <- phi.betas$estimate
 
 # Assign names to the beta vectors using the 'term' column in phi.betas
 # This ensures that the coefficients match the correct columns in the 
-# prediction data frames during matrix multiplication. Without the names funtion
-# I always got an error
-names(betas)     <- phi.betas$term
-names(betas.lcl) <- phi.betas$term
-names(betas.ucl) <- phi.betas$term
+# prediction data frames during matrix multiplication. 
+names(betas) <- phi.betas$term
+
+# To calculate confidence intervals for predictions by hand, we'll need the 
+# variance-covariate matrix. Extract the values for Phi [1:9]
+var.covar.matrix <- results.11$results$beta.vcv[1:9, 1:9]
+
 
 # -------------------------------- Create plots ------------------------------ #
 
@@ -777,7 +802,7 @@ names(betas.ucl) <- phi.betas$term
 pred.df.winter.temp <- data.frame(
   Group = rep(c('Juvenile', 'Adult Female', 'Adult Male'), 
               each = length(winter.temp.range)),
-  winter_min_temp = rep(winter.temp.range, times = 3)) # 3 for each group
+  winter_min_temp_z = rep(winter.temp.range, times = 3)) # 3 for each group
 
 # Add other covariates to predict data frame, holding them constant at 0 
 # (standardized mean) 
@@ -785,50 +810,76 @@ pred.df.winter.temp$Intercept <- 1
 # Dummy variables for adult female and adult male
 pred.df.winter.temp$sexadult1 <- ifelse(pred.df.winter.temp$Group == 'Adult Female', 1, 0)
 pred.df.winter.temp$sexadult2 <- ifelse(pred.df.winter.temp$Group == 'Adult Male', 1, 0)
-pred.df.winter.temp$summer_min_temp <- 0
-pred.df.winter.temp$winter_precip <- 0
-pred.df.winter.temp$summer_precip <- 0
+pred.df.winter.temp$summer_min_temp_z <- 0
+pred.df.winter.temp$winter_precip_z <- 0
+pred.df.winter.temp$summer_precip_z <- 0
 
 # Include interaction terms. Let the effect of temperature depend on sex
 # Use `` (`sexadult2:winter_min_temp`) so the code works!
-pred.df.winter.temp$`sexadult1:winter_min_temp` <- 
+pred.df.winter.temp$`sexadult1:winter_min_temp_z` <- 
   pred.df.winter.temp$sexadult1 * pred.df.winter.temp$winter_min_temp
-pred.df.winter.temp$`sexadult2:winter_min_temp` <- 
-  pred.df.winter.temp$sexadult2 * pred.df.winter.temp$winter_min_temp
+pred.df.winter.temp$`sexadult2:winter_min_temp_z` <- 
+  pred.df.winter.temp$sexadult2 * pred.df.winter.temp$winter_min_temp 
 
-# Predict survival on the logit scale
+# Calculate estimates of survival on the logit scale
 # Selecting columns by names ensures that the order of variables in the 
 # prediction data frame matches the order of the beta coefficients
 estimate.winter.temp.logit <- as.matrix(pred.df.winter.temp[, names(betas)]) %*% 
   as.matrix(betas)
-lcl.winter.temp.logit <- as.matrix(pred.df.winter.temp[, names(betas.lcl)]) %*% 
-  as.matrix(betas.lcl)
-ucl.winter.temp.logit <- as.matrix(pred.df.winter.temp[, names(betas.ucl)]) %*% 
-  as.matrix(betas.ucl)
+
+# Create design matrix
+X.winter.temp <- as.matrix(pred.df.winter.temp[, names(betas)])
+
+# Calculate bounds of confidence intervals on the logit scale
+# A little matrix math, using the part of the var-covar matrix that applies to 
+# survival parameters and not recapture parameters
+std.errors.winter.temp <- sqrt(diag(X.winter.temp %*%
+                                     var.covar.matrix %*%
+                                     t(X.winter.temp)))
+lcl.winter.temp.logit <- estimate.winter.temp.logit - 1.96 * std.errors.winter.temp
+ucl.winter.temp.logit <- estimate.winter.temp.logit + 1.96 * std.errors.winter.temp
 
 # Convert to probability scale
-pred.df.winter.temp$estimate <- plogis(estimate.winter.temp.logit)
+pred.df.winter.temp$estimate <- plogis(estimate.winter.temp.logit) 
 pred.df.winter.temp$lcl <- plogis(lcl.winter.temp.logit)
 pred.df.winter.temp$ucl <- plogis(ucl.winter.temp.logit)
 
+# Back transform covariate to original scale
+winter.temp.mean <- mean(covars$winter_aver_min_temp)
+winter.temp.sd <- sd(covars$winter_aver_min_temp)
+pred.df.winter.temp$winter_min_temp_c <- 
+  pred.df.winter.temp$winter_min_temp_z * winter.temp.sd + winter.temp.mean  
+
 # Plot
-winter.temp.plot <- ggplot(pred.df.winter.temp, aes(x = winter_min_temp, 
+winter.temp.plot <- ggplot(pred.df.winter.temp, aes(x = winter_min_temp_c, 
                                                     y = estimate, 
-                                                    color = Group, 
-                                                    fill = Group)) +
-  geom_line(size = 0.5) +
+                                                    color = Group,
+                                                    fill = Group,
+                                                    linetype = Group)) +
+  geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Winter minimum temperature (standardized)',
+  labs(x = 'Average winter minimum temperature (°C)',
        y = 'Estimated survival probability\n(95% CI)',
-       title = 'Effect of Winter Minimum Temperature on Survival') +
-  scale_color_manual(values = c('Juvenile' = '#505050', 
-                                'Adult Female' = '#6B8E23', 
-                                'Adult Male' = '#C71585')) +
-  scale_fill_manual(values = c('Juvenile' = '#505050', 
-                               'Adult Female' = '#6B8E23', 
-                               'Adult Male' = '#C71585')) +
+       color = 'Group',
+       fill = 'Group',
+       linetype = 'Group') +
+  scale_color_manual(values = c('Juvenile' = 'gray10', 
+                                'Adult Female' = 'gray26', 
+                                'Adult Male' = 'gray46')) +
+  scale_fill_manual(values = c('Juvenile' = 'gray10', 
+                               'Adult Female' = 'gray26', 
+                               'Adult Male' = 'gray46')) +
+  scale_linetype_manual(values = c('Juvenile' = 'solid',
+                                   'Adult Female' = 'longdash',
+                                   'Adult Male' = 'dotted')) +
   theme_classic()
 winter.temp.plot
+
+# Save plot
+ggsave(filename = 'winter temp effect.png',
+       plot = winter.temp.plot,
+       device = 'png',
+       dpi = 300)
 
 # 4) Effect of summer min temp on probability of survival of all groups
 
@@ -836,68 +887,78 @@ winter.temp.plot
 pred.df.summer.temp <- data.frame(
   Group = rep(c('Juvenile', 'Adult Female', 'Adult Male'), 
               each = length(summer.temp.range)),
-  summer_min_temp = rep(summer.temp.range, times = 3)) 
+  summer_min_temp_z = rep(summer.temp.range, times = 3)) 
 
 # Add other covariates to predict data frame, holding them constant at 0 
 # (standardized mean) 
 pred.df.summer.temp$Intercept <- 1
 pred.df.summer.temp$sexadult1 <- ifelse(pred.df.summer.temp$Group == 'Adult Female', 1, 0)
 pred.df.summer.temp$sexadult2 <- ifelse(pred.df.summer.temp$Group == 'Adult Male', 1, 0)
-pred.df.summer.temp$winter_min_temp <- 0
-pred.df.summer.temp$winter_precip <- 0
-pred.df.summer.temp$summer_precip <- 0
-pred.df.summer.temp$`sexadult1:winter_min_temp` <- 0 # Use `` so the code works!
-pred.df.summer.temp$`sexadult2:winter_min_temp` <- 0
+pred.df.summer.temp$winter_min_temp_z <- 0
+pred.df.summer.temp$winter_precip_z <- 0
+pred.df.summer.temp$summer_precip_z <- 0
+pred.df.summer.temp$`sexadult1:winter_min_temp_z` <- 0 # Use `` so the code works!
+pred.df.summer.temp$`sexadult2:winter_min_temp_z` <- 0
 
-# Predict survival on the logit scale
-# Matrix multiplication
-estimate.summer.temp.logit <- as.matrix(pred.df.summer.temp[, names(betas)]) %*% as.matrix(betas)
-lcl.summer.temp.logit <- as.matrix(pred.df.summer.temp[, names(betas.lcl)]) %*% as.matrix(betas.lcl)
-ucl.summer.temp.logit <- as.matrix(pred.df.summer.temp[, names(betas.ucl)]) %*% as.matrix(betas.ucl)
+# Calculate estimates of survival on the logit scale
+# Selecting columns by names ensures that the order of variables in the 
+# prediction data frame matches the order of the beta coefficients
+estimate.summer.temp.logit <- as.matrix(pred.df.summer.temp[, names(betas)]) %*% 
+  as.matrix(betas)
+
+# Create design matrix
+X.summer.temp <- as.matrix(pred.df.summer.temp[, names(betas)])
+
+# Calculate bounds of confidence intervals on the logit scale
+std.errors.summer.temp <- sqrt(diag(X.summer.temp %*%
+                                      var.covar.matrix %*%
+                                      t(X.summer.temp)))
+lcl.summer.temp.logit <- estimate.summer.temp.logit - 1.96 * std.errors.summer.temp
+ucl.summer.temp.logit <- estimate.summer.temp.logit + 1.96 * std.errors.summer.temp
 
 # Convert to probability scale
-pred.df.summer.temp$estimate <- plogis(estimate.summer.temp.logit)
+pred.df.summer.temp$estimate <- plogis(estimate.summer.temp.logit) 
 pred.df.summer.temp$lcl <- plogis(lcl.summer.temp.logit)
 pred.df.summer.temp$ucl <- plogis(ucl.summer.temp.logit)
 
-# Average predictions for each group
-aver.df.summer.temp <- pred.df.summer.temp %>%
-  group_by(summer_min_temp) %>%
-  summarize(estimate = mean(estimate),
-            lcl = mean(lcl),
-            ucl = mean(ucl), .groups = 'drop')
+# Back transform covariate to original scale
+summer.temp.mean <- mean(covars$summer_aver_min_temp)
+summer.temp.sd <- sd(covars$summer_aver_min_temp)
+pred.df.summer.temp$summer_min_temp_c <- 
+  pred.df.summer.temp$summer_min_temp_z * summer.temp.sd + summer.temp.mean  
 
-# Plot for each group
-summer.temp.plot.all <- ggplot(pred.df.summer.temp, aes(x = summer_min_temp, 
-                                                        y = estimate, 
-                                                        color = Group, 
-                                                        fill = Group)) +
-  geom_line(size = 1) +
+# Plot
+summer.temp.plot <- ggplot(pred.df.summer.temp, aes(x = summer_min_temp_c, 
+                                                    y = estimate, 
+                                                    color = Group,
+                                                    fill = Group,
+                                                    linetype = Group)) +
+  geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Summer minimum temperature (standardized)',
+  labs(x = 'Average summer minimum temperature (°C)',
        y = 'Estimated survival probability\n(95% CI)',
-       title = 'Effect of Summer Minimum Temperature on Survival') +
-  scale_color_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
-  scale_fill_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
+       color = 'Group',
+       fill = 'Group',
+       linetype = 'Group') +
+  scale_color_manual(values = c('Juvenile' = 'gray10', 
+                                'Adult Female' = 'gray26', 
+                                'Adult Male' = 'gray46')) +
+  scale_fill_manual(values = c('Juvenile' = 'gray10', 
+                               'Adult Female' = 'gray26', 
+                               'Adult Male' = 'gray46')) +
+  scale_linetype_manual(values = c('Juvenile' = 'solid',
+                                   'Adult Female' = 'longdash',
+                                   'Adult Male' = 'dotted')) +
+  scale_x_continuous(breaks = seq(-12, -4, by = 2)) +
   theme_classic()
-summer.temp.plot.all
+summer.temp.plot
 
-# Plot average
-aver.summer.temp.plot <- ggplot(aver.df.summer.temp, aes(x = summer_min_temp, 
-                                                    y = estimate)) +
-  geom_line(color = "#444444", size = 0.5) +
-  geom_ribbon(aes(ymin = lcl, ymax = ucl), fill = "#999999", alpha = 0.3) +
-  labs(x = 'Summer minimum temperature (standardized)',
-       y = 'Estimated average survival probability\n(95% CI)',
-       title = 'Average Effect of Summer Min Temperature on Survival') +
-  theme_classic()
-aver.summer.temp.plot
+# Save plot
+ggsave(filename = 'summer temp effect.png',
+       plot = summer.temp.plot,
+       device = 'png',
+       dpi = 300)
+
 
 # 5) Effect of summer precip on probability of survival of all groups
 
@@ -905,70 +966,75 @@ aver.summer.temp.plot
 pred.df.summer.precip <- data.frame(
   Group = rep(c('Juvenile', 'Adult Female', 'Adult Male'), 
               each = length(summer.precip.range)),
-  summer_precip = rep(summer.precip.range, times = 3)) 
+  summer_precip_z = rep(summer.precip.range, times = 3)) 
 
 # Add other covariates to predict data frame, holding them constant at 0 
 # (standardized mean) 
 pred.df.summer.precip$Intercept <- 1
 pred.df.summer.precip$sexadult1 <- ifelse(pred.df.summer.precip$Group == 'Adult Female', 1, 0)
 pred.df.summer.precip$sexadult2 <- ifelse(pred.df.summer.precip$Group == 'Adult Male', 1, 0)
-pred.df.summer.precip$winter_min_temp <- 0
-pred.df.summer.precip$winter_precip <- 0
-pred.df.summer.precip$summer_min_temp <- 0
-pred.df.summer.precip$`sexadult1:winter_min_temp` <- 0 # Use `` so the code works!
-pred.df.summer.precip$`sexadult2:winter_min_temp` <- 0
+pred.df.summer.precip$winter_min_temp_z <- 0
+pred.df.summer.precip$winter_precip_z <- 0
+pred.df.summer.precip$summer_min_temp_z <- 0
+pred.df.summer.precip$`sexadult1:winter_min_temp_z` <- 0 # Use `` so the code works!
+pred.df.summer.precip$`sexadult2:winter_min_temp_z` <- 0
 
-# Predict survival on the logit scale
-# Matrix multiplication
-estimate.summer.precip.logit <- as.matrix(pred.df.summer.precip[, names(betas)]) %*% as.matrix(betas)
-lcl.summer.precip.logit <- as.matrix(pred.df.summer.precip[, names(betas.lcl)]) %*% as.matrix(betas.lcl)
-ucl.summer.precip.logit <- as.matrix(pred.df.summer.precip[, names(betas.ucl)]) %*% as.matrix(betas.ucl)
+# Calculate estimates of survival on the logit scale
+estimate.summer.precip.logit <- as.matrix(pred.df.summer.precip[, names(betas)]) %*% 
+  as.matrix(betas)
+
+# Create design matrix
+X.summer.precip <- as.matrix(pred.df.summer.precip[, names(betas)])
+
+# Calculate bounds of confidence intervals on the logit scale
+std.errors.summer.precip <- sqrt(diag(X.summer.precip %*%
+                                      var.covar.matrix %*%
+                                      t(X.summer.precip)))
+lcl.summer.precip.logit <- estimate.summer.precip.logit - 1.96 * std.errors.summer.precip
+ucl.summer.precip.logit <- estimate.summer.precip.logit + 1.96 * std.errors.summer.precip
 
 # Convert to probability scale
-pred.df.summer.precip$estimate <- plogis(estimate.summer.precip.logit)
+pred.df.summer.precip$estimate <- plogis(estimate.summer.precip.logit) 
 pred.df.summer.precip$lcl <- plogis(lcl.summer.precip.logit)
 pred.df.summer.precip$ucl <- plogis(ucl.summer.precip.logit)
 
-# Average predictions for each group
-aver.df.summer.precip <- pred.df.summer.precip %>%
-  group_by(summer_precip) %>%
-  summarize(estimate = mean(estimate),
-            lcl = mean(lcl),
-            ucl = mean(ucl), .groups = 'drop')
+# Back transform covariate to original scale
+summer.precip.mean <- mean(covars$summer_aver_precip)
+summer.precip.sd <- sd(covars$summer_aver_precip)
+pred.df.summer.precip$summer_aver_precip_c <- 
+  pred.df.summer.precip$summer_precip_z * summer.precip.sd + summer.precip.mean  
 
-# Plot for each group
-summer.precip.plot.all <- ggplot(pred.df.summer.precip, 
-                                 aes(x = summer_precip, 
-                                     y = estimate, 
-                                     color = Group, 
-                                     fill = Group)) +
-  geom_line(size = 1) +
+# Plot
+summer.precip.plot <- ggplot(pred.df.summer.precip, aes(x = summer_aver_precip_c,
+                                                        y = estimate, 
+                                                        color = Group,
+                                                        fill = Group,
+                                                        linetype = Group)) +
+  geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Summer precipitation (standardized)',
+  labs(x = 'Summer precipitation (mm)',
        y = 'Estimated survival probability\n(95% CI)',
-       title = 'Effect of Summer Precipitation on Survival') +
-  scale_color_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
-  scale_fill_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
+       color = 'Group',
+       fill = 'Group',
+       linetype = 'Group') +
+  scale_color_manual(values = c('Juvenile' = 'gray10', 
+                                'Adult Female' = 'gray26', 
+                                'Adult Male' = 'gray46')) +
+  scale_fill_manual(values = c('Juvenile' = 'gray10', 
+                               'Adult Female' = 'gray26', 
+                               'Adult Male' = 'gray46')) +
+  scale_linetype_manual(values = c('Juvenile' = 'solid',
+                                   'Adult Female' = 'longdash',
+                                   'Adult Male' = 'dotted')) +
   theme_classic()
-summer.precip.plot.all
+summer.precip.plot
 
-# Plot average
-aver.summer.precip.plot <- ggplot(aver.df.summer.precip, 
-                                  aes(x = summer_precip, 
-                                      y = estimate)) +
-  geom_line(color = "#444444", size = 0.5) +
-  geom_ribbon(aes(ymin = lcl, ymax = ucl), fill = "#999999", alpha = 0.3) +
-  labs(x = 'Summer precipitation (standardized)',
-       y = 'Estimated average survival probability\n(95% CI)',
-       title = 'Average Effect of Summer Precipitation on Survival') +
-  theme_classic()
-aver.summer.precip.plot
+# Save plot
+ggsave(filename = 'summer precip effect.png',
+       plot = summer.precip.plot,
+       device = 'png',
+       dpi = 300)
+
 
 # 6) Effect of winter precip on probability of survival of all groups
 
@@ -976,67 +1042,71 @@ aver.summer.precip.plot
 pred.df.winter.precip <- data.frame(
   Group = rep(c('Juvenile', 'Adult Female', 'Adult Male'), 
               each = length(winter.precip.range)),
-  winter_precip = rep(winter.precip.range, times = 3)) 
+  winter_precip_z = rep(winter.precip.range, times = 3)) 
 
 # Add other covariates to predict data frame, holding them constant at 0 
 # (standardized mean) 
 pred.df.winter.precip$Intercept <- 1
 pred.df.winter.precip$sexadult1 <- ifelse(pred.df.winter.precip$Group == 'Adult Female', 1, 0)
 pred.df.winter.precip$sexadult2 <- ifelse(pred.df.winter.precip$Group == 'Adult Male', 1, 0)
-pred.df.winter.precip$winter_min_temp <- 0
-pred.df.winter.precip$summer_precip <- 0
-pred.df.winter.precip$summer_min_temp <- 0
-pred.df.winter.precip$`sexadult1:winter_min_temp` <- 0 # Use `` so the code works!
-pred.df.winter.precip$`sexadult2:winter_min_temp` <- 0
+pred.df.winter.precip$winter_min_temp_z <- 0
+pred.df.winter.precip$summer_precip_z <- 0
+pred.df.winter.precip$summer_min_temp_z <- 0
+pred.df.winter.precip$`sexadult1:winter_min_temp_z` <- 0 # Use `` so the code works!
+pred.df.winter.precip$`sexadult2:winter_min_temp_z` <- 0
 
-# Predict survival on the logit scale
-# Matrix multiplication
-estimate.winter.precip.logit <- as.matrix(pred.df.winter.precip[, names(betas)]) %*% as.matrix(betas)
-lcl.winter.precip.logit <- as.matrix(pred.df.winter.precip[, names(betas.lcl)]) %*% as.matrix(betas.lcl)
-ucl.winter.precip.logit <- as.matrix(pred.df.winter.precip[, names(betas.ucl)]) %*% as.matrix(betas.ucl)
+# Calculate estimates of survival on the logit scale
+estimate.winter.precip.logit <- as.matrix(pred.df.winter.precip[, names(betas)]) %*% 
+  as.matrix(betas)
+
+# Create design matrix
+X.winter.precip <- as.matrix(pred.df.winter.precip[, names(betas)])
+
+# Calculate bounds of confidence intervals on the logit scale
+std.errors.winter.precip <- sqrt(diag(X.winter.precip %*%
+                                        var.covar.matrix %*%
+                                        t(X.winter.precip)))
+lcl.winter.precip.logit <- estimate.winter.precip.logit - 1.96 * std.errors.winter.precip
+ucl.winter.precip.logit <- estimate.winter.precip.logit + 1.96 * std.errors.winter.precip
 
 # Convert to probability scale
-pred.df.winter.precip$estimate <- plogis(estimate.winter.precip.logit)
+pred.df.winter.precip$estimate <- plogis(estimate.winter.precip.logit) 
 pred.df.winter.precip$lcl <- plogis(lcl.winter.precip.logit)
 pred.df.winter.precip$ucl <- plogis(ucl.winter.precip.logit)
 
-# Average predictions for each group
-aver.df.winter.precip <- pred.df.winter.precip %>%
-  group_by(winter_precip) %>%
-  summarize(estimate = mean(estimate),
-            lcl = mean(lcl),
-            ucl = mean(ucl), .groups = 'drop')
+# Back transform covariate to original scale
+winter.precip.mean <- mean(covars$winter_aver_precip)
+winter.precip.sd <- sd(covars$winter_aver_precip)
+pred.df.winter.precip$winter_aver_precip_c <- 
+  pred.df.winter.precip$winter_precip_z * winter.precip.sd + winter.precip.mean  
 
-# Plot for each group
-winter.precip.plot.all <- ggplot(pred.df.winter.precip, 
-                                 aes(x = winter_precip, 
-                                     y = estimate, 
-                                     color = Group, 
-                                     fill = Group)) +
-  geom_line(size = 1) +
+# Plot
+winter.precip.plot <- ggplot(pred.df.winter.precip, aes(x = winter_aver_precip_c,
+                                                        y = estimate, 
+                                                        color = Group,
+                                                        fill = Group,
+                                                        linetype = Group)) +
+  geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Winter precipitation (standardized)',
+  labs(x = 'winter precipitation (mm)',
        y = 'Estimated survival probability\n(95% CI)',
-       title = 'Effect of Winter Precipitation on Survival') +
-  scale_color_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
-  scale_fill_manual(values = c(
-    'Juvenile' = '#505050', 
-    'Adult Female' = '#6B8E23', 
-    'Adult Male' = '#C71585')) +
+       color = 'Group',
+       fill = 'Group',
+       linetype = 'Group') +
+  scale_color_manual(values = c('Juvenile' = 'gray10', 
+                                'Adult Female' = 'gray26', 
+                                'Adult Male' = 'gray46')) +
+  scale_fill_manual(values = c('Juvenile' = 'gray10', 
+                               'Adult Female' = 'gray26', 
+                               'Adult Male' = 'gray46')) +
+  scale_linetype_manual(values = c('Juvenile' = 'solid',
+                                   'Adult Female' = 'longdash',
+                                   'Adult Male' = 'dotted')) +
   theme_classic()
-winter.precip.plot.all
+winter.precip.plot
 
-# Plot average
-aver.winter.precip.plot <- ggplot(aver.df.winter.precip, 
-                                  aes(x = winter_precip, 
-                                      y = estimate)) +
-  geom_line(color = "#444444", size = 0.5) +
-  geom_ribbon(aes(ymin = lcl, ymax = ucl), fill = "#999999", alpha = 0.3) +
-  labs(x = 'Winter precipitation (standardized)',
-       y = 'Estimated average survival probability\n(95% CI)',
-       title = 'Average Effect of Winter Precipitation on Survival') +
-  theme_classic()
-aver.winter.precip.plot
+# Save plot
+ggsave(filename = 'winter precip effect.png',
+       plot = winter.precip.plot,
+       device = 'png',
+       dpi = 300)

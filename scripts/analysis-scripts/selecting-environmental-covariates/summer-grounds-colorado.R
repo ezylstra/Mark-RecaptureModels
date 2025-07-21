@@ -27,13 +27,21 @@ rm(list = ls())
 # Load banding data
 dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 
+# Identify birds banded in September
+sept.birds <- dat.raw %>% 
+  filter(band_status == 1 & month == 9) %>% 
+  select(band)
+
 # Prepare data set for survival analysis 
 dat <- dat.raw %>%
-  filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  filter(!band %in% sept.birds$band,# exclude September birds
+         !band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP'),
+         month != 9) %>% 
   select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
   arrange(band, band_status, year)
+
 
 # -------------------- CREATE CAPTURE HISTORIES FOR BTLH --------------------- # 
 
@@ -75,19 +83,21 @@ z.stand <- function(x) {
 
 # Load effort data
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
-# Total banding days per year
 
 # Edit effort data and standardize it
 effort.z <- effort.raw %>% 
   # Sites not included in capture data for analysis:
   filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
-  summarize(total_days = sum(total_banding_days, na.rm = TRUE), 
+  summarize(total_days = sum(total_banding_days, na.rm = TRUE),
+            total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
             .groups = 'drop') %>% 
   rename(time = year,
-         effort_raw = total_days) %>% 
-  mutate(effort = z.stand(effort_raw)) %>%
-  select(time, effort) %>% 
+         effort_days = total_days,
+         effort_hours = total_trap_hours) %>% 
+  mutate(effort_days_z = z.stand(effort_days),
+         effort_hours_z = z.stand(effort_hours)) %>%
+  select(time, effort_days_z, effort_hours_z) %>% 
   as.data.frame()
 
 # ---------------------------- Environmental Covariates ---------------------- # 
@@ -152,7 +162,7 @@ ahy.max.temp.co <- function()
   Phi.sexDailyMaxTemp <- list(formula = ~sex + aver_daily_max_temp_z)
   Phi.sexWarmdDays <- list(formula = ~sex + aver_warm_days_z)
   
-  p.sexEffort <- list(formula = ~sex + effort)
+  p.sexEffort <- list(formula = ~sex + effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -170,6 +180,8 @@ ahy.max.temp.co <- function()
 ahy.max.temp.co.results <- ahy.max.temp.co()
 ahy.max.temp.co.results
 
+##### OLD RESULTS ##### 
+
 # Model with lowest Delta AIC 
 # Phi(~sex)p(~sex + effort) 0.0
 # Closely followed by 
@@ -178,24 +190,35 @@ ahy.max.temp.co.results
 # and
 # Phi(~sex + aver_daily_max_temp_z)p(~sex + effort) 1.62
 
-# Look at estimates and standard errors 
-results.1 <- ahy.max.temp.co.results[[2]]
-results.1$results$beta
-
 # Looking at the estimates in all models, none of the max temperature covariates 
 # had a significant effect on survival. Although all candidate models had delta AIC <2, 
 # the effects were low. 
 
-# Are these covaraites correlated?
-cor(summer.co.stand[, c('aver_warm_days_z', 
-                        'aver_max_temp_z', 
-                        'aver_daily_max_temp_z')])
+##### NEW RESULTS ##### 
 
-# All variables are moderate to highly correlated. 
+# Model with lowest Delta AIC 
+# Phi(~sex + aver_warm_days_z)p(~sex + effort_hours_z) 0.0
+# Followed by 
+# Phi(~sex + aver_max_temp_z)p(~sex + effort_hours_z) 2.43
 
-# As suggested by Erin, I should choose one of theme to add to the more complex model 
-# with the other covaraites. I'm going to use aver_warm_days as it can be use a 
-# threshold when days were to hot for the birds and/or availability of resources
+# Look at estimates and standard errors of best model
+results.1 <- ahy.max.temp.co.results[[4]]
+results.1$results$beta
+
+# Increase in the number of warm days in the summer grounds increases the 
+# probability of survival (+, significant)
+
+# Look at estimates and standard errors of second best model
+results.2 <- ahy.max.temp.co.results[[3]]
+results.2$results$beta
+
+# Increase in temperature increases the probability of survival (+, significant)
+
+# Check for correlation
+cor.test(summer.co.stand$aver_max_temp_z,
+         summer.co.stand$aver_warm_days_z)
+
+# Highly positive correlation (0.93), statistically significant (p < 0.001)
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -213,7 +236,7 @@ ahy.min.temp.co <- function()
   Phi.sexDailyMinTemp <- list(formula = ~sex + aver_daily_min_temp_z)
   Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
   
-  p.sexEffort <- list(formula = ~sex + effort)
+  p.sexEffort <- list(formula = ~sex + effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -231,13 +254,11 @@ ahy.min.temp.co <- function()
 ahy.min.temp.co.results <- ahy.min.temp.co()
 ahy.min.temp.co.results
 
+##### OLD RESULTS #####
+
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_min_temp_z)p(~sex + effort) 0.0
 # Not closely followed by other model
-
-# Look at estimates and standard errors 
-results.2 <- ahy.min.temp.co.results[[4]]
-results.2$results$beta
 
 # Warmer summers decrease the probability of survival (-, significant)
 
@@ -247,6 +268,23 @@ results.2$results$beta
 
 # I'm keeping aver min temp as a covariate for the summer grounds and dropping
 # the others off
+
+##### NEW RESULTS #####
+
+# Look at estimates and standard errors 
+results.3 <- ahy.min.temp.co.results[[4]]
+results.3$results$beta
+
+# Increase of min temperature (warmer summers) decreases the probability of survival
+# (-, significant) 
+
+# Check for correlation between max temp covariate and min temp covariate
+cor.test(summer.co.stand$aver_min_temp_z,
+         summer.co.stand$aver_warm_days_z)
+
+# Weak positive correlation (0.2) not significant (p = 0.54)
+
+# I could use both covaraites in the model
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -265,7 +303,7 @@ ahy.resources.co <- function()
   Phi.sexFrostDays <- list(formula = ~sex + frost_days_z)
   Phi.sexSWE <- list(formula = ~sex + swe_z)
   
-  p.sexeffort <- list(formula = ~sex + effort)
+  p.sexeffort <- list(formula = ~sex + effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -283,14 +321,12 @@ ahy.resources.co <- function()
 ahy.resources.co.results <- ahy.resources.co()
 ahy.resources.co.results
 
+##### OLD RESULTS #####
+
 # Model with lowest Delta AIC 
 # Phi(~sex + frost_days_z)p(~sex + effort) 0.0
 # Followed by 
 # Phi(~sex + aver_precip_z)p(~sex + effort) 3.12
-
-# Look at estimates and standard errors 
-results.3 <- ahy.resources.co.results[[4]]
-results.3$results$beta
 
 # The number of frost days has a positive effect on survival (+, significant),
 # As the number of frost days increases survival also increases. Doesn't make
@@ -301,63 +337,49 @@ results.3$results$beta
 # overlap zero.
 
 # Look at correlation between covariates
-cor.test(summer.co.stand$frost_days_z,
-         summer.co.stand$aver_precip_z)
+# cor.test(summer.co.stand$frost_days_z,
+#          summer.co.stand$aver_precip_z)
 
 # No correlation between covariates (0.002) statistically not significant (0.995)
 
 # I'm inclined not to include the number of frost days in further analysis and
 # choose average precip
 
-# Remove mark files so they don't clog repo
-invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-
-# What if I remove the number of frost days from the candidate models?
-
-# Create function to run models
-ahy.resources.co.2 <- function()
-{
-  Phi.sex <- list(formula = ~sex)
-  Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
-  Phi.sexNDVI <- list(formula = ~sex + aver_ndvi_z)
-  Phi.sexSWE <- list(formula = ~sex + swe_z)
-  
-  p.sexeffort <- list(formula = ~sex + effort)
-  
-  # Create a data frame of all combinations of parameter specifications for each 
-  # parameter
-  cml <- create.model.list('CJS')  
-  
-  # Construct and run a set of MARK models from the cml data frame
-  results <- mark.wrapper(cml, 
-                          data = ahy.process,
-                          ddl = ahy.ddl,
-                          adjust = FALSE) # Accepts the parameter counts from MARK
-  return(results)
-}
-
-# Run the function
-ahy.resources.co.results.2 <- ahy.resources.co.2()
-ahy.resources.co.results.2
+##### NEW RESULTS ##### 
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
-# Followed by 
-# Phi(~sex)p(~sex + effort) 0.57
-# Phi(~sex + aver_ndvi_z)p(~sex + effort) 1.16
-# Phi(~sex + swe_z)p(~sex + effort) 2.24
+# Phi(~sex)p(~sex + effort_hours_z) 0.0
+# Followed very closely by 
+# Phi(~sex + aver_precip_z)p(~sex + effort_hours_z) 0.24
+# Phi(~sex + frost_days_z)p(~sex + effort_hours_z) 0.28
+# Phi(~sex + swe_z)p(~sex + effort_hours_z) 1.03
 
-# Look at estimates and standard errors 
-results.4 <- ahy.resources.co.results.2[[3]]
+# It seems like adding the covariates does not improve model fit. They don't 
+# explain survival better that just sex (base model)
+
+# Look at estimates and standard errors of second best model 
+results.4 <- ahy.resources.co.results[[4]]
 results.4$results$beta
 
-# Look at correlation between covariates
-cor.test(summer.co.stand$aver_ndvi_z,
-         summer.co.stand$aver_precip_z)
+# Increase in precipitation has a weak positive effect on survival 
+# (+, not significant) 
 
-# Moderate positive correlation between covariates (0.7) statistically significant 
-# (0.017)
+# Look at estimates and standard errors of third best model 
+results.5 <- ahy.resources.co.results[[2]]
+results.5$results$beta
+
+# Similar results. Increase in frost days has a weak effect on survival 
+# (+, not significant)
+
+# Look at estimates and standard errors of fourth best model 
+results.6 <- ahy.resources.co.results[[5]]
+results.6$results$beta
+
+# Similar results. Increase in swe has a weak effect on survival 
+# (+, not significant)
+
+# These results don't support the use of these covariates in the full model.
+# Right? 
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-

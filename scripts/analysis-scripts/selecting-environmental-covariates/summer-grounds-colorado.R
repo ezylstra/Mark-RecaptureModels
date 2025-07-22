@@ -36,7 +36,7 @@ sept.birds <- dat.raw %>%
 dat <- dat.raw %>%
   filter(!band %in% sept.birds$band,# exclude September birds
          !band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP'),
-         month != 9) %>% 
+         month != 9) %>% # exclude September recaptures
   select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
@@ -223,7 +223,6 @@ cor.test(summer.co.stand$aver_max_temp_z,
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
-
 # ----------------- All min temperature covariates at same time -------------- #
 
 # Which min temperature variable in the summer grounds better explains survival?
@@ -270,6 +269,9 @@ ahy.min.temp.co.results
 # the others off
 
 ##### NEW RESULTS #####
+
+# Model with lowest Delta AIC
+# Phi(~sex + aver_min_temp_z)p(~sex + effort_hours_z)
 
 # Look at estimates and standard errors 
 results.3 <- ahy.min.temp.co.results[[4]]

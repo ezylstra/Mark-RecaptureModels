@@ -31,7 +31,7 @@ sept.birds <- dat.raw %>%
 dat <- dat.raw %>%
   filter(!band %in% sept.birds$band,# exclude September birds
          !band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP'),
-         month != 9) %>% 
+         month != 9) %>% # exclude recaptures in September
   select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 

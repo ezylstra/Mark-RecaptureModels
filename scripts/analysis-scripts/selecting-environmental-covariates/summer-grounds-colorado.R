@@ -364,7 +364,7 @@ results.4 <- ahy.resources.co.results[[4]]
 results.4$results$beta
 
 # Increase in precipitation has a weak positive effect on survival 
-# (+, not significant) 
+# (+, barely not significant) 
 
 # Look at estimates and standard errors of third best model 
 results.5 <- ahy.resources.co.results[[2]]

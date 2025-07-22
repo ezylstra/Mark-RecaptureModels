@@ -22,9 +22,16 @@ rm(list = ls())
 # Load banding data
 dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 
+# Identify birds banded in September
+sept.birds <- dat.raw %>% 
+  filter(band_status == 1 & month == 9) %>% 
+  select(band)
+
 # Prepare data set for survival analysis 
 dat <- dat.raw %>%
-  filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  filter(!band %in% sept.birds$band,# exclude September birds
+         !band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP'),
+         month != 9) %>% 
   select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
@@ -70,19 +77,21 @@ z.stand <- function(x) {
 
 # Load effort data
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
-# Total banding days per year
 
 # Edit effort data and standardize it
 effort.z <- effort.raw %>% 
   # Sites not included in capture data for analysis:
   filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
-  summarize(total_days = sum(total_banding_days, na.rm = TRUE), 
+  summarize(total_days = sum(total_banding_days, na.rm = TRUE),
+            total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
             .groups = 'drop') %>% 
   rename(time = year,
-         effort_raw = total_days) %>% 
-  mutate(effort = z.stand(effort_raw)) %>%
-  select(time, effort) %>% 
+         effort_days = total_days,
+         effort_hours = total_trap_hours) %>% 
+  mutate(effort_days_z = z.stand(effort_days),
+         effort_hours_z = z.stand(effort_hours)) %>%
+  select(time, effort_days_z, effort_hours_z) %>% 
   as.data.frame()
 
 # ---------------------------- Environmental Covariates ---------------------- # 
@@ -119,6 +128,7 @@ ahy.ddl$p <- merge_design.covariates(
 ahy.ddl$Phi <- merge_design.covariates(
   ahy.ddl$Phi, winter.mx.stand)
 
+
 # ------------------------ RUN MODELS TO SELECT COVARIATES ------------------- #
 
 # ------------------- All temperature covariates at same time ---------------- #
@@ -133,7 +143,7 @@ ahy.temp.mx <- function()
   Phi.sexDailyTemp <- list(formula = ~sex + aver_daily_min_temp_z)
   Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
   
-  p.sexEffort <- list(formula = ~sex + effort)
+  p.sexEffort <- list(formula = ~sex + effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -151,14 +161,12 @@ ahy.temp.mx <- function()
 ahy.temp.mx.results <- ahy.temp.mx()
 ahy.temp.mx.results
 
+##### OLD RESULTS #####
+
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_min_temp_z)p(~sex + effort_z) 0.0
 # Followed by
 # Phi(~sex + aver_cold_days_z)p(~sex + effort) 1.4
-
-# Look at estimates and standard errors 
-results.1 <- ahy.temp.mx.results[[4]]
-results.1$results$beta
 
 # Adult males have less probability of survival than females (-, significant) 
 # Warmer winters (0.14) increase the probability of survival (+, significant)
@@ -168,13 +176,42 @@ results.1$results$beta
 # When explored the results of model 2, same as before, aver_cold_days had a similar
 # effect on survival (-0.14) but the effect was negative. This makes total sense.
 
+# I'm keeping aver_min_temp and dropping aver_cold_days
+
+#### NEW RESULTS ####
+
+# Model with lowest Delta AIC 
+# Phi(~sex + aver_cold_days_z)p(~sex + effort_hours_z) 0.0
+# Followed by
+# Phi(~sex + aver_min_temp_z)p(~sex + effort_hours_z) 3.02
+
+# Look at estimates and standard errors of best model
+results.1 <- ahy.temp.mx.results[[2]]
+results.1$results$beta
+
+# Adult males have less probability of survival than females (-, significant)
+# Increase in cold days (0.18) in the wintering grounds decreases the probability 
+# of survival (-, significant)
+# Sex does not have an effect on the probability of recapture (not significant)
+# More trapping effort increases the probability of recapture (+, significant)
+
+# Look at estimates and standard errors of second best model, even though it has
+# AIC > 2
+results.2 <- ahy.temp.mx.results[[4]]
+results.2$results$beta
+
+# Similar results. 
+# Warmer winters (0.17) increase the probability of survival (+, significant)
+
 # Explore correlation between covariates in the two first candidate models
 cor.test(winter.mx.stand$aver_min_temp_z, 
          winter.mx.stand$aver_cold_days_z)
 
 # High negative correlation (-0.860), statistically significant (p = 0.001)
+# Makes sense
 
-# I'm keeping aver_min_temp and dropping aver_cold_days
+# Should I replace aver_min_temp with aver_cold_days in the full model? Based on
+# AIC I think I should.
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -191,7 +228,7 @@ ahy.resources.mx <- function()
   Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
   Phi.sexNDVI <- list(formula = ~sex + average_ndvi_z)
 
-  p.sexeffort <- list(formula = ~sex + effort)
+  p.sexeffort <- list(formula = ~sex + effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -209,16 +246,14 @@ ahy.resources.mx <- function()
 ahy.resources.mx.results <- ahy.resources.mx()
 ahy.resources.mx.results
 
+##### OLD RESULTS #####
+
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
 # Followed by 
 # Phi(~sex)p(~sex + effort) 0.38
 # and
 # Phi(~sex + average_ndvi_z)p(~sex + effort) 1.75
-
-# Look at estimates and standard errors 
-results.2 <- ahy.resources.mx.results[[3]]
-results.2$results$beta
 
 # Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
 # It's likely that more precipitation might be associated with lower survival,
@@ -227,14 +262,36 @@ results.2$results$beta
 # Phi(~sex + average_ndvi_z)p(~sex + effort)
 # NDVI is not significant 
 
+# I'm keeping aver_precip as a covariate based on delta AIC and significance 
+
+##### NEW RESULTS #####
+
+# Model with lowest Delta AIC 
+# Phi(~sex + aver_precip_z)p(~sex + effort_hours_z) 0.0
+# Followed by 
+# Phi(~sex + average_ndvi_z)p(~sex + effort_hours_z) 1.44
+
+# Look at estimates and standard errors of best model 
+results.3 <- ahy.resources.mx.results[[3]]
+results.3$results$beta
+
+# More precipitation in the wintering grounds decrease the probability of
+# survival (-, significant)
+
+# Look at estimates and standard errors of second best model 
+results.4 <- ahy.resources.mx.results[[2]]
+results.4$results$beta
+
+# As NDVI increases the probability of survival tends to increase 
+# (+, barely not significant)
+
 # Check for correlation, as delta AIC < 2 in model with NDVI
 cor.test(winter.mx.stand$aver_precip_z,
          winter.mx.stand$average_ndvi_z)
 
 # Moderate positive correlation (0.66), statistically significant (p = 0.04)
 
-# I'm keeping aver_precip as a covariate based on delta AIC and significance 
+# I'm keeping precipitation
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
-

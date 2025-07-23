@@ -689,6 +689,7 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 # Even thought including a resource availability covariate in the model for 
 # covariate selection did not improved fit, I still wanted to include one of them 
 # to test the hypothesis that more rain or higher NDVI have an effect on survival.
+
 # I choose to use the covariate in the second best model:
 # Model with lowest Delta AIC 
 # Phi(~sex)p(~sex + effort_hours_z) 0.0
@@ -727,7 +728,8 @@ base.age.sex.results.8
 results.8 <- base.age.sex.results.8[[3]]
 results.8$results$beta
 
-# None of the interaction terms are statistically significant
+# None of the interaction terms are statistically significant, although for 
+# juveniles the CI barely includes zero.
 
 # Look at estimates and standard errors of second best model
 results.9 <- base.age.sex.results.8[[2]]
@@ -779,18 +781,20 @@ results.10 <- base.age.sex.full.results[[1]]
 results.10$results$beta
 
 # Phi:
-# Juveniles (intercept) have lower probability of survival than adult males and females
-# (-, significant)
+# Juveniles (intercept) have lower probability of survival than adult males and 
+# females (-, significant)
 # Adult females have higher probability of survival than juveniles and males
 # (+, significant)
 # Adult males have higher probability of survival than juveniles but lower than 
 # females (+, significant)
+
 # The increase in warm days in the summer grounds increases the probability of
-# survival of all groups (+, significant)
+# survival for all groups (+, significant)
 # The increase in min temperature (night temperature) in the summer grounds 
-# decreases the probability of survival of all groups (-, significant)
+# decreases the probability of survival for all groups (-, significant)
 # The increase of precipitation in the wintering grounds increases the probability
-# of survival of all groups (+, significant)
+# of survival for all groups (+, significant)
+
 # Interaction:
 # The increase in cold days in the wintering grounds decreases survival of juveniles
 # (-, significant)
@@ -1216,7 +1220,7 @@ winter.days.plot <- ggplot(pred.df.winter.days, aes(x = winter_aver_cold_days_c,
                                                     linetype = Group)) +
   geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Average number of winter cold days ≤ 10 °C',
+  labs(x = 'Average number of cold days (≤ 10 °C) in wintering grounds',
        y = 'Estimated survival probability\n(95% CI)',
        color = 'Group',
        fill = 'Group',
@@ -1377,7 +1381,7 @@ summer.days.plot <- ggplot(pred.df.summer.days, aes(x = summer_aver_warm_days_c,
                                                     linetype = Group)) +
   geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Average number of summer warm days ≥ 20 °C',
+  labs(x = 'Average number of number of warm days (≥ 20 °C) in the summer grounds ',
        y = 'Estimated survival probability\n(95% CI)',
        color = 'Group',
        fill = 'Group',

@@ -1381,7 +1381,7 @@ summer.days.plot <- ggplot(pred.df.summer.days, aes(x = summer_aver_warm_days_c,
                                                     linetype = Group)) +
   geom_line(size = 0.3) +
   geom_ribbon(aes(ymin = lcl, ymax = ucl), alpha = 0.1, color = NA) +
-  labs(x = 'Average number of number of warm days (≥ 20 °C) in the summer grounds ',
+  labs(x = 'Average number of warm days (≥ 20 °C) in the summer grounds ',
        y = 'Estimated survival probability\n(95% CI)',
        color = 'Group',
        fill = 'Group',

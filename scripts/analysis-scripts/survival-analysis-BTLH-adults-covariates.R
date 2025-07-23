@@ -15,9 +15,16 @@ rm(list = ls())
 # Load banding data
 dat.raw <- read.csv('output/capture-data/cleanded-capture-data-RMNP-full.csv')
 
+# Identify birds banded in September
+sept.birds <- dat.raw %>% 
+  filter(band_status == 1 & month == 9) %>% 
+  select(band)
+
 # Prepare data set for survival analysis 
 dat <- dat.raw %>%
-  filter(!band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  filter(!band %in% sept.birds$band,# exclude September birds
+         !band_site %in% c('WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP'),
+         month != 9) %>% 
   select(band, band_status, year, sex, obssite, band_age, band_site) %>% 
   rename(age = band_age) %>% 
   distinct() %>% 
@@ -70,12 +77,15 @@ effort.z <- effort.raw %>%
   # Sites not included in capture data for analysis:
   filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
-  summarize(total_days = sum(total_banding_days, na.rm = TRUE), 
+  summarize(total_days = sum(total_banding_days, na.rm = TRUE),
+            total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
             .groups = 'drop') %>% 
   rename(time = year,
-         effort_raw = total_days) %>% 
-  mutate(effort = z.stand(effort_raw)) %>%
-  select(time, effort) %>% 
+         effort_days = total_days,
+         effort_hours = total_trap_hours) %>% 
+  mutate(effort_days_z = z.stand(effort_days),
+         effort_hours_z = z.stand(effort_hours)) %>%
+  select(time, effort_days_z, effort_hours_z) %>% 
   as.data.frame()
 
 # ---------------------------- Environmental Covariates ---------------------- # 

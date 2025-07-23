@@ -1402,7 +1402,7 @@ summer.days.plot
 # Save plot
 ggsave(path = 'output/plots/New Plots Survival/',
        filename = 'summer warm days effect.png',
-       plot = winter.days.plot,
+       plot = summer.days.plot,
        device = 'png',
        dpi = 300)
 

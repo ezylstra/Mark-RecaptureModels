@@ -1,4 +1,4 @@
-# Modeling recapture probability using a 'step-down' approach 
+# Modeling detection probability using a 'step-down' approach 
 # with a fixed survival model
 # Following Lebreton et al. (1992)
 
@@ -106,7 +106,7 @@ ahy.ddl$p <- merge_design.covariates(
 
 # ----------------------------------- RUN MODELS ----------------------------- #
 
-# Model recapture probability 
+# Model detection probability 
 
 # Including time in function
 
@@ -156,7 +156,7 @@ results.2$results$beta
 # collinearity? 
 
 # I decided to exclude time from the next function as it is a covariate that does
-# not explains much. It just tells us that recapture probability differes by year.
+# not explains much. It just tells us that detection probability differs by year.
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -206,7 +206,7 @@ results.3$results$beta
 results.4 <- ahy.p.1.results[[4]]
 results.4$results$beta
 
-# The probaility of recapture doesn't differe by sex (b = 0.07, not significant) 
+# The probability of detection doesn't differs by sex (b = 0.07, not significant) 
 
 # Including sex doesn't improve model fit.
 

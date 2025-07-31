@@ -143,7 +143,7 @@ ahy.temp.mx <- function()
   Phi.sexDailyTemp <- list(formula = ~sex + aver_daily_min_temp_z)
   Phi.sexColdDays <- list(formula = ~sex + aver_cold_days_z)
   
-  p.sexEffort <- list(formula = ~sex + effort_hours_z)
+  p.sexEffort <- list(formula = ~effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -161,25 +161,6 @@ ahy.temp.mx <- function()
 ahy.temp.mx.results <- ahy.temp.mx()
 ahy.temp.mx.results
 
-##### OLD RESULTS #####
-
-# Model with lowest Delta AIC 
-# Phi(~sex + aver_min_temp_z)p(~sex + effort_z) 0.0
-# Followed by
-# Phi(~sex + aver_cold_days_z)p(~sex + effort) 1.4
-
-# Adult males have less probability of survival than females (-, significant) 
-# Warmer winters (0.14) increase the probability of survival (+, significant)
-# Sex does not have an effect on the probability of recapture (not significant)
-# More effort increases the probability of recapture (+, significant)
-
-# When explored the results of model 2, same as before, aver_cold_days had a similar
-# effect on survival (-0.14) but the effect was negative. This makes total sense.
-
-# I'm keeping aver_min_temp and dropping aver_cold_days
-
-#### NEW RESULTS ####
-
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_cold_days_z)p(~sex + effort_hours_z) 0.0
 # Followed by
@@ -192,7 +173,6 @@ results.1$results$beta
 # Adult males have less probability of survival than females (-, significant)
 # Increase in cold days (0.18) in the wintering grounds decreases the probability 
 # of survival (-, significant)
-# Sex does not have an effect on the probability of recapture (not significant)
 # More trapping effort increases the probability of recapture (+, significant)
 
 # Look at estimates and standard errors of second best model, even though it has
@@ -210,9 +190,6 @@ cor.test(winter.mx.stand$aver_min_temp_z,
 # High negative correlation (-0.860), statistically significant (p = 0.001)
 # Makes sense
 
-# Should I replace aver_min_temp with aver_cold_days in the full model? Based on
-# AIC I think I should.
-
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 
@@ -228,7 +205,7 @@ ahy.resources.mx <- function()
   Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
   Phi.sexNDVI <- list(formula = ~sex + average_ndvi_z)
 
-  p.sexeffort <- list(formula = ~sex + effort_hours_z)
+  p.sexeffort <- list(formula = ~effort_hours_z)
   
   # Create a data frame of all combinations of parameter specifications for each 
   # parameter
@@ -245,26 +222,6 @@ ahy.resources.mx <- function()
 # Run the function
 ahy.resources.mx.results <- ahy.resources.mx()
 ahy.resources.mx.results
-
-##### OLD RESULTS #####
-
-# Model with lowest Delta AIC 
-# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
-# Followed by 
-# Phi(~sex)p(~sex + effort) 0.38
-# and
-# Phi(~sex + average_ndvi_z)p(~sex + effort) 1.75
-
-# Phi(~sex + aver_precip_z)p(~sex + effort) 0.0
-# It's likely that more precipitation might be associated with lower survival,
-# the 95% CI overlaps zero, but not by much (-, barely not significant)
-
-# Phi(~sex + average_ndvi_z)p(~sex + effort)
-# NDVI is not significant 
-
-# I'm keeping aver_precip as a covariate based on delta AIC and significance 
-
-##### NEW RESULTS #####
 
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_precip_z)p(~sex + effort_hours_z) 0.0

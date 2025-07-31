@@ -162,9 +162,9 @@ ahy.temp.mx.results <- ahy.temp.mx()
 ahy.temp.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_cold_days_z)p(~sex + effort_hours_z) 0.0
+# Phi(~sex + aver_cold_days_z)p(~effort_hours_z) 0.0
 # Followed by
-# Phi(~sex + aver_min_temp_z)p(~sex + effort_hours_z) 3.02
+# Phi(~sex + aver_min_temp_z)p(~effort_hours_z) 3.02
 
 # Look at estimates and standard errors of best model
 results.1 <- ahy.temp.mx.results[[2]]
@@ -224,9 +224,9 @@ ahy.resources.mx.results <- ahy.resources.mx()
 ahy.resources.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_precip_z)p(~sex + effort_hours_z) 0.0
+# Phi(~sex + aver_precip_z)p(~effort_hours_z) 0.0
 # Followed by 
-# Phi(~sex + average_ndvi_z)p(~sex + effort_hours_z) 1.44
+# Phi(~sex + average_ndvi_z)p(~effort_hours_z) 1.44
 
 # Look at estimates and standard errors of best model 
 results.3 <- ahy.resources.mx.results[[3]]

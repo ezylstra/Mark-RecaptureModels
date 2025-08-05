@@ -68,8 +68,9 @@ effort_dat$trap_hours <- as.numeric(effort_dat$trap_hours)
 
 # Summarize effort data per site
 effort <- effort_dat %>%
-  filter(month != 9) %>% # exclude September effort!
-  group_by(site, year) %>% 
+  filter(month != 9, # exclude September
+         !site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  group_by(site) %>% 
   summarize(total_banding_days = sum(active_days),
             average_banding_days = mean(active_days),
             total_trap_hours = sum(trap_hours),

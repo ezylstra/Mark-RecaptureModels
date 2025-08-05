@@ -80,8 +80,6 @@ effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP
 
 # Edit effort data and standardize it
 effort.z <- effort.raw %>% 
-  # Sites not included in capture data for analysis:
-  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
   summarize(total_days = sum(total_banding_days, na.rm = TRUE),
             total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
@@ -162,33 +160,25 @@ ahy.temp.mx.results <- ahy.temp.mx()
 ahy.temp.mx.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_cold_days_z)p(~effort_hours_z) 0.0
+# Phi(~sex + aver_min_temp_z)p(~effort_hours_z) 0.0
 # Followed by
-# Phi(~sex + aver_min_temp_z)p(~effort_hours_z) 3.02
+# Phi(~sex + aver_cold_days_z)p(~effort_hours_z) 1.29
 
 # Look at estimates and standard errors of best model
-results.1 <- ahy.temp.mx.results[[2]]
+results.1 <- ahy.temp.mx.results[[4]]
 results.1$results$beta
 
 # Adult males have less probability of survival than females (-, significant)
-# Increase in cold days (0.18) in the wintering grounds decreases the probability 
-# of survival (-, significant)
+# Increase in temperature in the wintering grounds increases the probability 
+# of survival (+, significant)
 # More trapping effort increases the probability of recapture (+, significant)
 
-# Look at estimates and standard errors of second best model, even though it has
-# AIC > 2
-results.2 <- ahy.temp.mx.results[[4]]
+# Look at estimates and standard errors of second best model
+results.2 <- ahy.temp.mx.results[[2]]
 results.2$results$beta
-
-# Similar results. 
-# Warmer winters (0.17) increase the probability of survival (+, significant)
-
-# Explore correlation between covariates in the two first candidate models
-cor.test(winter.mx.stand$aver_min_temp_z, 
-         winter.mx.stand$aver_cold_days_z)
-
-# High negative correlation (-0.860), statistically significant (p = 0.001)
-# Makes sense
+ 
+# As the number of cold days increases the probability of survival decreases
+# (-, significant)
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -226,7 +216,7 @@ ahy.resources.mx.results
 # Model with lowest Delta AIC 
 # Phi(~sex + aver_precip_z)p(~effort_hours_z) 0.0
 # Followed by 
-# Phi(~sex + average_ndvi_z)p(~effort_hours_z) 1.44
+# Phi(~sex)p(~effort_hours_z) 4.24
 
 # Look at estimates and standard errors of best model 
 results.3 <- ahy.resources.mx.results[[3]]
@@ -234,21 +224,6 @@ results.3$results$beta
 
 # More precipitation in the wintering grounds decrease the probability of
 # survival (-, significant)
-
-# Look at estimates and standard errors of second best model 
-results.4 <- ahy.resources.mx.results[[2]]
-results.4$results$beta
-
-# As NDVI increases the probability of survival tends to increase 
-# (+, barely not significant)
-
-# Check for correlation, as delta AIC < 2 in model with NDVI
-cor.test(winter.mx.stand$aver_precip_z,
-         winter.mx.stand$average_ndvi_z)
-
-# Moderate positive correlation (0.66), statistically significant (p = 0.04)
-
-# I'm keeping precipitation
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))

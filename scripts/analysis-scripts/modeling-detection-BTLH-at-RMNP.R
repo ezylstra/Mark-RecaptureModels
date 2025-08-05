@@ -71,12 +71,9 @@ z.stand <- function(x) {
 
 # Load effort data
 effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP.csv')
-# Total banding days per year
 
 # Edit effort data and standardize it
 effort.z <- effort.raw %>% 
-  # Sites not included in capture data for analysis:
-  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
   summarize(total_days = sum(total_banding_days, na.rm = TRUE),
             total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
@@ -152,8 +149,7 @@ results.1$results$beta
 results.2 <- ahy.p.1.results[[7]]
 results.2$results$beta
 
-# Including both time and effort causes estimation issues (SE = 0), maybe due to 
-# collinearity? 
+# Including both time and effort causes estimation issues (SE = 0)
 
 # I decided to exclude time from the next function as it is a covariate that does
 # not explains much. It just tells us that detection probability differs by year.
@@ -194,19 +190,20 @@ ahy.p.2.results
 # Model with lowest Delta AIC
 # Phi(~sex + time)p(~effort_hours_z) 0.0
 # Followed by 
-# Phi(~sex + time)p(~sex + effort_hours_z) 1.84
+# Phi(~sex + time)p(~1) 1.3
+# Phi(~sex + time)p(~sex + effort_hours_z) 2.0
 
 # Look at estimates and standard errors of best model
 results.3 <- ahy.p.2.results[[2]]
 results.3$results$beta
 
-# The probability of detection increases with effort (+, significant)
+# The probability of detection increases with effort (+, barely not significant)
 
-# Look at estimates and standard errors of second best model
+# Look at estimates and standard errors of third best model
 results.4 <- ahy.p.1.results[[4]]
 results.4$results$beta
 
-# The probability of detection doesn't differs by sex (b = 0.07, not significant) 
+# The probability of detection doesn't differ by sex (b = 0.02, not significant) 
 
 # Including sex doesn't improve model fit.
 

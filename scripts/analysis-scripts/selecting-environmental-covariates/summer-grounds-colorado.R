@@ -86,8 +86,6 @@ effort.raw <- read.csv('output/banding-effort-data/banding-effort-all-sites-RMNP
 
 # Edit effort data and standardize it
 effort.z <- effort.raw %>% 
-  # Sites not included in capture data for analysis:
-  filter(!site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
   group_by(year) %>%
   summarize(total_days = sum(total_banding_days, na.rm = TRUE),
             total_trap_hours = sum(total_trap_hours, na.rm = TRUE),
@@ -181,28 +179,22 @@ ahy.max.temp.co.results <- ahy.max.temp.co()
 ahy.max.temp.co.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex + aver_warm_days_z)p(~effort_hours_z) 0.0
+# Phi(~sex + aver_max_temp_z)p(~effort_hours_z) 0.0
 # Followed by 
-# Phi(~sex + aver_max_temp_z)p(~effort_hours_z) 2.46
+# Phi(~sex + aver_warm_days_z)p(~effort_hours_z) 0.43
 
 # Look at estimates and standard errors of best model
-results.1 <- ahy.max.temp.co.results[[4]]
+results.1 <- ahy.max.temp.co.results[[3]]
 results.1$results$beta
-
-# Increase in the number of warm days in the summer grounds increases the 
-# probability of survival (+, significant)
-
-# Look at estimates and standard errors of second best model
-results.2 <- ahy.max.temp.co.results[[3]]
-results.2$results$beta
 
 # Increase in temperature increases the probability of survival (+, significant)
 
-# Check for correlation
-cor.test(summer.co.stand$aver_max_temp_z,
-         summer.co.stand$aver_warm_days_z)
+# Look at estimates and standard errors of second best model
+results.2 <- ahy.max.temp.co.results[[4]]
+results.2$results$beta
 
-# Highly positive correlation (0.93), statistically significant (p < 0.001)
+# Increase in the number of warm days increases the probability of survival 
+# (+, barely not significant)
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -238,7 +230,9 @@ ahy.min.temp.co.results <- ahy.min.temp.co()
 ahy.min.temp.co.results
 
 # Model with lowest Delta AIC
-# Phi(~sex + aver_min_temp_z)p(~ effort_hours_z)
+# Phi(~sex + aver_min_temp_z)p(~ effort_hours_z) 0.0
+# Followed by far by 
+# Phi(~sex + aver_cold_days_z)p(~effort_hours_z) 6.63
 
 # Look at estimates and standard errors 
 results.3 <- ahy.min.temp.co.results[[4]]
@@ -246,14 +240,6 @@ results.3$results$beta
 
 # Increase of min temperature (warmer summers) decreases the probability of survival
 # (-, significant) 
-
-# Check for correlation between max temp covariate and min temp covariate
-cor.test(summer.co.stand$aver_min_temp_z,
-         summer.co.stand$aver_warm_days_z)
-
-# Weak positive correlation (0.2) not significant (p = 0.54)
-
-# I could use both covaraites in the model
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
@@ -267,9 +253,9 @@ invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
 ahy.resources.co <- function()
 {
   Phi.sex <- list(formula = ~sex)
+  Phi.sexFrostDays <- list(formula = ~sex + frost_days_z)
   Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
   Phi.sexNDVI <- list(formula = ~sex + aver_ndvi_z)
-  Phi.sexFrostDays <- list(formula = ~sex + frost_days_z)
   Phi.sexSWE <- list(formula = ~sex + swe_z)
   
   p.sexeffort <- list(formula = ~effort_hours_z)
@@ -291,37 +277,64 @@ ahy.resources.co.results <- ahy.resources.co()
 ahy.resources.co.results
 
 # Model with lowest Delta AIC 
-# Phi(~sex)p(~effort_hours_z) 0.0
-# Followed very closely by 
-# Phi(~sex + aver_precip_z)p(~effort_hours_z) 0.21
-# Phi(~sex + frost_days_z)p(~effort_hours_z) 0.28
-# Phi(~sex + swe_z)p(~effort_hours_z) 1.04
-
-# It seems like adding the covariates does not improve model fit. They don't 
-# explain survival better that just sex (base model)
+# Phi(~sex + frost_days_z)p(~effort_hours_z) 0.0
+# Followed by 
+# Phi(~sex + aver_precip_z)p(~effort_hours_z) 3.67
 
 # Look at estimates and standard errors of second best model 
-results.4 <- ahy.resources.co.results[[4]]
+results.4 <- ahy.resources.co.results[[2]]
 results.4$results$beta
 
-# Increase in precipitation has a weak positive effect on survival 
-# (+, barely not significant) 
+# More frost days (very cold days) increase the probability of survival 
+# (+, significant) 
 
-# Look at estimates and standard errors of third best model 
-results.5 <- ahy.resources.co.results[[2]]
+# Look at estimates and standard errors of second best model 
+results.5 <- ahy.resources.co.results[[4]]
 results.5$results$beta
 
-# Similar results. Increase in frost days has a weak effect on survival 
-# (+, not significant)
-
-# Look at estimates and standard errors of fourth best model 
-results.6 <- ahy.resources.co.results[[5]]
-results.6$results$beta
-
-# Similar results. Increase in swe has a weak effect on survival 
-# (+, not significant)
-
-# These results don't support the use of these covariates in the full model.
+# Increase in precip increases the probability of survival (+, not significant,
+# but not far from zero)
 
 # Remove mark files so they don't clog repo
 invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# If I don't include frost days in function
+
+# Create function to run models
+ahy.resources.co.2 <- function()
+{
+  Phi.sex <- list(formula = ~sex)
+  Phi.sexPrecip <- list(formula = ~sex + aver_precip_z)
+  Phi.sexNDVI <- list(formula = ~sex + aver_ndvi_z)
+  Phi.sexSWE <- list(formula = ~sex + swe_z)
+  
+  p.sexeffort <- list(formula = ~effort_hours_z)
+  
+  # Create a data frame of all combinations of parameter specifications for each 
+  # parameter
+  cml <- create.model.list('CJS')  
+  
+  # Construct and run a set of MARK models from the cml data frame
+  results <- mark.wrapper(cml, 
+                          data = ahy.process,
+                          ddl = ahy.ddl,
+                          adjust = FALSE) # Accepts the parameter counts from MARK
+  return(results)
+}
+
+# Run the function
+ahy.resources.co.results.2 <- ahy.resources.co.2()
+ahy.resources.co.results.2
+
+# Look at estimates and standard errors of best model 
+results.6 <- ahy.resources.co.results.2[[3]]
+results.6$results$beta
+
+# Increase in precip increases the probability of survival (+, not significant)
+# Also, the effect is small
+
+# Remove mark files so they don't clog repo
+invisible(file.remove(list.files(pattern = 'mark.*\\.(inp|out|res|vcv|tmp)$')))
+

@@ -45,10 +45,10 @@ effort_dat$site[effort_dat$site == 'HPK3'] <- 'HPK2'
 
 # 1) Separate hours from minutes when format is hh:mm
 effort_dat <- separate(effort_dat,
-         col = trap_hours, 
-         into = c('hours', 'minutes'), 
-         sep = ':',
-         remove = FALSE)
+                       col = trap_hours, 
+                       into = c('hours', 'minutes'),
+                       sep = ':',
+                       remove = FALSE)
 
 # 2) Change columns minutes and hours from character to numeric
 effort_dat$minutes <- as.numeric(effort_dat$minutes)
@@ -67,8 +67,10 @@ effort_dat <- effort_dat %>%
 effort_dat$trap_hours <- as.numeric(effort_dat$trap_hours)
 
 # Summarize effort data per site
-effort <- effort_dat %>% 
-  group_by(site, year) %>% 
+effort <- effort_dat %>%
+  filter(month != 9, # exclude September
+         !site %in% c('CLP', 'BGMD', 'WB2','WB1', 'WPK1', 'NFPC', 'POLC', 'SHIP')) %>% 
+  group_by(year, site) %>% 
   summarize(total_banding_days = sum(active_days),
             average_banding_days = mean(active_days),
             total_trap_hours = sum(trap_hours),
